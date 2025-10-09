@@ -1,0 +1,988 @@
+{
+	"info": {
+		"_postman_id": "kairos-hr-api-2025",
+		"name": "Kairos HR Management API",
+		"description": "Complete REST API for Kairos HR Management System - Projects, Tasks, Time Entries, Benefits, Holidays, and Timesheet Policies",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						},
+						"description": "Check API and database health status"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Projects",
+			"item": [
+				{
+					"name": "List Projects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects?page=1&limit=20&sort=name:asc&active=true",
+							"host": ["{{base_url}}"],
+							"path": ["projects"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (default: 1)"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Items per page (default: 20, max: 100)"
+								},
+								{
+									"key": "sort",
+									"value": "name:asc",
+									"description": "Sort field and order (e.g., name:asc, created_at:desc)",
+									"disabled": true
+								},
+								{
+									"key": "tenant_id",
+									"value": "{{tenant_id}}",
+									"description": "Filter by tenant ID",
+									"disabled": true
+								},
+								{
+									"key": "active",
+									"value": "true",
+									"description": "Filter by active status",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "backend",
+									"description": "Search projects by name (case-insensitive)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get paginated list of projects with optional filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}"]
+						},
+						"description": "Get a single project by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Project",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('project_id', response.id);",
+									"    console.log('Project ID saved:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"name\": \"Backend Development\",\n  \"code\": \"BACK-001\",\n  \"active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects",
+							"host": ["{{base_url}}"],
+							"path": ["projects"]
+						},
+						"description": "Create a new project"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Project",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Backend Development Updated\",\n  \"active\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}"]
+						},
+						"description": "Update a project (partial update supported)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Project",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}"]
+						},
+						"description": "Delete a project by ID"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tasks",
+			"item": [
+				{
+					"name": "List Tasks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tasks?page=1&limit=20&project_id={{project_id}}&sort=name:asc",
+							"host": ["{{base_url}}"],
+							"path": ["tasks"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "tenant_id",
+									"value": "{{tenant_id}}",
+									"disabled": true
+								},
+								{
+									"key": "project_id",
+									"value": "{{project_id}}",
+									"description": "Filter by project"
+								},
+								{
+									"key": "parent_task_id",
+									"value": "{{task_id}}",
+									"description": "Filter by parent task (or 'null' for root tasks)",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "backend",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "name:asc",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get paginated list of tasks with optional filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Task by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tasks/{{task_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["tasks", "{{task_id}}"]
+						},
+						"description": "Get a single task by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Root Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('task_id', response.id);",
+									"    console.log('Task ID saved:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"project_id\": \"{{project_id}}\",\n  \"name\": \"API Development\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks",
+							"host": ["{{base_url}}"],
+							"path": ["tasks"]
+						},
+						"description": "Create a new root task (no parent)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Child Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"project_id\": \"{{project_id}}\",\n  \"name\": \"REST Endpoints\",\n  \"parent_task_id\": \"{{task_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks",
+							"host": ["{{base_url}}"],
+							"path": ["tasks"]
+						},
+						"description": "Create a child task with parent reference"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Task",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"API Development Updated\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks/{{task_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["tasks", "{{task_id}}"]
+						},
+						"description": "Update a task (name or parent_task_id)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Task",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tasks/{{task_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["tasks", "{{task_id}}"]
+						},
+						"description": "Delete a task (cannot have children)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Time Entries",
+			"item": [
+				{
+					"name": "List Time Entries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/time-entries?page=1&limit=20&user_id={{user_id}}&project_id={{project_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["time-entries"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "tenant_id",
+									"value": "{{tenant_id}}",
+									"disabled": true
+								},
+								{
+									"key": "user_id",
+									"value": "{{user_id}}"
+								},
+								{
+									"key": "project_id",
+									"value": "{{project_id}}"
+								},
+								{
+									"key": "task_id",
+									"value": "{{task_id}}",
+									"disabled": true
+								},
+								{
+									"key": "week_start_date",
+									"value": "2025-10-06",
+									"description": "YYYY-MM-DD format",
+									"disabled": true
+								},
+								{
+									"key": "day_of_week",
+									"value": "1",
+									"description": "0=Sunday, 6=Saturday",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "created_at:desc",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get paginated list of time entries with filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Time Entry by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/time-entries/{{time_entry_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["time-entries", "{{time_entry_id}}"]
+						},
+						"description": "Get a single time entry by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Time Entry",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('time_entry_id', response.id);",
+									"    console.log('Time Entry ID saved:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"user_id\": \"{{user_id}}\",\n  \"project_id\": \"{{project_id}}\",\n  \"task_id\": \"{{task_id}}\",\n  \"week_start_date\": \"2025-10-06\",\n  \"day_of_week\": 1,\n  \"hours\": 8,\n  \"note\": \"Backend development work\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/time-entries",
+							"host": ["{{base_url}}"],
+							"path": ["time-entries"]
+						},
+						"description": "Create a new time entry"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Time Entry",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"hours\": 7.5,\n  \"note\": \"Updated work notes\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/time-entries/{{time_entry_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["time-entries", "{{time_entry_id}}"]
+						},
+						"description": "Update time entry hours or note"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Time Entry",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/time-entries/{{time_entry_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["time-entries", "{{time_entry_id}}"]
+						},
+						"description": "Delete a time entry by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Weekly Hours (Stats)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/time-entries/stats/weekly/{{user_id}}/2025-10-06",
+							"host": ["{{base_url}}"],
+							"path": ["time-entries", "stats", "weekly", "{{user_id}}", "2025-10-06"]
+						},
+						"description": "Get total hours for a user in a specific week"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project Hours (Stats)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/time-entries/stats/project/{{project_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["time-entries", "stats", "project", "{{project_id}}"]
+						},
+						"description": "Get total hours for a project"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Benefit Types",
+			"item": [
+				{
+					"name": "List Benefit Types",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/benefit-types?page=1&limit=20&sort=name:asc",
+							"host": ["{{base_url}}"],
+							"path": ["benefit-types"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "tenant_id",
+									"value": "{{tenant_id}}",
+									"disabled": true
+								},
+								{
+									"key": "unit",
+									"value": "days",
+									"description": "Filter by unit: days or hours",
+									"disabled": true
+								},
+								{
+									"key": "requires_approval",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "vacation",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "name:asc",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get paginated list of benefit types"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Benefit Type by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/benefit-types/{{benefit_type_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["benefit-types", "{{benefit_type_id}}"]
+						},
+						"description": "Get a single benefit type by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Benefit Type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('benefit_type_id', response.id);",
+									"    console.log('Benefit Type ID saved:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"key\": \"vacation\",\n  \"name\": \"Annual Vacation\",\n  \"unit\": \"days\",\n  \"requires_approval\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/benefit-types",
+							"host": ["{{base_url}}"],
+							"path": ["benefit-types"]
+						},
+						"description": "Create a new benefit type (e.g., vacation, sick leave)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Benefit Type",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Annual Vacation Days\",\n  \"requires_approval\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/benefit-types/{{benefit_type_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["benefit-types", "{{benefit_type_id}}"]
+						},
+						"description": "Update a benefit type"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Benefit Type",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/benefit-types/{{benefit_type_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["benefit-types", "{{benefit_type_id}}"]
+						},
+						"description": "Delete a benefit type by ID"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Holidays",
+			"item": [
+				{
+					"name": "List Holidays",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/holidays?page=1&limit=20&year=2025&sort=date:asc",
+							"host": ["{{base_url}}"],
+							"path": ["holidays"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "tenant_id",
+									"value": "{{tenant_id}}",
+									"description": "Filter by tenant (or null for global)",
+									"disabled": true
+								},
+								{
+									"key": "country_code",
+									"value": "US",
+									"description": "Filter by country code (2 chars)",
+									"disabled": true
+								},
+								{
+									"key": "year",
+									"value": "2025",
+									"description": "Filter by year"
+								},
+								{
+									"key": "search",
+									"value": "Christmas",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "date:asc",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get paginated list of holidays with filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Holiday by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/holidays/{{holiday_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["holidays", "{{holiday_id}}"]
+						},
+						"description": "Get a single holiday by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Holiday (Global)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('holiday_id', response.id);",
+									"    console.log('Holiday ID saved:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"country_code\": \"US\",\n  \"date\": \"2025-12-25\",\n  \"name\": \"Christmas Day\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/holidays",
+							"host": ["{{base_url}}"],
+							"path": ["holidays"]
+						},
+						"description": "Create a global holiday (no tenant_id)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Holiday (Tenant)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"country_code\": \"US\",\n  \"date\": \"2025-07-04\",\n  \"name\": \"Independence Day\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/holidays",
+							"host": ["{{base_url}}"],
+							"path": ["holidays"]
+						},
+						"description": "Create a tenant-specific holiday"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Holiday",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Christmas Day (Updated)\",\n  \"date\": \"2025-12-25\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/holidays/{{holiday_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["holidays", "{{holiday_id}}"]
+						},
+						"description": "Update a holiday"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Holiday",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/holidays/{{holiday_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["holidays", "{{holiday_id}}"]
+						},
+						"description": "Delete a holiday by ID"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Timesheet Policies",
+			"item": [
+				{
+					"name": "List All Policies",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/timesheet-policies",
+							"host": ["{{base_url}}"],
+							"path": ["timesheet-policies"]
+						},
+						"description": "Get all timesheet policies (one per tenant)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Policy by Tenant",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/timesheet-policies/{{tenant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["timesheet-policies", "{{tenant_id}}"]
+						},
+						"description": "Get timesheet policy for a specific tenant"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Policy",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"week_start\": 1,\n  \"max_hours_per_day\": 8,\n  \"allow_overtime\": true,\n  \"lock_after_approval\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/timesheet-policies",
+							"host": ["{{base_url}}"],
+							"path": ["timesheet-policies"]
+						},
+						"description": "Create timesheet policy for a tenant (week_start: 0=Sunday, 1=Monday)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Policy",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"max_hours_per_day\": 10,\n  \"allow_overtime\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/timesheet-policies/{{tenant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["timesheet-policies", "{{tenant_id}}"]
+						},
+						"description": "Update timesheet policy for a tenant"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Policy",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/timesheet-policies/{{tenant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["timesheet-policies", "{{tenant_id}}"]
+						},
+						"description": "Delete timesheet policy for a tenant"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "tenant_id",
+			"value": "00000000-0000-0000-0000-000000000001",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "00000000-0000-0000-0000-000000000002",
+			"type": "string"
+		},
+		{
+			"key": "project_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "task_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "time_entry_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "benefit_type_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "holiday_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
