@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { DbService } from '../db/db.service';
-import { projects } from '../db/schema/projects';
+import { projects, projectMembers, users } from '../db/schema';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { QueryProjectsDto } from './dto/query-projects.dto';
@@ -143,5 +143,153 @@ export class ProjectsService {
     await this.findOne(id);
 
     await db.delete(projects).where(eq(projects.id, id));
+  }
+
+  // ===== Project Membership Methods =====
+
+  /**
+   * Get all members of a project
+   */
+  async getMembers(tenantId: string, projectId: string) {
+    const db = this.dbService.getDb();
+
+    // Verify project exists and belongs to tenant
+    const project = await this.findOne(projectId);
+    if (project.tenantId !== tenantId) {
+      throw new NotFoundException('Project not found');
+    }
+
+    const members = await db
+      .select({
+        id: projectMembers.id,
+        userId: projectMembers.userId,
+        role: projectMembers.role,
+        createdAt: projectMembers.createdAt,
+        user: {
+          id: users.id,
+          email: users.email,
+          name: users.name,
+        },
+      })
+      .from(projectMembers)
+      .leftJoin(users, eq(projectMembers.userId, users.id))
+      .where(
+        and(
+          eq(projectMembers.tenantId, tenantId),
+          eq(projectMembers.projectId, projectId),
+        ),
+      );
+
+    return members;
+  }
+
+  /**
+   * Add a member to a project
+   */
+  async addMember(tenantId: string, projectId: string, userId: string, role?: string) {
+    const db = this.dbService.getDb();
+
+    // Verify project exists
+    const project = await this.findOne(projectId);
+    if (project.tenantId !== tenantId) {
+      throw new NotFoundException('Project not found');
+    }
+
+    // Check if user exists in this tenant
+    const [membership] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!membership) {
+      throw new BadRequestException('User not found in this tenant');
+    }
+
+    // Check if already a member
+    const [existing] = await db
+      .select()
+      .from(projectMembers)
+      .where(
+        and(
+          eq(projectMembers.tenantId, tenantId),
+          eq(projectMembers.projectId, projectId),
+          eq(projectMembers.userId, userId),
+        ),
+      )
+      .limit(1);
+
+    if (existing) {
+      throw new ConflictException('User is already a member of this project');
+    }
+
+    const [member] = await db
+      .insert(projectMembers)
+      .values({
+        tenantId,
+        projectId,
+        userId,
+        role: role || 'member',
+      })
+      .returning();
+
+    return member;
+  }
+
+  /**
+   * Remove a member from a project
+   */
+  async removeMember(tenantId: string, projectId: string, userId: string) {
+    const db = this.dbService.getDb();
+
+    // Verify project exists
+    const project = await this.findOne(projectId);
+    if (project.tenantId !== tenantId) {
+      throw new NotFoundException('Project not found');
+    }
+
+    const result = await db
+      .delete(projectMembers)
+      .where(
+        and(
+          eq(projectMembers.tenantId, tenantId),
+          eq(projectMembers.projectId, projectId),
+          eq(projectMembers.userId, userId),
+        ),
+      )
+      .returning();
+
+    if (result.length === 0) {
+      throw new NotFoundException('User is not a member of this project');
+    }
+  }
+
+  /**
+   * Get all projects a user is a member of
+   */
+  async getMyProjects(tenantId: string, userId: string) {
+    const db = this.dbService.getDb();
+
+    const myProjects = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        code: projects.code,
+        active: projects.active,
+        tenantId: projects.tenantId,
+        memberRole: projectMembers.role,
+        memberSince: projectMembers.createdAt,
+      })
+      .from(projectMembers)
+      .innerJoin(projects, eq(projectMembers.projectId, projects.id))
+      .where(
+        and(
+          eq(projectMembers.tenantId, tenantId),
+          eq(projectMembers.userId, userId),
+        ),
+      )
+      .orderBy(desc(projects.name));
+
+    return myProjects;
   }
 }

@@ -5,6 +5,7 @@ export * from './sessions';
 export * from './memberships';
 export * from './benefits';
 export * from './projects';
+export * from './project-members';
 export * from './time-entries';
 export * from './timesheets';
 export * from './holidays';
