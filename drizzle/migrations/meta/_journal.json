@@ -15,6 +15,13 @@
       "when": 1760561671111,
       "tag": "0001_rapid_lily_hollister",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1760563079327,
+      "tag": "0002_adorable_famine",
+      "breakpoints": true
     }
   ]
 }

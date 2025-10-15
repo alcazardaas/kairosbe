@@ -6,6 +6,7 @@ export * from './memberships';
 export * from './benefits';
 export * from './projects';
 export * from './time-entries';
+export * from './timesheets';
 export * from './holidays';
 export * from './timesheet-policies';
 export * from './audit';

@@ -16,3 +16,10 @@ export const requestStatusEnum = pgEnum('request_status_enum', [
   'rejected',
   'cancelled',
 ]);
+
+export const timesheetStatusEnum = pgEnum('timesheet_status_enum', [
+  'draft',
+  'submitted',
+  'approved',
+  'rejected',
+]);

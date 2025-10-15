@@ -7,6 +7,7 @@ import { HealthModule } from './health/health.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { TimeEntriesModule } from './time-entries/time-entries.module';
+import { TimesheetsModule } from './timesheets/timesheets.module';
 import { BenefitTypesModule } from './benefit-types/benefit-types.module';
 import { HolidaysModule } from './holidays/holidays.module';
 import { TimesheetPoliciesModule } from './timesheet-policies/timesheet-policies.module';
@@ -40,6 +41,7 @@ import { TimesheetPoliciesModule } from './timesheet-policies/timesheet-policies
     ProjectsModule,
     TasksModule,
     TimeEntriesModule,
+    TimesheetsModule,
     BenefitTypesModule,
     HolidaysModule,
     TimesheetPoliciesModule,
