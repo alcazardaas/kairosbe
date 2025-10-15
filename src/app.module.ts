@@ -13,6 +13,7 @@ import { BenefitTypesModule } from './benefit-types/benefit-types.module';
 import { HolidaysModule } from './holidays/holidays.module';
 import { TimesheetPoliciesModule } from './timesheet-policies/timesheet-policies.module';
 import { LeaveRequestsModule } from './leave-requests/leave-requests.module';
+import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { LeaveRequestsModule } from './leave-requests/leave-requests.module';
     HolidaysModule,
     TimesheetPoliciesModule,
     LeaveRequestsModule,
+    CalendarModule,
   ],
   controllers: [],
   providers: [],

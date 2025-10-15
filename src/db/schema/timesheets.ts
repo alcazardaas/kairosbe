@@ -26,5 +26,12 @@ export const timesheets = pgTable(
   (table) => ({
     userWeekIdx: index('idx_timesheets_user_week').on(table.userId, table.weekStartDate),
     statusIdx: index('idx_timesheets_status').on(table.status),
+    // Composite index for manager team views (tenant + status + week_start + user)
+    teamViewIdx: index('idx_timesheets_team_view').on(
+      table.tenantId,
+      table.status,
+      table.weekStartDate,
+      table.userId,
+    ),
   }),
 );

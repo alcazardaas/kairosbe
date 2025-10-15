@@ -135,7 +135,7 @@ Add database change:
 
 ## Implementation Roadmap
 
-All 6 phases are now complete:
+All 7 phases are now complete:
 
 ### ✅ 1. Auth & Session (COMPLETE)
 
@@ -181,6 +181,15 @@ All 6 phases are now complete:
 
 - GET /search/projects?q=&limit= - Search projects by name/code
 - GET /search/tasks?q=&project_id=&limit= - Search tasks with optional project filter
+
+### ✅ 7. Manager Team Views (COMPLETE)
+
+- GET /timesheets?team=true&status=pending&from=&to= - View team timesheets with pagination
+- GET /leave-requests?team=true&status=pending&from=&to= - View team leave requests with date overlap
+- GET /calendar?user_id=&from=&to=&include= - Unified calendar feed (holidays, leave, timesheets)
+- Team defined as direct reports via profiles.manager_user_id
+- RBAC enforced at service level
+- See [docs/PHASE_7_MANAGER_VIEWS.md](docs/PHASE_7_MANAGER_VIEWS.md) for details
 
 ---
 

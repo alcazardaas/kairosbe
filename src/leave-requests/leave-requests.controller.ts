@@ -29,22 +29,29 @@ export class LeaveRequestsController {
     @Query('mine') mine?: string,
     @Query('team') team?: string,
     @Query('status') status?: 'pending' | 'approved' | 'rejected' | 'cancelled',
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('page') page?: string,
+    @Query('page_size') pageSize?: string,
   ) {
     const userId = session?.userId;
     const filters = {
       mine: mine === 'true',
       team: team === 'true',
       status,
+      from,
+      to,
+      page: page ? parseInt(page, 10) : undefined,
+      pageSize: pageSize ? parseInt(pageSize, 10) : undefined,
     };
 
-    const results = await this.leaveRequestsService.findAll(tenantId, userId, filters);
+    const result = await this.leaveRequestsService.findAll(tenantId, userId, filters);
 
     return {
-      data: results,
-      meta: {
-        count: results.length,
-        filters,
-      },
+      data: result.data,
+      page: result.page,
+      page_size: result.pageSize,
+      total: result.total,
     };
   }
 

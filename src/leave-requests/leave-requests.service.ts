@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, sql, inArray, gte, lte, or, desc } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import {
   benefitRequests,
   benefitBalances,
   benefitTypes,
   users,
+  profiles,
 } from '../db/schema';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import { ReviewLeaveRequestDto } from './dto/review-leave-request.dto';
@@ -19,26 +20,63 @@ export class LeaveRequestsService {
    */
   async findAll(
     tenantId: string,
-    userId?: string,
+    currentUserId: string,
     filters?: {
       mine?: boolean;
       team?: boolean;
       status?: 'pending' | 'approved' | 'rejected' | 'cancelled';
+      from?: string;
+      to?: string;
+      page?: number;
+      pageSize?: number;
     },
   ) {
     const conditions = [eq(benefitRequests.tenantId, tenantId)];
 
-    if (filters?.mine && userId) {
-      conditions.push(eq(benefitRequests.userId, userId));
+    // Handle team filtering for managers
+    if (filters?.team) {
+      // Get direct reports (users where manager_user_id = current user)
+      const directReports = await this.db.db
+        .select({ userId: profiles.userId })
+        .from(profiles)
+        .where(and(eq(profiles.tenantId, tenantId), eq(profiles.managerUserId, currentUserId)));
+
+      const teamUserIds = directReports.map((r) => r.userId);
+
+      if (teamUserIds.length === 0) {
+        // No direct reports, return empty
+        return { data: [], total: 0, page: filters.page || 1, pageSize: filters.pageSize || 20 };
+      }
+
+      conditions.push(inArray(benefitRequests.userId, teamUserIds));
+    } else if (filters?.mine) {
+      conditions.push(eq(benefitRequests.userId, currentUserId));
     }
 
     if (filters?.status) {
       conditions.push(eq(benefitRequests.status, filters.status));
     }
 
-    // For team view, we'd typically filter by manager relationship
-    // For now, we'll show all requests for the tenant if team=true
-    // This can be enhanced later with proper manager hierarchy
+    // Date range overlap filtering: (start_date <= to) AND (end_date >= from)
+    if (filters?.from && filters?.to) {
+      conditions.push(lte(benefitRequests.startDate, sql`${filters.to}::date`));
+      conditions.push(gte(benefitRequests.endDate, sql`${filters.from}::date`));
+    } else if (filters?.from) {
+      conditions.push(gte(benefitRequests.endDate, sql`${filters.from}::date`));
+    } else if (filters?.to) {
+      conditions.push(lte(benefitRequests.startDate, sql`${filters.to}::date`));
+    }
+
+    // Get total count
+    const [{ count }] = await this.db.db
+      .select({ count: sql<number>`cast(count(*) as integer)` })
+      .from(benefitRequests)
+      .where(and(...conditions));
+
+    // Apply pagination
+    const page = filters?.page || 1;
+    const pageSize = filters?.pageSize || 20;
+    const offset = (page - 1) * pageSize;
 
     const results = await this.db.db
       .select({
@@ -69,9 +107,16 @@ export class LeaveRequestsService {
       .leftJoin(users, eq(benefitRequests.userId, users.id))
       .leftJoin(benefitTypes, eq(benefitRequests.benefitTypeId, benefitTypes.id))
       .where(and(...conditions))
-      .orderBy(sql`${benefitRequests.createdAt} DESC`);
+      .orderBy(desc(benefitRequests.createdAt))
+      .limit(pageSize)
+      .offset(offset);
 
-    return results;
+    return {
+      data: results,
+      total: count,
+      page,
+      pageSize,
+    };
   }
 
   /**

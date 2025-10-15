@@ -1,0 +1,410 @@
+{
+  "info": {
+    "name": "Kairos - Manager Team Views",
+    "description": "Collection for the 3 new manager-focused endpoints:\n1. GET /timesheets?team=true - View team timesheets\n2. GET /leave-requests?team=true - View team leave requests\n3. GET /calendar - Unified calendar feed",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "employee_user_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login as Manager",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"access_token\", jsonData.data.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@demo.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login as the manager user to get an access token"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User (Me)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Get user info successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": ["{{base_url}}"],
+              "path": ["me"]
+            },
+            "description": "Get current user context including role and permissions"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1. Team Timesheets",
+      "item": [
+        {
+          "name": "Get Pending Team Timesheets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/timesheets?team=true&status=submitted&page=1&page_size=20",
+              "host": ["{{base_url}}"],
+              "path": ["timesheets"],
+              "query": [
+                {
+                  "key": "team",
+                  "value": "true",
+                  "description": "Filter to show only direct reports' timesheets"
+                },
+                {
+                  "key": "status",
+                  "value": "submitted",
+                  "description": "Filter by status (draft, submitted, approved, rejected)"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Items per page (default: 20)"
+                }
+              ]
+            },
+            "description": "Returns submitted timesheets for all direct reports. Includes total_hours, user info, and submission timestamp."
+          },
+          "response": [
+            {
+              "name": "Success Example",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/timesheets?team=true&status=submitted",
+                  "host": ["{{base_url}}"],
+                  "path": ["timesheets"],
+                  "query": [
+                    {"key": "team", "value": "true"},
+                    {"key": "status", "value": "submitted"}
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"ts_123\",\n      \"user\": {\n        \"id\": \"u1\",\n        \"name\": \"Bob Employee\"\n      },\n      \"weekStartDate\": \"2025-10-13\",\n      \"status\": \"submitted\",\n      \"totalHours\": 38.5,\n      \"submittedAt\": \"2025-10-14T09:30:00Z\"\n    }\n  ],\n  \"page\": 1,\n  \"page_size\": 20,\n  \"total\": 3\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Team Timesheets with Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/timesheets?team=true&status=submitted&from=2025-10-01&to=2025-10-31",
+              "host": ["{{base_url}}"],
+              "path": ["timesheets"],
+              "query": [
+                {
+                  "key": "team",
+                  "value": "true"
+                },
+                {
+                  "key": "status",
+                  "value": "submitted"
+                },
+                {
+                  "key": "from",
+                  "value": "2025-10-01",
+                  "description": "Start date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "to",
+                  "value": "2025-10-31",
+                  "description": "End date (YYYY-MM-DD)"
+                }
+              ]
+            },
+            "description": "Filter team timesheets by date range"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Team Leave Requests",
+      "item": [
+        {
+          "name": "Get Pending Team Leave Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leave-requests?team=true&status=pending&page=1&page_size=20",
+              "host": ["{{base_url}}"],
+              "path": ["leave-requests"],
+              "query": [
+                {
+                  "key": "team",
+                  "value": "true",
+                  "description": "Filter to show only direct reports' requests"
+                },
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "Filter by status (pending, approved, rejected, cancelled)"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Items per page (default: 20)"
+                }
+              ]
+            },
+            "description": "Returns pending leave requests for all direct reports. Includes user info, benefit type, and requested days."
+          },
+          "response": [
+            {
+              "name": "Success Example",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/leave-requests?team=true&status=pending",
+                  "host": ["{{base_url}}"],
+                  "path": ["leave-requests"],
+                  "query": [
+                    {"key": "team", "value": "true"},
+                    {"key": "status", "value": "pending"}
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"lr_987\",\n      \"user\": {\n        \"id\": \"u2\",\n        \"name\": \"Bob Employee\"\n      },\n      \"benefitType\": {\n        \"id\": \"bt1\",\n        \"key\": \"vacation\",\n        \"name\": \"Vacation Days\",\n        \"unit\": \"days\"\n      },\n      \"startDate\": \"2025-10-20\",\n      \"endDate\": \"2025-10-22\",\n      \"status\": \"pending\",\n      \"amount\": \"3\",\n      \"note\": \"Family vacation\"\n    }\n  ],\n  \"page\": 1,\n  \"page_size\": 20,\n  \"total\": 2\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Team Leave Requests with Date Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leave-requests?team=true&status=pending&from=2025-10-01&to=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["leave-requests"],
+              "query": [
+                {
+                  "key": "team",
+                  "value": "true"
+                },
+                {
+                  "key": "status",
+                  "value": "pending"
+                },
+                {
+                  "key": "from",
+                  "value": "2025-10-01",
+                  "description": "Start date for overlap filtering"
+                },
+                {
+                  "key": "to",
+                  "value": "2025-12-31",
+                  "description": "End date for overlap filtering"
+                }
+              ]
+            },
+            "description": "Filter leave requests by date overlap. Returns requests where (start_date <= to) AND (end_date >= from)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Calendar Feed",
+      "item": [
+        {
+          "name": "Get Calendar for Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/calendar?from=2025-10-01&to=2025-12-31&include=holidays,leave,timesheets",
+              "host": ["{{base_url}}"],
+              "path": ["calendar"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2025-10-01",
+                  "description": "Start date (YYYY-MM-DD) - required"
+                },
+                {
+                  "key": "to",
+                  "value": "2025-12-31",
+                  "description": "End date (YYYY-MM-DD) - required"
+                },
+                {
+                  "key": "include",
+                  "value": "holidays,leave,timesheets",
+                  "description": "Comma-separated item types (default: all)"
+                }
+              ]
+            },
+            "description": "Get unified calendar feed for the current user. Includes holidays, approved leave, and timesheet periods."
+          },
+          "response": [
+            {
+              "name": "Success Example",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/calendar?from=2025-10-01&to=2025-12-31",
+                  "host": ["{{base_url}}"],
+                  "path": ["calendar"],
+                  "query": [
+                    {"key": "from", "value": "2025-10-01"},
+                    {"key": "to", "value": "2025-12-31"}
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"items\": [\n    {\n      \"type\": \"holiday\",\n      \"title\": \"Thanksgiving\",\n      \"date\": \"2025-11-28\"\n    },\n    {\n      \"type\": \"leave\",\n      \"title\": \"Vacation - Bob Employee\",\n      \"start\": \"2025-10-20\",\n      \"end\": \"2025-10-22\",\n      \"userId\": \"u1\"\n    },\n    {\n      \"type\": \"timesheet_period\",\n      \"title\": \"Timesheet (submitted)\",\n      \"start\": \"2025-10-13\",\n      \"end\": \"2025-10-19\",\n      \"status\": \"submitted\",\n      \"userId\": \"u1\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Calendar for Team Member (Manager)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/calendar?user_id={{employee_user_id}}&from=2025-10-01&to=2025-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["calendar"],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{employee_user_id}}",
+                  "description": "User ID of team member (must be direct report)"
+                },
+                {
+                  "key": "from",
+                  "value": "2025-10-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2025-12-31"
+                }
+              ]
+            },
+            "description": "Manager can view calendar for their direct reports by providing user_id. RBAC enforced."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Calendar - Holidays Only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/calendar?from=2025-10-01&to=2025-12-31&include=holidays",
+              "host": ["{{base_url}}"],
+              "path": ["calendar"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2025-10-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2025-12-31"
+                },
+                {
+                  "key": "include",
+                  "value": "holidays",
+                  "description": "Only include holidays"
+                }
+              ]
+            },
+            "description": "Filter calendar to show only holidays"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

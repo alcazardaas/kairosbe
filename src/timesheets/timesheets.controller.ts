@@ -23,16 +23,32 @@ export class TimesheetsController {
   @Get()
   async findAll(
     @CurrentTenantId() tenantId: string,
+    @CurrentSession() session: any,
     @Query('user_id') userId?: string,
     @Query('week_start') weekStart?: string,
     @Query('status') status?: string,
+    @Query('team') team?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('page') page?: string,
+    @Query('page_size') pageSize?: string,
   ) {
-    const timesheets = await this.timesheetsService.findAll(tenantId, userId, weekStart, status);
+    const result = await this.timesheetsService.findAll(tenantId, session.userId, {
+      userId,
+      weekStartDate: weekStart,
+      status,
+      team: team === 'true',
+      from,
+      to,
+      page: page ? parseInt(page, 10) : undefined,
+      pageSize: pageSize ? parseInt(pageSize, 10) : undefined,
+    });
+
     return {
-      data: timesheets,
-      meta: {
-        total: timesheets.length,
-      },
+      data: result.data,
+      page: result.page,
+      page_size: result.pageSize,
+      total: result.total,
     };
   }
 

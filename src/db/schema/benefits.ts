@@ -7,6 +7,7 @@ import {
   numeric,
   unique,
   check,
+  index,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { accrualMethodEnum, requestStatusEnum } from './enums';
@@ -67,23 +68,36 @@ export const benefitBalances = pgTable(
   }),
 );
 
-export const benefitRequests = pgTable('benefit_requests', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  tenantId: uuid('tenant_id')
-    .notNull()
-    .references(() => tenants.id, { onDelete: 'cascade' }),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  benefitTypeId: uuid('benefit_type_id')
-    .notNull()
-    .references(() => benefitTypes.id, { onDelete: 'cascade' }),
-  startDate: timestamp('start_date', { mode: 'date' }).notNull(),
-  endDate: timestamp('end_date', { mode: 'date' }).notNull(),
-  amount: numeric('amount', { precision: 6, scale: 2 }).notNull(),
-  status: requestStatusEnum('status').notNull().default('pending'),
-  approverUserId: uuid('approver_user_id').references(() => users.id),
-  approvedAt: timestamp('approved_at', { withTimezone: true }),
-  note: text('note'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-});
+export const benefitRequests = pgTable(
+  'benefit_requests',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    benefitTypeId: uuid('benefit_type_id')
+      .notNull()
+      .references(() => benefitTypes.id, { onDelete: 'cascade' }),
+    startDate: timestamp('start_date', { mode: 'date' }).notNull(),
+    endDate: timestamp('end_date', { mode: 'date' }).notNull(),
+    amount: numeric('amount', { precision: 6, scale: 2 }).notNull(),
+    status: requestStatusEnum('status').notNull().default('pending'),
+    approverUserId: uuid('approver_user_id').references(() => users.id),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+    note: text('note'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    // Composite index for manager team views (tenant + status + dates + user)
+    teamViewIdx: index('idx_benefit_requests_team_view').on(
+      table.tenantId,
+      table.status,
+      table.startDate,
+      table.endDate,
+      table.userId,
+    ),
+  }),
+);

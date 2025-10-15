@@ -10,7 +10,8 @@
       "Bash(pnpm db:generate:*)",
       "Bash(pnpm add:*)",
       "Bash(pnpm db:migrate:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(timeout 10 pnpm dev:*)"
     ],
     "deny": [],
     "ask": []

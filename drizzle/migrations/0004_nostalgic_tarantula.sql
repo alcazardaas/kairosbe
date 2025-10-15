@@ -1,0 +1,2 @@
+CREATE INDEX "idx_benefit_requests_team_view" ON "benefit_requests" USING btree ("tenant_id","status","start_date","end_date","user_id");--> statement-breakpoint
+CREATE INDEX "idx_timesheets_team_view" ON "timesheets" USING btree ("tenant_id","status","week_start_date","user_id");
