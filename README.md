@@ -238,65 +238,49 @@ See [CLAUDE.md](./CLAUDE.md) for complete project rules and conventions.
 - ✅ **Holidays** - Company/country holiday management
 - ✅ **Timesheet Policies** - Tenant-specific timesheet configuration
 
-**Total Endpoints:** 34
-- Health: 1
-- Projects: 5
-- Tasks: 5
-- Time Entries: 7 (including 2 stats endpoints)
-- Benefit Types: 5
-- Holidays: 5
-- Timesheet Policies: 5
+**Total Endpoints:** 64
 
-**In Progress:**
-
-### 1. Auth & Session
-
-- POST /auth/login (email/password)
-- POST /auth/refresh (refresh session token)
-- POST /auth/logout (invalidate session)
-- GET /me (user context: user, tenant, role, permissions)
-- POST /tenants/switch (optional: switch active tenant)
+**✅ Phase 1: Auth & Session (COMPLETE)**
+- POST /auth/login - Email/password authentication
+- POST /auth/refresh - Refresh session token
+- POST /auth/logout - Invalidate session
+- GET /me - Current user context (user, tenant, role, permissions, timesheetPolicy)
 - Session TTL: configurable via env (default: 30 days)
 
-### 2. Timesheet Lifecycle
-
-- GET /timesheets?user_id&week_start
-- POST /timesheets (create draft)
+**✅ Phase 2: Timesheet Lifecycle (COMPLETE)**
+- GET /timesheets?user_id&week_start&status
+- GET /timesheets/:id - Get with time entries
+- POST /timesheets - Create draft
 - POST /timesheets/:id/submit
 - POST /timesheets/:id/approve
 - POST /timesheets/:id/reject
-- GET /timesheets/:id (includes time entries)
+- DELETE /timesheets/:id - Only drafts
 
-### 3. Project Access & Membership
-
+**✅ Phase 3: Project Access & Membership (COMPLETE)**
 - GET /projects/:id/members
-- POST /projects/:id/members (assign user)
-- DELETE /projects/:id/members/:user_id
-- GET /my/projects (projects user can log to)
+- POST /projects/:id/members - Assign user
+- DELETE /projects/:id/members/:userId
+- GET /my/projects - Projects user can log to
 
-### 4. PTO Balances & Leave Requests
-
-- GET /users/:id/benefits (benefit balances)
+**✅ Phase 4: PTO Balances & Leave Requests (COMPLETE)**
+- GET /leave-requests/users/:userId/benefits - Benefit balances
 - GET /leave-requests?mine=true|team=true&status=pending
-- POST /leave-requests (create)
-- PATCH /leave-requests/:id
+- GET /leave-requests/:id
+- POST /leave-requests - Create
 - POST /leave-requests/:id/approve
 - POST /leave-requests/:id/reject
+- DELETE /leave-requests/:id - Cancel (user's own)
 
-### 5. Policy Surface for Frontend Boot
+**✅ Phase 5: Policy Surface for Frontend Boot (COMPLETE)**
+- GET /me includes timesheetPolicy for frontend week grid configuration
 
-- Extend GET /me to include tenant's timesheet_policy
-- Frontend configures week grid based on policy
-
-### 6. Search Helpers (UX)
-
-- GET /search/projects?q= (name/code search)
-- GET /search/tasks?project_id=&q= (task search)
+**✅ Phase 6: Search Helpers (COMPLETE)**
+- GET /search/projects?q=&limit= - Name/code search
+- GET /search/tasks?q=&project_id=&limit= - Task search
 
 **Future features:**
 
 - Multi-tenancy with full RLS enforcement
-- Benefit policies and balances management
 - Comprehensive test coverage (unit + e2e)
 - API documentation (Swagger/OpenAPI)
 

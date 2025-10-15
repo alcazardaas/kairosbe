@@ -135,51 +135,52 @@ Add database change:
 
 ## Implementation Roadmap
 
-The following features are being implemented in order:
+All 6 phases are now complete:
 
-### 1. Auth & Session (In Progress)
+### ✅ 1. Auth & Session (COMPLETE)
 
 - POST /auth/login - Email/password authentication
 - POST /auth/refresh - Refresh session token
 - POST /auth/logout - Invalidate session
-- GET /me - Current user context (user, tenant, role, permissions)
-- (Optional) POST /tenants/switch - Switch active tenant context
+- GET /me - Current user context (user, tenant, role, permissions, timesheetPolicy)
 - Session TTL configurable via environment variable (default: 30 days)
 
-### 2. Timesheet Lifecycle
+### ✅ 2. Timesheet Lifecycle (COMPLETE)
 
-- GET /timesheets?user_id&week_start - List timesheets
+- GET /timesheets?user_id&week_start&status - List timesheets
+- GET /timesheets/:id - Get timesheet with time entries
 - POST /timesheets - Create draft timesheet
 - POST /timesheets/:id/submit - Submit for approval
 - POST /timesheets/:id/approve - Approve timesheet
 - POST /timesheets/:id/reject - Reject with reason
-- GET /timesheets/:id - Get timesheet with line items (time entries)
+- DELETE /timesheets/:id - Delete draft only
 
-### 3. Project Access & Membership
+### ✅ 3. Project Access & Membership (COMPLETE)
 
 - GET /projects/:id/members - List project members
 - POST /projects/:id/members - Assign user to project
-- DELETE /projects/:id/members/:user_id - Remove member
+- DELETE /projects/:id/members/:userId - Remove member
 - GET /my/projects - Projects current user can log time to
 
-### 4. PTO Balances & Leave Requests
+### ✅ 4. PTO Balances & Leave Requests (COMPLETE)
 
-- GET /users/:id/benefits - User's benefit balances
+- GET /leave-requests/users/:userId/benefits - User's benefit balances
 - GET /leave-requests?mine=true|team=true&status=pending - List requests
+- GET /leave-requests/:id - Get single request
 - POST /leave-requests - Create leave request
-- PATCH /leave-requests/:id - Update request
-- POST /leave-requests/:id/approve - Approve request
+- POST /leave-requests/:id/approve - Approve request (updates balance)
 - POST /leave-requests/:id/reject - Reject request
+- DELETE /leave-requests/:id - Cancel own pending request
 
-### 5. Policy Surface for Frontend Boot
+### ✅ 5. Policy Surface for Frontend Boot (COMPLETE)
 
-- Extend GET /me to include tenant's timesheet_policy
-- Frontend can configure week grid based on policy
+- GET /me includes tenant's timesheetPolicy
+- Frontend configures week grid based on policy
 
-### 6. Search Helpers (UX)
+### ✅ 6. Search Helpers (COMPLETE)
 
-- GET /search/projects?q= - Search projects by name/code
-- GET /search/tasks?project_id=&q= - Search tasks with optional project filter
+- GET /search/projects?q=&limit= - Search projects by name/code
+- GET /search/tasks?q=&project_id=&limit= - Search tasks with optional project filter
 
 ---
 
