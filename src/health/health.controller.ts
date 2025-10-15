@@ -1,10 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
 import { DbService } from '../db/db.service';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('health')
 export class HealthController {
   constructor(private readonly dbService: DbService) {}
 
+  @Public()
   @Get()
   async check() {
     // Simple health check

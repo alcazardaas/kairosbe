@@ -7,7 +7,10 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm dev:*)",
       "Bash(curl:*)",
-      "Bash(pnpm db:generate:*)"
+      "Bash(pnpm db:generate:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm db:migrate:*)",
+      "Bash(psql:*)"
     ],
     "deny": [],
     "ask": []

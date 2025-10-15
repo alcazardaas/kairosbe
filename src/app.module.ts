@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { DbModule } from './db/db.module';
+import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
@@ -11,6 +13,10 @@ import { TimesheetPoliciesModule } from './timesheet-policies/timesheet-policies
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL || 'info',
@@ -29,6 +35,7 @@ import { TimesheetPoliciesModule } from './timesheet-policies/timesheet-policies
       },
     }),
     DbModule,
+    AuthModule,
     HealthModule,
     ProjectsModule,
     TasksModule,
