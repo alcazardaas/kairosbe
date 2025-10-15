@@ -1,15 +1,15 @@
 # CLAUDE.md
 
-Project: Kairos Backend  
-Stack: NestJS + TypeScript + PostgreSQL 16 (Docker)  
-Runtime: Node 22  
+Project: Kairos Backend
+Stack: NestJS + TypeScript + PostgreSQL 16 (Docker)
+Runtime: Node 22
 
-Goal: Provide a simple, clean REST API. No authentication yet. Focus on correctness, clarity, and maintainability.
+Goal: Provide a simple, clean REST API with authentication and multi-tenancy support. Focus on correctness, clarity, and maintainability.
 
-The API must use **Drizzle ORM** for database access and migrations.  
+The API must use **Drizzle ORM** for database access and migrations.
 The SQL in /referenceDBTABLES is the source of truth; Drizzle is only for queries, migrations, and type-safety.
 
-Note: The database schema reference is located at /referenceDBTABLES/01_script_db_reference.sql.  
+Note: The database schema reference is located at /referenceDBTABLES/01_script_db_reference.sql.
 This file mirrors the live schema from the actual database.
 
 ---
@@ -18,8 +18,9 @@ This file mirrors the live schema from the actual database.
 
 - Framework: NestJS (REST)
 - Database: PostgreSQL 16
-- Scope: CRUD endpoints for projects, tasks, time_entries, benefit_types, benefit_requests, holidays, timesheet_policies.
-- Out of scope: users, memberships, authentication, multi-tenancy logic.
+- Scope: Full-featured timesheet and PTO management system with auth, multi-tenancy, and approval workflows
+- Current implementation: CRUD endpoints for projects, tasks, time_entries, benefit_types, holidays, timesheet_policies
+- In progress: Authentication, sessions, timesheet lifecycle, project membership, PTO workflows
 
 ---
 
@@ -86,11 +87,12 @@ kairosbe/
 
 ## Database Rules
 
-- The SQL in /init is canonical. Never modify structure silently.
+- The SQL in /referenceDBTABLES is canonical. Never modify structure silently.
 - Use parameterized queries only.
 - Add indexes for frequent filters.
-- RLS can remain disabled until auth is implemented.
+- RLS enforcement will be enabled as part of auth implementation.
 - Do not expose internal IDs or stack traces in production.
+- Sessions are stored in database for security and scalability.
 
 ---
 
@@ -108,12 +110,13 @@ If unsure, ask clear questions before proceeding.
 
 ---
 
-## Don’ts
+## Don'ts
 
-- Do not add authentication yet.
 - Do not add new libraries unless necessary.
 - Do not change enums or RLS without explanation.
 - Do not modify unrelated modules when fixing or adding features.
+- Do not expose password hashes or session tokens in API responses.
+- Do not store sensitive data in JWTs (keep tokens opaque).
 
 ---
 
@@ -127,6 +130,81 @@ Add pagination:
 
 Add database change:
 "Add index on time_entries(tenant_id, user_id, week_start_date)."
+
+---
+
+## Implementation Roadmap
+
+The following features are being implemented in order:
+
+### 1. Auth & Session (In Progress)
+
+- POST /auth/login - Email/password authentication
+- POST /auth/refresh - Refresh session token
+- POST /auth/logout - Invalidate session
+- GET /me - Current user context (user, tenant, role, permissions)
+- (Optional) POST /tenants/switch - Switch active tenant context
+- Session TTL configurable via environment variable (default: 30 days)
+
+### 2. Timesheet Lifecycle
+
+- GET /timesheets?user_id&week_start - List timesheets
+- POST /timesheets - Create draft timesheet
+- POST /timesheets/:id/submit - Submit for approval
+- POST /timesheets/:id/approve - Approve timesheet
+- POST /timesheets/:id/reject - Reject with reason
+- GET /timesheets/:id - Get timesheet with line items (time entries)
+
+### 3. Project Access & Membership
+
+- GET /projects/:id/members - List project members
+- POST /projects/:id/members - Assign user to project
+- DELETE /projects/:id/members/:user_id - Remove member
+- GET /my/projects - Projects current user can log time to
+
+### 4. PTO Balances & Leave Requests
+
+- GET /users/:id/benefits - User's benefit balances
+- GET /leave-requests?mine=true|team=true&status=pending - List requests
+- POST /leave-requests - Create leave request
+- PATCH /leave-requests/:id - Update request
+- POST /leave-requests/:id/approve - Approve request
+- POST /leave-requests/:id/reject - Reject request
+
+### 5. Policy Surface for Frontend Boot
+
+- Extend GET /me to include tenant's timesheet_policy
+- Frontend can configure week grid based on policy
+
+### 6. Search Helpers (UX)
+
+- GET /search/projects?q= - Search projects by name/code
+- GET /search/tasks?project_id=&q= - Search tasks with optional project filter
+
+---
+
+## Authentication & Authorization
+
+### Session Management
+
+- Sessions stored in database (sessions table)
+- Session tokens are opaque UUIDs, not JWTs
+- Session TTL is long-lived (configurable, default 30 days)
+- Refresh tokens rotate on use
+- Logout invalidates session immediately
+
+### Multi-Tenancy
+
+- Users can belong to multiple tenants via memberships
+- Each session is scoped to one active tenant
+- RLS policies enforce tenant isolation at database level
+- set_config('app.tenant_id', ...) called per request
+
+### Authorization
+
+- Role-based: admin, manager, employee
+- Permissions derived from role and membership status
+- Guards check role + tenant membership before allowing operations
 
 ---
 

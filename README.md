@@ -247,11 +247,56 @@ See [CLAUDE.md](./CLAUDE.md) for complete project rules and conventions.
 - Holidays: 5
 - Timesheet Policies: 5
 
+**In Progress:**
+
+### 1. Auth & Session
+
+- POST /auth/login (email/password)
+- POST /auth/refresh (refresh session token)
+- POST /auth/logout (invalidate session)
+- GET /me (user context: user, tenant, role, permissions)
+- POST /tenants/switch (optional: switch active tenant)
+- Session TTL: configurable via env (default: 30 days)
+
+### 2. Timesheet Lifecycle
+
+- GET /timesheets?user_id&week_start
+- POST /timesheets (create draft)
+- POST /timesheets/:id/submit
+- POST /timesheets/:id/approve
+- POST /timesheets/:id/reject
+- GET /timesheets/:id (includes time entries)
+
+### 3. Project Access & Membership
+
+- GET /projects/:id/members
+- POST /projects/:id/members (assign user)
+- DELETE /projects/:id/members/:user_id
+- GET /my/projects (projects user can log to)
+
+### 4. PTO Balances & Leave Requests
+
+- GET /users/:id/benefits (benefit balances)
+- GET /leave-requests?mine=true|team=true&status=pending
+- POST /leave-requests (create)
+- PATCH /leave-requests/:id
+- POST /leave-requests/:id/approve
+- POST /leave-requests/:id/reject
+
+### 5. Policy Surface for Frontend Boot
+
+- Extend GET /me to include tenant's timesheet_policy
+- Frontend configures week grid based on policy
+
+### 6. Search Helpers (UX)
+
+- GET /search/projects?q= (name/code search)
+- GET /search/tasks?project_id=&q= (task search)
+
 **Future features:**
-- Authentication and authorization (JWT/OAuth)
-- Multi-tenancy with RLS enforcement
-- Benefit policies and balances
-- Benefit requests workflow
+
+- Multi-tenancy with full RLS enforcement
+- Benefit policies and balances management
 - Comprehensive test coverage (unit + e2e)
 - API documentation (Swagger/OpenAPI)
 
@@ -284,6 +329,9 @@ See `.env.example` for all available environment variables:
 - `PORT` - Server port (default: 3000)
 - `LOG_LEVEL` - Logging level (debug, info, warn, error)
 - `DATABASE_URL` - PostgreSQL connection string
+- `SESSION_TTL` - Session lifetime in seconds (default: 2592000 = 30 days)
+- `SESSION_SECRET` - Secret key for signing session tokens (required in production)
+- `REFRESH_TOKEN_TTL` - Refresh token lifetime in seconds (default: 7776000 = 90 days)
 
 ---
 

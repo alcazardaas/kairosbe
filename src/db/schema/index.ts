@@ -1,6 +1,7 @@
 export * from './enums';
 export * from './tenants';
 export * from './users';
+export * from './sessions';
 export * from './memberships';
 export * from './benefits';
 export * from './projects';
