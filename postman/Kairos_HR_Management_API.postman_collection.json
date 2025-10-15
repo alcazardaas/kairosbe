@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "kairos-hr-api-2025",
 		"name": "Kairos HR Management API",
-		"description": "Complete REST API for Kairos HR Management System - Projects, Tasks, Time Entries, Benefits, Holidays, and Timesheet Policies",
+		"description": "Complete REST API for Kairos HR Management System - Auth, Timesheets, Projects, Tasks, Time Entries, Benefits, Leave Requests, Holidays, and Policies",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -20,6 +20,688 @@
 							"path": ["health"]
 						},
 						"description": "Check API and database health status"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth & Session",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('auth_token', response.token);",
+									"    pm.environment.set('refresh_token', response.refreshToken);",
+									"    pm.environment.set('user_id', response.user.id);",
+									"    pm.environment.set('tenant_id', response.tenant.id);",
+									"    console.log('Auth tokens saved');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Password123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Authenticate with email and password"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('auth_token', response.token);",
+									"    pm.environment.set('refresh_token', response.refreshToken);",
+									"    console.log('Tokens refreshed');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "refresh"]
+						},
+						"description": "Refresh authentication token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User (/me)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/me",
+							"host": ["{{base_url}}"],
+							"path": ["me"]
+						},
+						"description": "Get current user context (user, tenant, role, permissions, timesheetPolicy)"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "logout"]
+						},
+						"description": "Logout and invalidate session"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Timesheets",
+			"item": [
+				{
+					"name": "List Timesheets",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/timesheets?user_id={{user_id}}&week_start_date=2025-10-06&status=draft",
+							"host": ["{{base_url}}"],
+							"path": ["timesheets"],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "{{user_id}}",
+									"description": "Filter by user ID"
+								},
+								{
+									"key": "week_start_date",
+									"value": "2025-10-06",
+									"description": "Filter by week start date (YYYY-MM-DD)"
+								},
+								{
+									"key": "status",
+									"value": "draft",
+									"description": "Filter by status: draft, submitted, approved, rejected",
+									"disabled": true
+								}
+							]
+						},
+						"description": "List timesheets with filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Timesheet by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/timesheets/{{timesheet_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["timesheets", "{{timesheet_id}}"]
+						},
+						"description": "Get timesheet with time entries"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Timesheet (Draft)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('timesheet_id', response.data.id);",
+									"    console.log('Timesheet ID saved:', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"weekStartDate\": \"2025-10-06\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/timesheets",
+							"host": ["{{base_url}}"],
+							"path": ["timesheets"]
+						},
+						"description": "Create a draft timesheet for the week"
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Timesheet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/timesheets/{{timesheet_id}}/submit",
+							"host": ["{{base_url}}"],
+							"path": ["timesheets", "{{timesheet_id}}", "submit"]
+						},
+						"description": "Submit timesheet for approval"
+					},
+					"response": []
+				},
+				{
+					"name": "Approve Timesheet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"note\": \"Approved - looks good\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/timesheets/{{timesheet_id}}/approve",
+							"host": ["{{base_url}}"],
+							"path": ["timesheets", "{{timesheet_id}}", "approve"]
+						},
+						"description": "Approve timesheet (manager only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Timesheet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"note\": \"Please revise - missing project codes\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/timesheets/{{timesheet_id}}/reject",
+							"host": ["{{base_url}}"],
+							"path": ["timesheets", "{{timesheet_id}}", "reject"]
+						},
+						"description": "Reject timesheet (manager only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Timesheet (Draft Only)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/timesheets/{{timesheet_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["timesheets", "{{timesheet_id}}"]
+						},
+						"description": "Delete a draft timesheet"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Leave Requests",
+			"item": [
+				{
+					"name": "List Leave Requests",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/leave-requests?mine=true&status=pending",
+							"host": ["{{base_url}}"],
+							"path": ["leave-requests"],
+							"query": [
+								{
+									"key": "mine",
+									"value": "true",
+									"description": "Show only my requests"
+								},
+								{
+									"key": "team",
+									"value": "true",
+									"description": "Show team requests (manager view)",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "pending",
+									"description": "Filter by status: pending, approved, rejected, cancelled",
+									"disabled": true
+								}
+							]
+						},
+						"description": "List leave requests with filters"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Leave Request by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/leave-requests/{{leave_request_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["leave-requests", "{{leave_request_id}}"]
+						},
+						"description": "Get single leave request"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Leave Request",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('leave_request_id', response.data.id);",
+									"    console.log('Leave Request ID saved:', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"benefitTypeId\": \"{{benefit_type_id}}\",\n  \"startDate\": \"2025-10-20\",\n  \"endDate\": \"2025-10-24\",\n  \"amount\": 5,\n  \"note\": \"Family vacation\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/leave-requests",
+							"host": ["{{base_url}}"],
+							"path": ["leave-requests"]
+						},
+						"description": "Create a new leave request"
+					},
+					"response": []
+				},
+				{
+					"name": "Approve Leave Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"note\": \"Approved - enjoy your vacation\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/leave-requests/{{leave_request_id}}/approve",
+							"host": ["{{base_url}}"],
+							"path": ["leave-requests", "{{leave_request_id}}", "approve"]
+						},
+						"description": "Approve leave request (deducts balance)"
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Leave Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"note\": \"Please reschedule - busy period\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/leave-requests/{{leave_request_id}}/reject",
+							"host": ["{{base_url}}"],
+							"path": ["leave-requests", "{{leave_request_id}}", "reject"]
+						},
+						"description": "Reject leave request"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Leave Request",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/leave-requests/{{leave_request_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["leave-requests", "{{leave_request_id}}"]
+						},
+						"description": "Cancel own pending leave request"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Benefits",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/leave-requests/users/{{user_id}}/benefits",
+							"host": ["{{base_url}}"],
+							"path": ["leave-requests", "users", "{{user_id}}", "benefits"]
+						},
+						"description": "Get benefit balances for a user"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Search",
+			"item": [
+				{
+					"name": "Search Projects",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/search/projects?q=backend&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["search", "projects"],
+							"query": [
+								{
+									"key": "q",
+									"value": "backend",
+									"description": "Search query (case-insensitive)"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Max results (default: 10)"
+								}
+							]
+						},
+						"description": "Search projects by name/code"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Tasks",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/search/tasks?q=api&project_id={{project_id}}&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["search", "tasks"],
+							"query": [
+								{
+									"key": "q",
+									"value": "api",
+									"description": "Search query (case-insensitive)"
+								},
+								{
+									"key": "project_id",
+									"value": "{{project_id}}",
+									"description": "Filter by project (optional)"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Max results (default: 10)"
+								}
+							]
+						},
+						"description": "Search tasks by name"
 					},
 					"response": []
 				}
@@ -164,6 +846,111 @@
 							"path": ["projects", "{{project_id}}"]
 						},
 						"description": "Delete a project by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project Members",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/members",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}", "members"]
+						},
+						"description": "Get list of project members with user details"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Project Member",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"role\": \"developer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/members",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}", "members"]
+						},
+						"description": "Assign user to project with role"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Project Member",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/projects/{{project_id}}/members/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["projects", "{{project_id}}", "members", "{{user_id}}"]
+						},
+						"description": "Remove user from project"
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Projects",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my/projects",
+							"host": ["{{base_url}}"],
+							"path": ["my", "projects"]
+						},
+						"description": "Get projects current user can log time to"
 					},
 					"response": []
 				}
@@ -981,6 +1768,26 @@
 		},
 		{
 			"key": "holiday_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "timesheet_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "leave_request_id",
 			"value": "",
 			"type": "string"
 		}
