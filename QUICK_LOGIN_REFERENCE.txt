@@ -1,0 +1,37 @@
+╔═══════════════════════════════════════════════════════════════╗
+║           KAIROS DEMO - QUICK LOGIN REFERENCE                 ║
+╚═══════════════════════════════════════════════════════════════╝
+
+🔑 PASSWORD FOR ALL USERS: Password123!
+
+📧 VALID LOGIN EMAILS:
+   ✓ admin@demo.com       - Admin User
+   ✓ manager@demo.com     - Alice Manager (has 3 reports)
+   ✓ bob@demo.com         - Bob Employee
+   ✓ carol@demo.com       - Carol Developer
+   ✓ dave@demo.com        - Dave Tester
+
+🌐 LOGIN ENDPOINT:
+   POST http://localhost:3000/api/v1/auth/login
+
+📝 REQUEST BODY EXAMPLE:
+   {
+     "email": "manager@demo.com",
+     "password": "Password123!"
+   }
+
+🏢 TENANT INFO:
+   ID: 37a6815e-cb57-4cf7-bdae-2a6157dab893
+   Slug: demo-company
+
+⚠️  COMMON MISTAKES:
+   ❌ user@demo.com (doesn't exist!)
+   ❌ password123 (wrong password)
+   ❌ Password123 (missing !)
+   ✓ Password123! (correct)
+
+🔄 REGENERATE DATA:
+   pnpm tsx scripts/seed-demo-data.ts
+
+📖 FULL GUIDE:
+   See democontent.txt for complete documentation

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Delete, Body, Param, Query, UsePipes } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, Query, UsePipes, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiNotFoundResponse,
+  ApiSecurity,
+} from '@nestjs/swagger';
 import { LeaveRequestsService } from './leave-requests.service';
 import {
   CurrentTenantId,
@@ -13,16 +23,38 @@ import {
   reviewLeaveRequestSchema,
   ReviewLeaveRequestDto,
 } from './dto/review-leave-request.dto';
+import {
+  LeaveRequestResponseDto,
+  LeaveRequestListResponseDto,
+  BenefitBalancesResponseDto,
+  CreateLeaveRequestRequestDto,
+  ReviewLeaveRequestRequestDto,
+} from './dto/leave-request-response.dto';
+import { ErrorResponseDto } from '../common/dto/response.dto';
 
+@ApiTags('Leave Requests')
+@ApiSecurity('session')
 @Controller('leave-requests')
 export class LeaveRequestsController {
   constructor(private readonly leaveRequestsService: LeaveRequestsService) {}
 
-  /**
-   * GET /leave-requests
-   * List leave requests with optional filters
-   */
   @Get()
+  @ApiOperation({
+    summary: 'List leave requests',
+    description: 'Retrieve leave requests with optional filters. Supports ?mine=true for own requests, ?team=true for team view (managers), and date range filtering.',
+  })
+  @ApiOkResponse({
+    description: 'Leave requests retrieved successfully',
+    type: LeaveRequestListResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid query parameters',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
   async findAll(
     @CurrentTenantId() tenantId: string,
     @CurrentSession() session: any,
@@ -55,22 +87,46 @@ export class LeaveRequestsController {
     };
   }
 
-  /**
-   * GET /leave-requests/:id
-   * Get a single leave request
-   */
   @Get(':id')
+  @ApiOperation({
+    summary: 'Get a single leave request',
+    description: 'Retrieve a leave request by its ID.',
+  })
+  @ApiOkResponse({
+    description: 'Leave request retrieved successfully',
+    type: LeaveRequestResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Leave request not found',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
   async findOne(@CurrentTenantId() tenantId: string, @Param('id') id: string) {
     const result = await this.leaveRequestsService.findOne(tenantId, id);
     return { data: result };
   }
 
-  /**
-   * POST /leave-requests
-   * Create a new leave request
-   */
   @Post()
   @UsePipes(new ZodValidationPipe(createLeaveRequestSchema))
+  @ApiOperation({
+    summary: 'Create a new leave request',
+    description: 'Create a new leave request for PTO, sick leave, or other benefits.',
+  })
+  @ApiCreatedResponse({
+    description: 'Leave request created successfully',
+    type: LeaveRequestResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid leave request data or insufficient balance',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
   async create(
     @CurrentTenantId() tenantId: string,
     @CurrentSession() session: any,
@@ -81,12 +137,29 @@ export class LeaveRequestsController {
     return { data: result };
   }
 
-  /**
-   * POST /leave-requests/:id/approve
-   * Approve a leave request
-   */
   @Post(':id/approve')
+  @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(reviewLeaveRequestSchema))
+  @ApiOperation({
+    summary: 'Approve a leave request',
+    description: 'Approve a pending leave request and update user balance. Requires manager role.',
+  })
+  @ApiOkResponse({
+    description: 'Leave request approved successfully',
+    type: LeaveRequestResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Leave request cannot be approved (invalid status)',
+    type: ErrorResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Leave request not found',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
   async approve(
     @CurrentTenantId() tenantId: string,
     @CurrentSession() session: any,
@@ -98,12 +171,29 @@ export class LeaveRequestsController {
     return { data: result };
   }
 
-  /**
-   * POST /leave-requests/:id/reject
-   * Reject a leave request
-   */
   @Post(':id/reject')
+  @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(reviewLeaveRequestSchema))
+  @ApiOperation({
+    summary: 'Reject a leave request',
+    description: 'Reject a pending leave request with an optional review note. Requires manager role.',
+  })
+  @ApiOkResponse({
+    description: 'Leave request rejected successfully',
+    type: LeaveRequestResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Leave request cannot be rejected (invalid status)',
+    type: ErrorResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Leave request not found',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
   async reject(
     @CurrentTenantId() tenantId: string,
     @CurrentSession() session: any,
@@ -115,11 +205,27 @@ export class LeaveRequestsController {
     return { data: result };
   }
 
-  /**
-   * DELETE /leave-requests/:id
-   * Cancel a leave request (user can cancel their own pending requests)
-   */
   @Delete(':id')
+  @ApiOperation({
+    summary: 'Cancel a leave request',
+    description: 'Cancel own pending leave request.',
+  })
+  @ApiOkResponse({
+    description: 'Leave request cancelled successfully',
+    type: LeaveRequestResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Leave request cannot be cancelled (invalid status or not owned by user)',
+    type: ErrorResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Leave request not found',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
   async cancel(
     @CurrentTenantId() tenantId: string,
     @CurrentSession() session: any,
@@ -130,11 +236,19 @@ export class LeaveRequestsController {
     return { data: result };
   }
 
-  /**
-   * GET /leave-requests/users/:userId/benefits
-   * Get benefit balances for a user
-   */
   @Get('users/:userId/benefits')
+  @ApiOperation({
+    summary: 'Get user benefit balances',
+    description: 'Retrieve all benefit balances for a user (PTO, sick leave, etc.).',
+  })
+  @ApiOkResponse({
+    description: 'Benefit balances retrieved successfully',
+    type: BenefitBalancesResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
   async getUserBenefits(@CurrentTenantId() tenantId: string, @Param('userId') userId: string) {
     const results = await this.leaveRequestsService.getUserBenefitBalances(tenantId, userId);
     return {

@@ -1,0 +1,468 @@
+═══════════════════════════════════════════════════════════════════════════════
+KAIROS PLATFORM - DEMO DATA GUIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 QUICK START - LOGIN CREDENTIALS
+═══════════════════════════════════════════════════════════════════════════════
+
+PASSWORD FOR ALL USERS: Password123!
+
+Valid Login Emails:
+  ✓ admin@demo.com         - Admin user with full access
+  ✓ manager@demo.com       - Alice Manager (has 3 direct reports)
+  ✓ bob@demo.com           - Bob Employee (reports to Alice)
+  ✓ carol@demo.com         - Carol Developer (reports to Alice)
+  ✓ dave@demo.com          - Dave Tester (reports to Alice)
+
+Login Endpoint: POST http://localhost:3000/api/v1/auth/login
+
+Example Request Body:
+{
+  "email": "manager@demo.com",
+  "password": "Password123!"
+}
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 TABLE OF CONTENTS
+  1. Authentication Credentials
+  2. Tenant Information
+  3. User Accounts & Roles
+  4. Projects & Tasks
+  5. Timesheet Data
+  6. Leave Requests & Benefits
+  7. Holidays
+  8. Testing Scenarios
+  9. API Endpoints Quick Reference
+
+═══════════════════════════════════════════════════════════════════════════════
+1. AUTHENTICATION CREDENTIALS
+═══════════════════════════════════════════════════════════════════════════════
+
+ALL USERS USE THE SAME PASSWORD: Password123!
+
+⚠️  Important: The password must be at least 8 characters and meets validation requirements.
+
+Login Format:
+  POST http://localhost:3000/api/v1/auth/login
+  Content-Type: application/json
+  Body: {
+    "email": "<use-one-of-the-emails-below>",
+    "password": "Password123!"
+  }
+
+Valid Emails (use these EXACT addresses):
+  ✓ admin@demo.com
+  ✓ manager@demo.com
+  ✓ bob@demo.com
+  ✓ carol@demo.com
+  ✓ dave@demo.com
+
+❌ DO NOT USE: user@demo.com (this email does not exist!)
+
+═══════════════════════════════════════════════════════════════════════════════
+2. TENANT INFORMATION
+═══════════════════════════════════════════════════════════════════════════════
+
+Tenant Name: Demo Company
+Tenant Slug: demo-company
+Tenant ID: 37a6815e-cb57-4cf7-bdae-2a6157dab893
+
+Timesheet Policy:
+  - Week starts: Monday (day 1)
+  - Max hours per day: 12
+  - Allow overtime: Yes
+  - Lock after approval: Yes
+
+═══════════════════════════════════════════════════════════════════════════════
+3. USER ACCOUNTS & ROLES
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────┬──────────────────────────────────────┬─────────┬─────────────────┐
+│ Name                │ Email                                │ Role    │ User ID         │
+├─────────────────────┼──────────────────────────────────────┼─────────┼─────────────────┤
+│ Admin User          │ admin@demo.com                       │ admin   │ 7cd58688-dadc-  │
+│                     │                                      │         │ 4223-86f2-      │
+│                     │                                      │         │ 056dea1012ae    │
+├─────────────────────┼──────────────────────────────────────┼─────────┼─────────────────┤
+│ Alice Manager       │ manager@demo.com                     │ manager │ 1b440b57-1f8d-  │
+│                     │                                      │         │ 40f5-89a6-      │
+│                     │                                      │         │ d2ec1f0b29e0    │
+│                     │ Job Title: Engineering Manager       │         │                 │
+├─────────────────────┼──────────────────────────────────────┼─────────┼─────────────────┤
+│ Bob Employee        │ bob@demo.com                         │ employee│ 98445b90-ed9f-  │
+│                     │                                      │         │ 494c-9860-      │
+│                     │                                      │         │ dd7a5c214881    │
+│                     │ Job Title: Software Engineer         │         │                 │
+│                     │ Reports to: Alice Manager            │         │                 │
+├─────────────────────┼──────────────────────────────────────┼─────────┼─────────────────┤
+│ Carol Developer     │ carol@demo.com                       │ employee│ ae84a586-2ad2-  │
+│                     │                                      │         │ 4dc1-b77b-      │
+│                     │                                      │         │ 4633f44ce4a2    │
+│                     │ Job Title: Senior Engineer           │         │                 │
+│                     │ Reports to: Alice Manager            │         │                 │
+├─────────────────────┼──────────────────────────────────────┼─────────┼─────────────────┤
+│ Dave Tester         │ dave@demo.com                        │ employee│ 02355072-4f87-  │
+│                     │                                      │         │ 48cb-ac39-      │
+│                     │                                      │         │ ef93b3fae385    │
+│                     │ Job Title: QA Engineer               │         │                 │
+│                     │ Reports to: Alice Manager            │         │                 │
+└─────────────────────┴──────────────────────────────────────┴─────────┴─────────────────┘
+
+Organizational Structure:
+  Alice Manager (manager@demo.com)
+    ├─ Bob Employee (bob@demo.com)
+    ├─ Carol Developer (carol@demo.com)
+    └─ Dave Tester (dave@demo.com)
+
+═══════════════════════════════════════════════════════════════════════════════
+4. PROJECTS & TASKS
+═══════════════════════════════════════════════════════════════════════════════
+
+Projects:
+
+1. Kairos Platform (KAI) - ACTIVE
+   Members: Bob, Carol
+   Tasks:
+     - Backend Development
+     - Frontend Development
+     - Testing & QA
+     - Documentation
+     - Code Review
+
+2. Client Portal (CPT) - ACTIVE
+   Members: Bob, Dave
+   Tasks:
+     - Backend Development
+     - Frontend Development
+     - Testing & QA
+     - Documentation
+     - Code Review
+
+3. Mobile App (MOB) - ACTIVE
+   Members: Carol
+   Tasks:
+     - Backend Development
+     - Frontend Development
+     - Testing & QA
+     - Documentation
+     - Code Review
+
+4. Legacy System Migration (LEG) - INACTIVE
+   Members: None
+   Tasks:
+     - Backend Development
+     - Frontend Development
+     - Testing & QA
+     - Documentation
+     - Code Review
+
+Project Memberships Summary:
+  - Bob: Kairos Platform, Client Portal
+  - Carol: Kairos Platform, Mobile App
+  - Dave: Client Portal
+
+═══════════════════════════════════════════════════════════════════════════════
+5. TIMESHEET DATA
+═══════════════════════════════════════════════════════════════════════════════
+
+Bob Employee has timesheets for 3 weeks:
+
+Week 1: Oct 6-12, 2025 (APPROVED by Alice Manager)
+  - Project: Kairos Platform
+  - Task: Backend Development
+  - Hours: Mon-Fri, 8 hours/day = 40 hours total
+  - Note: Backend API development
+
+Week 2: Oct 13-19, 2025 (SUBMITTED, awaiting approval)
+  - Project: Kairos Platform
+  - Task: Backend Development
+  - Hours: Mon-Fri, 8 hours/day = 40 hours total
+  - Note: Backend API development
+
+Week 3: Oct 20-26, 2025 (DRAFT)
+  - No time entries yet
+
+Carol Developer has timesheets for 3 weeks:
+  - Same week dates as Bob
+  - Same statuses (Approved, Submitted, Draft)
+  - No time entries (only timesheet records exist)
+
+═══════════════════════════════════════════════════════════════════════════════
+6. LEAVE REQUESTS & BENEFITS
+═══════════════════════════════════════════════════════════════════════════════
+
+Benefit Types:
+  1. Vacation Days (requires approval)
+  2. Sick Days (no approval required)
+  3. Personal Days (requires approval)
+
+Employee Balances:
+
+Bob Employee:
+  - Vacation: 15.00 days
+  - Sick: 10.00 days
+  - Personal: 5.00 days
+
+Carol Developer:
+  - Vacation: 15.00 days
+  - Sick: 10.00 days
+  - Personal: 5.00 days
+
+Dave Tester:
+  - Vacation: 15.00 days
+  - Sick: 10.00 days
+  - Personal: 5.00 days
+
+Active Leave Requests:
+
+1. Bob Employee - PENDING
+   Type: Vacation Days
+   Dates: Oct 27-29, 2025 (3 days)
+   Note: Family vacation
+   Status: Awaiting manager approval
+
+2. Carol Developer - APPROVED
+   Type: Vacation Days
+   Dates: Nov 10-12, 2025 (3 days)
+   Note: Conference attendance
+   Status: Approved by Alice Manager
+
+3. Dave Tester - PENDING
+   Type: Sick Days
+   Dates: Oct 22, 2025 (1 day)
+   Note: Doctor appointment
+   Status: Awaiting approval (though sick days don't require approval)
+
+═══════════════════════════════════════════════════════════════════════════════
+7. HOLIDAYS
+═══════════════════════════════════════════════════════════════════════════════
+
+Country: US
+Tenant: Demo Company
+
+  - Thanksgiving: Nov 28, 2025
+  - Christmas Day: Dec 25, 2025
+  - Boxing Day: Dec 26, 2025
+  - New Year's Day: Jan 1, 2026
+
+═══════════════════════════════════════════════════════════════════════════════
+8. TESTING SCENARIOS
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 Scenario 1: Employee Login & View Own Data
+  User: bob@demo.com / Password123!
+  Expected:
+    - Can view own timesheets (3 weeks)
+    - Can see projects assigned to (Kairos Platform, Client Portal)
+    - Can view own leave requests (1 pending vacation)
+    - Can view benefit balances
+
+🎯 Scenario 2: Manager Approval Workflow
+  User: manager@demo.com / Password123!
+  Expected:
+    - Can view team timesheets (Bob & Carol submitted timesheets)
+    - Can approve/reject Bob's submitted timesheet (Oct 13-19)
+    - Can approve/reject pending leave requests (Bob's vacation, Dave's sick day)
+    - Can view team calendar with holidays, leave, and timesheets
+
+🎯 Scenario 3: Create New Timesheet
+  User: carol@demo.com / Password123!
+  Steps:
+    1. Login as Carol
+    2. Create timesheet for current week (Oct 20-26)
+    3. Add time entries for Mobile App project
+    4. Submit for approval
+
+🎯 Scenario 4: Request Time Off
+  User: dave@demo.com / Password123!
+  Steps:
+    1. Login as Dave
+    2. Check benefit balances
+    3. Create new leave request
+    4. Select dates and benefit type
+    5. Submit for approval
+
+🎯 Scenario 5: Admin Operations
+  User: admin@demo.com / Password123!
+  Expected:
+    - Full access to all data
+    - Can manage users, projects, and policies
+    - Can view all timesheets and leave requests
+
+🎯 Scenario 6: Search & Filter
+  User: Any user
+  Test:
+    - Search projects: GET /api/v1/search/projects?q=Kairos
+    - Search tasks: GET /api/v1/search/tasks?q=Backend&project_id=<id>
+    - Filter timesheets by status: GET /api/v1/timesheets?status=submitted
+    - Filter leave requests: GET /api/v1/leave-requests?status=pending
+
+🎯 Scenario 7: Calendar View
+  User: manager@demo.com / Password123!
+  Test:
+    GET /api/v1/calendar?user_id=<bob_id>&from=2025-10-01&to=2025-12-31&include=holidays,leave,timesheets
+  Expected:
+    - Shows holidays (Thanksgiving, Christmas, etc.)
+    - Shows Bob's approved vacation (Oct 27-29)
+    - Shows timesheet periods
+
+═══════════════════════════════════════════════════════════════════════════════
+9. API ENDPOINTS QUICK REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+Authentication:
+  POST   /api/v1/auth/login         - Login with email/password
+  POST   /api/v1/auth/refresh       - Refresh session token
+  POST   /api/v1/auth/logout        - Logout and invalidate session
+  GET    /api/v1/me                 - Get current user context
+
+Timesheets:
+  GET    /api/v1/timesheets                    - List timesheets
+  GET    /api/v1/timesheets?team=true          - Manager: view team timesheets
+  GET    /api/v1/timesheets/:id                - Get timesheet details
+  POST   /api/v1/timesheets                    - Create draft timesheet
+  POST   /api/v1/timesheets/:id/submit         - Submit for approval
+  POST   /api/v1/timesheets/:id/approve        - Approve timesheet
+  POST   /api/v1/timesheets/:id/reject         - Reject timesheet
+  DELETE /api/v1/timesheets/:id                - Delete draft timesheet
+
+Projects:
+  GET    /api/v1/projects                      - List all projects
+  GET    /api/v1/projects/:id                  - Get project details
+  GET    /api/v1/my/projects                   - Projects user can log time to
+  GET    /api/v1/projects/:id/members          - List project members
+  POST   /api/v1/projects/:id/members          - Add member to project
+  DELETE /api/v1/projects/:id/members/:userId  - Remove member
+
+Tasks:
+  GET    /api/v1/tasks                         - List tasks
+  GET    /api/v1/tasks/:id                     - Get task details
+
+Time Entries:
+  GET    /api/v1/time-entries                  - List time entries
+  POST   /api/v1/time-entries                  - Create time entry
+  PATCH  /api/v1/time-entries/:id              - Update time entry
+  DELETE /api/v1/time-entries/:id              - Delete time entry
+
+Leave Requests:
+  GET    /api/v1/leave-requests                        - List leave requests
+  GET    /api/v1/leave-requests?mine=true              - User's own requests
+  GET    /api/v1/leave-requests?team=true              - Manager: team requests
+  GET    /api/v1/leave-requests/users/:userId/benefits - User's benefit balances
+  GET    /api/v1/leave-requests/:id                    - Get request details
+  POST   /api/v1/leave-requests                        - Create leave request
+  POST   /api/v1/leave-requests/:id/approve            - Approve request
+  POST   /api/v1/leave-requests/:id/reject             - Reject request
+  DELETE /api/v1/leave-requests/:id                    - Cancel pending request
+
+Search:
+  GET    /api/v1/search/projects?q=<query>             - Search projects
+  GET    /api/v1/search/tasks?q=<query>&project_id=<>  - Search tasks
+
+Calendar:
+  GET    /api/v1/calendar?user_id=<>&from=<>&to=<>&include=<> - Unified calendar
+
+═══════════════════════════════════════════════════════════════════════════════
+📝 EXAMPLE CURL COMMANDS
+═══════════════════════════════════════════════════════════════════════════════
+
+# Login as manager
+curl -X POST http://localhost:3000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "manager@demo.com",
+    "password": "Password123!"
+  }'
+
+# Get current user info (use token from login response)
+curl http://localhost:3000/api/v1/me \
+  -H "Authorization: Bearer <your-token>"
+
+# View team timesheets (as manager)
+curl http://localhost:3000/api/v1/timesheets?team=true&status=submitted \
+  -H "Authorization: Bearer <your-token>"
+
+# Approve a timesheet (as manager)
+curl -X POST http://localhost:3000/api/v1/timesheets/<timesheet-id>/approve \
+  -H "Authorization: Bearer <your-token>" \
+  -H "Content-Type: application/json"
+
+# View pending leave requests (as manager)
+curl http://localhost:3000/api/v1/leave-requests?team=true&status=pending \
+  -H "Authorization: Bearer <your-token>"
+
+# Check benefit balances (as employee)
+curl http://localhost:3000/api/v1/leave-requests/users/<user-id>/benefits \
+  -H "Authorization: Bearer <your-token>"
+
+# View calendar
+curl "http://localhost:3000/api/v1/calendar?from=2025-10-01&to=2025-12-31&include=holidays,leave,timesheets" \
+  -H "Authorization: Bearer <your-token>"
+
+═══════════════════════════════════════════════════════════════════════════════
+🔧 REGENERATING DEMO DATA
+═══════════════════════════════════════════════════════════════════════════════
+
+To regenerate all demo data:
+
+  pnpm tsx scripts/seed-demo-data.ts
+
+This script is idempotent - it can be run multiple times safely. It will update
+existing records rather than creating duplicates.
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ QUICK START CHECKLIST
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] 1. Ensure backend is running (pnpm dev)
+[ ] 2. Run seed script: pnpm tsx scripts/seed-demo-data.ts
+[ ] 3. Login with any user credentials (all use Password123!)
+[ ] 4. Test GET /me endpoint to verify session
+[ ] 5. Try viewing timesheets as employee
+[ ] 6. Try approving timesheets as manager
+[ ] 7. Test leave request creation and approval
+[ ] 8. View calendar with combined data
+
+═══════════════════════════════════════════════════════════════════════════════
+🔍 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+Problem: "Invalid credentials" error when logging in
+Solution:
+  ✓ Make sure you're using one of the 5 valid emails listed above
+  ✓ Use EXACTLY: Password123! (capital P, exclamation mark at end)
+  ✓ Check for typos in the email address
+  ❌ DO NOT use: user@demo.com, test@example.com, or any other email
+
+Problem: "Password must be at least 8 characters" error
+Solution:
+  ✓ The password is: Password123! (13 characters)
+  ✓ Make sure you're not using an old password like "password123"
+
+Problem: No data showing up in the frontend
+Solution:
+  ✓ Run the seed script: pnpm tsx scripts/seed-demo-data.ts
+  ✓ Check you're logged in with the correct user
+  ✓ Verify the tenant_id matches: 37a6815e-cb57-4cf7-bdae-2a6157dab893
+
+Problem: Need to reset all data
+Solution:
+  ✓ Run the seed script again - it's idempotent and will update all records
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ VERIFIED WORKING
+═══════════════════════════════════════════════════════════════════════════════
+
+All 5 user accounts have been tested and verified working:
+  ✓ admin@demo.com - Login successful
+  ✓ manager@demo.com - Login successful
+  ✓ bob@demo.com - Login successful
+  ✓ carol@demo.com - Login successful
+  ✓ dave@demo.com - Login successful
+
+Password for all: Password123!
+
+═══════════════════════════════════════════════════════════════════════════════
+END OF DEMO DATA GUIDE
+═══════════════════════════════════════════════════════════════════════════════

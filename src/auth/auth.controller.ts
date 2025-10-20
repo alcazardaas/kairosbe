@@ -9,16 +9,34 @@ import {
   HttpStatus,
   UsePipes,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiOkResponse,
+  ApiNoContentResponse,
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiSecurity,
+} from '@nestjs/swagger';
 import { eq, and } from 'drizzle-orm';
 import { AuthService } from './auth.service';
 import { LoginDto, loginSchema } from './dto/login.dto';
 import { RefreshTokenDto, refreshTokenSchema } from './dto/refresh.dto';
+import {
+  LoginRequestDto,
+  LoginResponseDto,
+  RefreshRequestDto,
+  RefreshResponseDto,
+  MeResponseDto,
+} from './dto/auth-response.dto';
 import { Public } from './decorators/public.decorator';
 import { CurrentSession, CurrentTenantId } from './decorators/current-user.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { DbService } from '../db/db.service';
 import { users, memberships, timesheetPolicies } from '../db/schema';
+import { ErrorResponseDto } from '../common/dto/response.dto';
 
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -30,6 +48,22 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(loginSchema))
+  @ApiOperation({
+    summary: 'Login with email and password',
+    description: 'Authenticate user and create a new session. Returns session token and refresh token.',
+  })
+  @ApiOkResponse({
+    description: 'Successfully authenticated',
+    type: LoginResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid email format or password too short',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid credentials',
+    type: ErrorResponseDto,
+  })
   async login(
     @Body() dto: LoginDto,
     @Ip() ip: string,
@@ -45,6 +79,22 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ZodValidationPipe(refreshTokenSchema))
+  @ApiOperation({
+    summary: 'Refresh session token',
+    description: 'Use refresh token to obtain a new session token. Refresh token rotates on use.',
+  })
+  @ApiOkResponse({
+    description: 'New session token generated',
+    type: RefreshResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid refresh token format',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Refresh token expired or invalid',
+    type: ErrorResponseDto,
+  })
   async refresh(@Body() dto: RefreshTokenDto) {
     const result = await this.authService.refresh(dto.refreshToken);
     return {
@@ -54,11 +104,36 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiSecurity('session')
+  @ApiOperation({
+    summary: 'Logout and invalidate session',
+    description: 'Invalidates the current session token immediately.',
+  })
+  @ApiNoContentResponse({
+    description: 'Session invalidated successfully',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
   async logout(@CurrentSession() session: any) {
     await this.authService.logout(session.token);
   }
 
   @Get('me')
+  @ApiSecurity('session')
+  @ApiOperation({
+    summary: 'Get current user context',
+    description: 'Returns current user information, tenant, membership role, and timesheet policy.',
+  })
+  @ApiOkResponse({
+    description: 'Current user context retrieved',
+    type: MeResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
   async getCurrentUser(
     @CurrentSession() session: any,
     @CurrentTenantId() tenantId: string,

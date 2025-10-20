@@ -11,7 +11,8 @@
       "Bash(pnpm add:*)",
       "Bash(pnpm db:migrate:*)",
       "Bash(psql:*)",
-      "Bash(timeout 10 pnpm dev:*)"
+      "Bash(timeout 10 pnpm dev:*)",
+      "Bash(pnpm tsx scripts/seed-demo-data.ts)"
     ],
     "deny": [],
     "ask": []
