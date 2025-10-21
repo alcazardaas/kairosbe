@@ -8,7 +8,7 @@ This project includes comprehensive Swagger/OpenAPI 3.0 documentation for all AP
 Once the application is running, access the interactive API documentation at:
 
 ```
-http://localhost:3000/docs
+http://localhost:3000/api
 ```
 
 The Swagger UI allows you to:
@@ -18,10 +18,11 @@ The Swagger UI allows you to:
 - Authenticate using session tokens
 
 ### OpenAPI JSON Spec
+
 The raw OpenAPI 3.0 specification is available at:
 
 ```
-http://localhost:3000/docs-json
+http://localhost:3000/api-json
 ```
 
 ## Exporting the OpenAPI Specification
@@ -189,14 +190,16 @@ When adding new endpoints or modifying existing ones:
 ## Troubleshooting
 
 ### Swagger UI not loading
+
 - Ensure the application is running
-- Check that you're accessing the correct URL: `http://localhost:3000/docs` (not `/api/v1/docs`)
+- Check that you're accessing the correct URL: `http://localhost:3000/api`
 - Check browser console for errors
 
 ### Export script fails
+
 - Ensure the application is running before executing `pnpm export:openapi`
 - Verify the port in package.json matches your running application
-- Check that `/docs-json` endpoint is accessible
+- Check that `/api-json` endpoint is accessible
 
 ### Authentication not working in Swagger UI
 - Ensure you've clicked "Authorize" and entered a valid session token

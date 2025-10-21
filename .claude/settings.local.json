@@ -12,7 +12,9 @@
       "Bash(pnpm db:migrate:*)",
       "Bash(psql:*)",
       "Bash(timeout 10 pnpm dev:*)",
-      "Bash(pnpm tsx scripts/seed-demo-data.ts)"
+      "Bash(pnpm tsx scripts/seed-demo-data.ts)",
+      "Bash(pnpm export:openapi)",
+      "Bash(cat openapi.json)"
     ],
     "deny": [],
     "ask": []

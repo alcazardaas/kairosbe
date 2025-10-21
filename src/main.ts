@@ -9,17 +9,17 @@ async function bootstrap() {
   // Use Pino logger
   app.useLogger(app.get(Logger));
 
-  // Set global prefix
-  app.setGlobalPrefix('api/v1');
-
   // Enable CORS (adjust as needed)
   app.enableCors();
 
-  // Swagger/OpenAPI configuration
+  const port = process.env.PORT || 3000;
+
+  // Swagger/OpenAPI configuration (before globalPrefix)
   const config = new DocumentBuilder()
     .setTitle('Kairos API')
     .setDescription('Timesheet and PTO Management System API')
     .setVersion('1.0.0')
+    .addServer(`http://localhost:${port}/api/v1`, 'Local Development')
     .addApiKey(
       {
         type: 'apiKey',
@@ -35,14 +35,19 @@ async function bootstrap() {
     deepScanRoutes: true,
   });
 
-  SwaggerModule.setup('docs', app, document);
+  // Mount Swagger at /api (excluded from global prefix)
+  SwaggerModule.setup('api', app, document);
 
-  const port = process.env.PORT || 3000;
+  // Set global prefix AFTER Swagger (exclude Swagger endpoints)
+  app.setGlobalPrefix('api/v1', {
+    exclude: ['api*'],
+  });
+
   await app.listen(port);
 
   const logger = app.get(Logger);
   logger.log(`🚀 Application is running on: http://localhost:${port}/api/v1`);
-  logger.log(`📚 Swagger documentation: http://localhost:${port}/docs`);
+  logger.log(`📚 Swagger documentation: http://localhost:${port}/api`);
 }
 
 bootstrap();

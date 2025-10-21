@@ -17,6 +17,7 @@ import {
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiSecurity,
+  ApiBody,
 } from '@nestjs/swagger';
 import { eq, and } from 'drizzle-orm';
 import { AuthService } from './auth.service';
@@ -52,6 +53,10 @@ export class AuthController {
     summary: 'Login with email and password',
     description: 'Authenticate user and create a new session. Returns session token and refresh token.',
   })
+  @ApiBody({
+    type: LoginRequestDto,
+    description: 'Login credentials',
+  })
   @ApiOkResponse({
     description: 'Successfully authenticated',
     type: LoginResponseDto,
@@ -82,6 +87,10 @@ export class AuthController {
   @ApiOperation({
     summary: 'Refresh session token',
     description: 'Use refresh token to obtain a new session token. Refresh token rotates on use.',
+  })
+  @ApiBody({
+    type: RefreshRequestDto,
+    description: 'Refresh token',
   })
   @ApiOkResponse({
     description: 'New session token generated',
