@@ -17,6 +17,12 @@ export const queryTimeEntriesSchema = z.object({
       message: 'Invalid date format',
     })
     .optional(),
+  week_end_date: z
+    .string()
+    .refine((date) => !isNaN(Date.parse(date)), {
+      message: 'Invalid date format',
+    })
+    .optional(),
   day_of_week: z.coerce.number().int().min(0).max(6).optional(),
 });
 

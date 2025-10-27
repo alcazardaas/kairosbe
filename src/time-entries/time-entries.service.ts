@@ -9,7 +9,7 @@ import { timeEntries } from '../db/schema/time-entries';
 import { CreateTimeEntryDto } from './dto/create-time-entry.dto';
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto';
 import { QueryTimeEntriesDto } from './dto/query-time-entries.dto';
-import { eq, and, sql, desc, asc, isNull } from 'drizzle-orm';
+import { eq, and, sql, desc, asc, isNull, gte, lte } from 'drizzle-orm';
 import { PaginatedResponse } from '../common/types/pagination.types';
 import { createPaginatedResponse, calculateOffset } from '../common/helpers/pagination.helper';
 
@@ -30,6 +30,7 @@ export class TimeEntriesService {
       project_id,
       task_id,
       week_start_date,
+      week_end_date,
       day_of_week,
     } = query;
     const offset = calculateOffset(page, limit);
@@ -52,8 +53,17 @@ export class TimeEntriesService {
         conditions.push(eq(timeEntries.taskId, task_id));
       }
     }
-    if (week_start_date) {
+    // Handle week_start_date and week_end_date filtering
+    if (week_start_date && week_end_date) {
+      // Date range filtering: week_start_date between start and end
+      conditions.push(gte(timeEntries.weekStartDate, new Date(week_start_date)));
+      conditions.push(lte(timeEntries.weekStartDate, new Date(week_end_date)));
+    } else if (week_start_date) {
+      // Exact match for backward compatibility
       conditions.push(eq(timeEntries.weekStartDate, new Date(week_start_date)));
+    } else if (week_end_date) {
+      // Filter by end date only
+      conditions.push(lte(timeEntries.weekStartDate, new Date(week_end_date)));
     }
     if (day_of_week !== undefined) {
       conditions.push(eq(timeEntries.dayOfWeek, day_of_week));

@@ -51,7 +51,8 @@ export class AuthController {
   @UsePipes(new ZodValidationPipe(loginSchema))
   @ApiOperation({
     summary: 'Login with email and password',
-    description: 'Authenticate user and create a new session. Returns session token and refresh token.',
+    description:
+      'Authenticate user and create a new session. Returns session token and refresh token.',
   })
   @ApiBody({
     type: LoginRequestDto,
@@ -69,11 +70,7 @@ export class AuthController {
     description: 'Invalid credentials',
     type: ErrorResponseDto,
   })
-  async login(
-    @Body() dto: LoginDto,
-    @Ip() ip: string,
-    @Headers('user-agent') userAgent?: string,
-  ) {
+  async login(@Body() dto: LoginDto, @Ip() ip: string, @Headers('user-agent') userAgent?: string) {
     const result = await this.authService.login(dto, ip, userAgent);
     return {
       data: result,
@@ -143,10 +140,7 @@ export class AuthController {
     description: 'Invalid or expired session token',
     type: ErrorResponseDto,
   })
-  async getCurrentUser(
-    @CurrentSession() session: any,
-    @CurrentTenantId() tenantId: string,
-  ) {
+  async getCurrentUser(@CurrentSession() session: any, @CurrentTenantId() tenantId: string) {
     // Get user details
     const [user] = await this.db.db
       .select({
@@ -171,12 +165,7 @@ export class AuthController {
         status: memberships.status,
       })
       .from(memberships)
-      .where(
-        and(
-          eq(memberships.userId, session.userId),
-          eq(memberships.tenantId, tenantId),
-        ),
-      )
+      .where(and(eq(memberships.userId, session.userId), eq(memberships.tenantId, tenantId)))
       .limit(1);
 
     if (!membership) {

@@ -1,0 +1,1 @@
+ALTER TABLE "benefit_types" ADD COLUMN "allow_negative_balance" boolean DEFAULT false NOT NULL;

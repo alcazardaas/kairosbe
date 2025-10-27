@@ -36,6 +36,20 @@
       "when": 1760566200528,
       "tag": "0004_nostalgic_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1761338070346,
+      "tag": "0005_crazy_killraven",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1761601378996,
+      "tag": "0006_serious_havok",
+      "breakpoints": true
     }
   ]
 }

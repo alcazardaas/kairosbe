@@ -30,17 +30,9 @@ export class AuthService {
   /**
    * Authenticate user with email and password
    */
-  async login(
-    dto: LoginDto,
-    ipAddress?: string,
-    userAgent?: string,
-  ): Promise<AuthResponse> {
+  async login(dto: LoginDto, ipAddress?: string, userAgent?: string): Promise<AuthResponse> {
     // Find user by email
-    const [user] = await this.db.db
-      .select()
-      .from(users)
-      .where(eq(users.email, dto.email))
-      .limit(1);
+    const [user] = await this.db.db.select().from(users).where(eq(users.email, dto.email)).limit(1);
 
     if (!user || !user.passwordHash) {
       throw new UnauthorizedException('Invalid credentials');
@@ -56,12 +48,7 @@ export class AuthService {
     const userMemberships = await this.db.db
       .select()
       .from(memberships)
-      .where(
-        and(
-          eq(memberships.userId, user.id),
-          eq(memberships.status, 'active'),
-        ),
-      );
+      .where(and(eq(memberships.userId, user.id), eq(memberships.status, 'active')));
 
     if (userMemberships.length === 0) {
       throw new UnauthorizedException('No active tenant memberships found');
@@ -90,10 +77,7 @@ export class AuthService {
     });
 
     // Update last login timestamp
-    await this.db.db
-      .update(users)
-      .set({ lastLoginAt: new Date() })
-      .where(eq(users.id, user.id));
+    await this.db.db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
 
     return {
       token: session.token,

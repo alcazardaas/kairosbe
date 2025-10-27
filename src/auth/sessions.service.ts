@@ -47,16 +47,19 @@ export class SessionsService {
     const expiresAt = new Date(now.getTime() + this.sessionTtl * 1000);
     const refreshExpiresAt = new Date(now.getTime() + this.refreshTokenTtl * 1000);
 
-    const [session] = await this.db.db.insert(sessions).values({
-      userId: input.userId,
-      tenantId: input.tenantId,
-      token,
-      refreshToken,
-      expiresAt,
-      refreshExpiresAt,
-      ipAddress: input.ipAddress,
-      userAgent: input.userAgent,
-    }).returning();
+    const [session] = await this.db.db
+      .insert(sessions)
+      .values({
+        userId: input.userId,
+        tenantId: input.tenantId,
+        token,
+        refreshToken,
+        expiresAt,
+        refreshExpiresAt,
+        ipAddress: input.ipAddress,
+        userAgent: input.userAgent,
+      })
+      .returning();
 
     return session as SessionData;
   }
@@ -68,12 +71,7 @@ export class SessionsService {
     const [session] = await this.db.db
       .select()
       .from(sessions)
-      .where(
-        and(
-          eq(sessions.token, token),
-          gt(sessions.expiresAt, new Date()),
-        ),
-      )
+      .where(and(eq(sessions.token, token), gt(sessions.expiresAt, new Date())))
       .limit(1);
 
     return session ? (session as SessionData) : null;
@@ -87,10 +85,7 @@ export class SessionsService {
       .select()
       .from(sessions)
       .where(
-        and(
-          eq(sessions.refreshToken, refreshToken),
-          gt(sessions.refreshExpiresAt, new Date()),
-        ),
+        and(eq(sessions.refreshToken, refreshToken), gt(sessions.refreshExpiresAt, new Date())),
       )
       .limit(1);
 
@@ -142,18 +137,14 @@ export class SessionsService {
    * Delete a session (logout)
    */
   async deleteSession(token: string): Promise<void> {
-    await this.db.db
-      .delete(sessions)
-      .where(eq(sessions.token, token));
+    await this.db.db.delete(sessions).where(eq(sessions.token, token));
   }
 
   /**
    * Delete all sessions for a user (logout everywhere)
    */
   async deleteAllUserSessions(userId: string): Promise<void> {
-    await this.db.db
-      .delete(sessions)
-      .where(eq(sessions.userId, userId));
+    await this.db.db.delete(sessions).where(eq(sessions.userId, userId));
   }
 
   /**

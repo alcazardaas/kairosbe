@@ -1,9 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiOkResponse,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 import { DbService } from '../db/db.service';
 import { Public } from '../auth/decorators/public.decorator';
 import { HealthCheckDto } from './dto/health-response.dto';
@@ -17,7 +13,8 @@ export class HealthController {
   @Get()
   @ApiOperation({
     summary: 'Health check',
-    description: 'Check the health status of the API and database connection. This endpoint is public and does not require authentication.',
+    description:
+      'Check the health status of the API and database connection. This endpoint is public and does not require authentication.',
   })
   @ApiOkResponse({
     description: 'Health status retrieved',

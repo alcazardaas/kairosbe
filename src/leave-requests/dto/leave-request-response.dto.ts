@@ -7,19 +7,19 @@ export class CreateLeaveRequestRequestDto {
     description: 'Benefit type ID',
     example: '123e4567-e89b-12d3-a456-426614174030',
   })
-  benefit_type_id: string;
+  benefitTypeId: string;
 
   @ApiProperty({
     description: 'Leave start date (YYYY-MM-DD)',
     example: '2025-02-01',
   })
-  start_date: string;
+  startDate: string;
 
   @ApiProperty({
     description: 'Leave end date (YYYY-MM-DD)',
     example: '2025-02-05',
   })
-  end_date: string;
+  endDate: string;
 
   @ApiProperty({
     description: 'Amount of benefit to use (days or hours)',
@@ -134,35 +134,54 @@ export class BenefitBalanceDto {
   id: string;
 
   @ApiProperty({
-    description: 'Tenant ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  tenantId: string;
-
-  @ApiProperty({
-    description: 'User ID',
-    example: '123e4567-e89b-12d3-a456-426614174001',
-  })
-  userId: string;
-
-  @ApiProperty({
     description: 'Benefit type ID',
     example: '123e4567-e89b-12d3-a456-426614174030',
   })
   benefitTypeId: string;
 
   @ApiProperty({
-    description: 'Current balance',
-    example: 15.0,
+    description: 'Benefit type key (e.g., vacation, sick)',
+    example: 'vacation',
   })
-  currentBalance: number;
+  benefitTypeKey: string;
 
   @ApiProperty({
-    description: 'Benefit type information',
-    type: Object,
+    description: 'Benefit type display name',
+    example: 'Vacation Leave',
+  })
+  benefitTypeName: string;
+
+  @ApiProperty({
+    description: 'Current balance (remaining)',
+    example: '15.00',
+  })
+  currentBalance: string;
+
+  @ApiProperty({
+    description: 'Total annual amount allocated',
+    example: '20.00',
+  })
+  totalAmount: string;
+
+  @ApiProperty({
+    description: 'Amount used (calculated: totalAmount - currentBalance)',
+    example: '5.00',
+  })
+  usedAmount: string;
+
+  @ApiProperty({
+    description: 'Unit of measurement',
+    example: 'days',
+    enum: ['days', 'hours'],
+  })
+  unit: string;
+
+  @ApiProperty({
+    description: 'Whether this benefit requires approval',
+    example: true,
     required: false,
   })
-  benefitType?: any;
+  requiresApproval?: boolean;
 }
 
 export class LeaveRequestMetaDto {

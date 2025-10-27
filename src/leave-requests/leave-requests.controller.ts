@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Delete, Body, Param, Query, UsePipes, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UsePipes,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -8,21 +19,13 @@ import {
   ApiUnauthorizedResponse,
   ApiNotFoundResponse,
   ApiSecurity,
+  ApiBody,
 } from '@nestjs/swagger';
 import { LeaveRequestsService } from './leave-requests.service';
-import {
-  CurrentTenantId,
-  CurrentSession,
-} from '../auth/decorators/current-user.decorator';
+import { CurrentTenantId, CurrentSession } from '../auth/decorators/current-user.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
-import {
-  createLeaveRequestSchema,
-  CreateLeaveRequestDto,
-} from './dto/create-leave-request.dto';
-import {
-  reviewLeaveRequestSchema,
-  ReviewLeaveRequestDto,
-} from './dto/review-leave-request.dto';
+import { createLeaveRequestSchema, CreateLeaveRequestDto } from './dto/create-leave-request.dto';
+import { reviewLeaveRequestSchema, ReviewLeaveRequestDto } from './dto/review-leave-request.dto';
 import {
   LeaveRequestResponseDto,
   LeaveRequestListResponseDto,
@@ -41,7 +44,8 @@ export class LeaveRequestsController {
   @Get()
   @ApiOperation({
     summary: 'List leave requests',
-    description: 'Retrieve leave requests with optional filters. Supports ?mine=true for own requests, ?team=true for team view (managers), and date range filtering.',
+    description:
+      'Retrieve leave requests with optional filters. Supports ?mine=true for own requests, ?team=true for team view (managers), and date range filtering.',
   })
   @ApiOkResponse({
     description: 'Leave requests retrieved successfully',
@@ -110,10 +114,13 @@ export class LeaveRequestsController {
   }
 
   @Post()
-  @UsePipes(new ZodValidationPipe(createLeaveRequestSchema))
   @ApiOperation({
     summary: 'Create a new leave request',
     description: 'Create a new leave request for PTO, sick leave, or other benefits.',
+  })
+  @ApiBody({
+    type: CreateLeaveRequestRequestDto,
+    description: 'Leave request details',
   })
   @ApiCreatedResponse({
     description: 'Leave request created successfully',
@@ -130,7 +137,7 @@ export class LeaveRequestsController {
   async create(
     @CurrentTenantId() tenantId: string,
     @CurrentSession() session: any,
-    @Body() dto: CreateLeaveRequestDto,
+    @Body(new ZodValidationPipe(createLeaveRequestSchema)) dto: CreateLeaveRequestDto,
   ) {
     const userId = session.userId;
     const result = await this.leaveRequestsService.create(tenantId, userId, dto);
@@ -176,7 +183,8 @@ export class LeaveRequestsController {
   @UsePipes(new ZodValidationPipe(reviewLeaveRequestSchema))
   @ApiOperation({
     summary: 'Reject a leave request',
-    description: 'Reject a pending leave request with an optional review note. Requires manager role.',
+    description:
+      'Reject a pending leave request with an optional review note. Requires manager role.',
   })
   @ApiOkResponse({
     description: 'Leave request rejected successfully',

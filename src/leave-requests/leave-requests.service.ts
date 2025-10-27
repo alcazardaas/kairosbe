@@ -5,6 +5,7 @@ import {
   benefitRequests,
   benefitBalances,
   benefitTypes,
+  benefitPolicies,
   users,
   profiles,
 } from '../db/schema';
@@ -176,12 +177,14 @@ export class LeaveRequestsService {
       throw new BadRequestException('Invalid benefit type');
     }
 
-    // Check if user has sufficient balance
-    const balance = await this.getUserBenefitBalance(tenantId, userId, dto.benefitTypeId);
-    if (parseFloat(balance.currentBalance) < dto.amount) {
-      throw new BadRequestException(
-        `Insufficient balance. Available: ${balance.currentBalance}, Requested: ${dto.amount}`,
-      );
+    // Check if user has sufficient balance (skip if benefit type allows negative balance)
+    if (!benefitType[0].allowNegativeBalance) {
+      const balance = await this.getUserBenefitBalance(tenantId, userId, dto.benefitTypeId);
+      if (parseFloat(balance.currentBalance) < dto.amount) {
+        throw new BadRequestException(
+          `Insufficient balance. Available: ${balance.currentBalance}, Requested: ${dto.amount}`,
+        );
+      }
     }
 
     // Create the request
@@ -214,6 +217,13 @@ export class LeaveRequestsService {
       throw new BadRequestException(`Cannot approve request with status: ${request.status}`);
     }
 
+    // Get benefit type to check if balance deduction is needed
+    const benefitType = await this.db.db
+      .select()
+      .from(benefitTypes)
+      .where(eq(benefitTypes.id, request.benefitTypeId))
+      .limit(1);
+
     // Update the request
     const updated = await this.db.db
       .update(benefitRequests)
@@ -226,27 +236,29 @@ export class LeaveRequestsService {
       .where(and(eq(benefitRequests.tenantId, tenantId), eq(benefitRequests.id, id)))
       .returning();
 
-    // Deduct from balance
-    const currentBalance = await this.getUserBenefitBalance(
-      tenantId,
-      request.userId,
-      request.benefitTypeId,
-    );
-
-    const newBalance = parseFloat(currentBalance.currentBalance) - parseFloat(request.amount);
-
-    await this.db.db
-      .update(benefitBalances)
-      .set({
-        currentBalance: newBalance.toString(),
-      })
-      .where(
-        and(
-          eq(benefitBalances.tenantId, tenantId),
-          eq(benefitBalances.userId, request.userId),
-          eq(benefitBalances.benefitTypeId, request.benefitTypeId),
-        ),
+    // Deduct from balance only if benefit type doesn't allow negative balance
+    if (benefitType[0] && !benefitType[0].allowNegativeBalance) {
+      const currentBalance = await this.getUserBenefitBalance(
+        tenantId,
+        request.userId,
+        request.benefitTypeId,
       );
+
+      const newBalance = parseFloat(currentBalance.currentBalance) - parseFloat(request.amount);
+
+      await this.db.db
+        .update(benefitBalances)
+        .set({
+          currentBalance: newBalance.toString(),
+        })
+        .where(
+          and(
+            eq(benefitBalances.tenantId, tenantId),
+            eq(benefitBalances.userId, request.userId),
+            eq(benefitBalances.benefitTypeId, request.benefitTypeId),
+          ),
+        );
+    }
 
     return updated[0];
   }
@@ -315,24 +327,50 @@ export class LeaveRequestsService {
       .select({
         id: benefitBalances.id,
         benefitTypeId: benefitBalances.benefitTypeId,
+        benefitTypeKey: benefitTypes.key,
+        benefitTypeName: benefitTypes.name,
         currentBalance: benefitBalances.currentBalance,
-        benefitType: {
-          id: benefitTypes.id,
-          key: benefitTypes.key,
-          name: benefitTypes.name,
-          unit: benefitTypes.unit,
-          requiresApproval: benefitTypes.requiresApproval,
-        },
+        totalAmount: benefitPolicies.annualAmount,
+        unit: benefitTypes.unit,
+        requiresApproval: benefitTypes.requiresApproval,
       })
       .from(benefitBalances)
       .leftJoin(benefitTypes, eq(benefitBalances.benefitTypeId, benefitTypes.id))
+      .leftJoin(
+        benefitPolicies,
+        and(
+          eq(benefitPolicies.tenantId, tenantId),
+          eq(benefitPolicies.benefitTypeId, benefitTypes.id),
+          // Get the active policy (effective_from <= now and (effective_to is null or effective_to >= now))
+          lte(benefitPolicies.effectiveFrom, sql`CURRENT_DATE`),
+          or(
+            sql`${benefitPolicies.effectiveTo} IS NULL`,
+            gte(benefitPolicies.effectiveTo, sql`CURRENT_DATE`),
+          ),
+        ),
+      )
       .where(and(eq(benefitBalances.tenantId, tenantId), eq(benefitBalances.userId, userId)));
 
-    return results;
+    // Calculate usedAmount = totalAmount - currentBalance
+    return results.map((row) => ({
+      id: row.id,
+      benefitTypeId: row.benefitTypeId,
+      benefitTypeKey: row.benefitTypeKey,
+      benefitTypeName: row.benefitTypeName,
+      currentBalance: row.currentBalance,
+      totalAmount: row.totalAmount || '0',
+      usedAmount:
+        row.totalAmount && row.currentBalance
+          ? (parseFloat(row.totalAmount) - parseFloat(row.currentBalance)).toFixed(2)
+          : '0',
+      unit: row.unit,
+      requiresApproval: row.requiresApproval,
+    }));
   }
 
   /**
    * Get a single benefit balance (helper method)
+   * Auto-creates with 0 balance if not found
    */
   private async getUserBenefitBalance(tenantId: string, userId: string, benefitTypeId: string) {
     const results = await this.db.db
@@ -348,7 +386,18 @@ export class LeaveRequestsService {
       .limit(1);
 
     if (results.length === 0) {
-      throw new NotFoundException('Benefit balance not found for this user');
+      // Auto-create benefit balance with 0 balance
+      const [newBalance] = await this.db.db
+        .insert(benefitBalances)
+        .values({
+          tenantId,
+          userId,
+          benefitTypeId,
+          currentBalance: '0',
+        })
+        .returning();
+
+      return newBalance;
     }
 
     return results[0];

@@ -41,7 +41,8 @@ export class BenefitTypesController {
   @Get()
   @ApiOperation({
     summary: 'List all benefit types',
-    description: 'Retrieve a paginated list of benefit types (PTO, sick leave, etc.) with optional filtering.',
+    description:
+      'Retrieve a paginated list of benefit types (PTO, sick leave, etc.) with optional filtering.',
   })
   @ApiOkResponse({
     description: 'Benefit types retrieved successfully',

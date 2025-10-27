@@ -85,7 +85,8 @@ export class TasksController {
   @Post()
   @ApiOperation({
     summary: 'Create a new task',
-    description: 'Create a new task within a project. Can optionally specify a parent task for hierarchical tasks.',
+    description:
+      'Create a new task within a project. Can optionally specify a parent task for hierarchical tasks.',
   })
   @ApiCreatedResponse({
     description: 'Task created successfully',

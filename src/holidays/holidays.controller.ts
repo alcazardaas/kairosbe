@@ -25,10 +25,7 @@ import { HolidaysService } from './holidays.service';
 import { CreateHolidayDto, createHolidaySchema } from './dto/create-holiday.dto';
 import { UpdateHolidayDto, updateHolidaySchema } from './dto/update-holiday.dto';
 import { QueryHolidaysDto, queryHolidaysSchema } from './dto/query-holidays.dto';
-import {
-  HolidayResponseDto,
-  HolidayListResponseDto,
-} from './dto/holiday-response.dto';
+import { HolidayResponseDto, HolidayListResponseDto } from './dto/holiday-response.dto';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ErrorResponseDto } from '../common/dto/response.dto';
 

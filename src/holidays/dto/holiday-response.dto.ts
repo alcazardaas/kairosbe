@@ -12,7 +12,7 @@ export class CreateHolidayRequestDto {
 
   @ApiProperty({
     description: 'Holiday name',
-    example: 'New Year\'s Day',
+    example: "New Year's Day",
     maxLength: 255,
   })
   name: string;
@@ -72,7 +72,7 @@ export class HolidayDto {
 
   @ApiProperty({
     description: 'Holiday name',
-    example: 'New Year\'s Day',
+    example: "New Year's Day",
   })
   name: string;
 

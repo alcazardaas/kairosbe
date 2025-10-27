@@ -48,10 +48,7 @@ export class SearchService {
     }
 
     const searchPattern = `%${query}%`;
-    const conditions = [
-      eq(tasks.tenantId, tenantId),
-      ilike(tasks.name, searchPattern),
-    ];
+    const conditions = [eq(tasks.tenantId, tenantId), ilike(tasks.name, searchPattern)];
 
     if (projectId) {
       conditions.push(eq(tasks.projectId, projectId));

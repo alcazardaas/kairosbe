@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { eq, and, sql, desc, gte, lte, inArray } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { timesheets, timeEntries, users, profiles } from '../db/schema';
@@ -206,7 +211,9 @@ export class TimesheetsService {
     }
 
     if (timesheet.status !== 'draft') {
-      throw new BadRequestException(`Timesheet cannot be submitted. Current status: ${timesheet.status}`);
+      throw new BadRequestException(
+        `Timesheet cannot be submitted. Current status: ${timesheet.status}`,
+      );
     }
 
     // Check if user owns this timesheet or is submitting on their behalf
@@ -243,7 +250,9 @@ export class TimesheetsService {
     }
 
     if (timesheet.status !== 'submitted') {
-      throw new BadRequestException(`Timesheet cannot be approved. Current status: ${timesheet.status}`);
+      throw new BadRequestException(
+        `Timesheet cannot be approved. Current status: ${timesheet.status}`,
+      );
     }
 
     const [updated] = await this.db.db
@@ -276,7 +285,9 @@ export class TimesheetsService {
     }
 
     if (timesheet.status !== 'submitted') {
-      throw new BadRequestException(`Timesheet cannot be rejected. Current status: ${timesheet.status}`);
+      throw new BadRequestException(
+        `Timesheet cannot be rejected. Current status: ${timesheet.status}`,
+      );
     }
 
     if (!dto.reviewNote) {

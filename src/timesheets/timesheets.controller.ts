@@ -43,7 +43,8 @@ export class TimesheetsController {
   @Get()
   @ApiOperation({
     summary: 'List timesheets',
-    description: 'Retrieve timesheets with optional filters. Supports team view for managers (?team=true) and date range filtering.',
+    description:
+      'Retrieve timesheets with optional filters. Supports team view for managers (?team=true) and date range filtering.',
   })
   @ApiOkResponse({
     description: 'Timesheets retrieved successfully',
@@ -141,7 +142,8 @@ export class TimesheetsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Submit a timesheet for approval',
-    description: 'Submit a draft timesheet for manager approval. Changes status from draft to pending.',
+    description:
+      'Submit a draft timesheet for manager approval. Changes status from draft to pending.',
   })
   @ApiOkResponse({
     description: 'Timesheet submitted successfully',
@@ -159,7 +161,11 @@ export class TimesheetsController {
     description: 'Invalid or expired session token',
     type: ErrorResponseDto,
   })
-  async submit(@CurrentTenantId() tenantId: string, @Param('id') id: string, @CurrentSession() session: any) {
+  async submit(
+    @CurrentTenantId() tenantId: string,
+    @Param('id') id: string,
+    @CurrentSession() session: any,
+  ) {
     const timesheet = await this.timesheetsService.submit(tenantId, id, session.userId);
     return {
       data: timesheet,
@@ -257,7 +263,11 @@ export class TimesheetsController {
     description: 'Invalid or expired session token',
     type: ErrorResponseDto,
   })
-  async remove(@CurrentTenantId() tenantId: string, @Param('id') id: string, @CurrentSession() session: any) {
+  async remove(
+    @CurrentTenantId() tenantId: string,
+    @Param('id') id: string,
+    @CurrentSession() session: any,
+  ) {
     await this.timesheetsService.remove(tenantId, id, session.userId);
   }
 }

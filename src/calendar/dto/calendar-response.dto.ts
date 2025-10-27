@@ -18,7 +18,7 @@ export class CalendarHolidayDto {
 
   @ApiProperty({
     description: 'Holiday name',
-    example: 'New Year\'s Day',
+    example: "New Year's Day",
   })
   name: string;
 

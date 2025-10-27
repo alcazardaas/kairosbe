@@ -28,7 +28,8 @@ const {
 
 async function seed() {
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://admin:Qazxsw22!@localhost:5432/kairos',
+    connectionString:
+      process.env.DATABASE_URL || 'postgresql://admin:Qazxsw22!@localhost:5432/kairos',
   });
 
   const db = drizzle(pool, { schema });
@@ -47,7 +48,9 @@ async function seed() {
       .onConflictDoNothing()
       .returning();
 
-    const tenantId = tenant?.id || (await db.select().from(tenants).where(eq(tenants.slug, 'demo-company')).limit(1))[0].id;
+    const tenantId =
+      tenant?.id ||
+      (await db.select().from(tenants).where(eq(tenants.slug, 'demo-company')).limit(1))[0].id;
 
     console.log(`✓ Tenant: ${tenantId}`);
 
@@ -65,7 +68,9 @@ async function seed() {
       .onConflictDoNothing()
       .returning();
 
-    const managerId = manager?.id || (await db.select().from(users).where(eq(users.email, 'manager@demo.com')).limit(1))[0].id;
+    const managerId =
+      manager?.id ||
+      (await db.select().from(users).where(eq(users.email, 'manager@demo.com')).limit(1))[0].id;
 
     console.log(`✓ Manager user: ${managerId}`);
 
@@ -108,7 +113,9 @@ async function seed() {
         .onConflictDoNothing()
         .returning();
 
-      const employeeId = employee?.id || (await db.select().from(users).where(eq(users.email, emp.email)).limit(1))[0].id;
+      const employeeId =
+        employee?.id ||
+        (await db.select().from(users).where(eq(users.email, emp.email)).limit(1))[0].id;
 
       employees.push(employeeId);
 
@@ -151,7 +158,10 @@ async function seed() {
       .onConflictDoNothing()
       .returning();
 
-    const benefitTypeId = vacationBenefit?.id || (await db.select().from(benefitTypes).where(eq(benefitTypes.key, 'vacation')).limit(1))[0]?.id;
+    const benefitTypeId =
+      vacationBenefit?.id ||
+      (await db.select().from(benefitTypes).where(eq(benefitTypes.key, 'vacation')).limit(1))[0]
+        ?.id;
 
     if (benefitTypeId) {
       for (const empId of employees) {

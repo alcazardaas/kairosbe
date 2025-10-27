@@ -21,7 +21,8 @@ export class CalendarController {
   @Get()
   @ApiOperation({
     summary: 'Get unified calendar feed',
-    description: 'Retrieve a unified calendar feed including holidays, leave requests, and timesheets for a user. Query parameters: user_id (optional, defaults to current user), from (required YYYY-MM-DD), to (required YYYY-MM-DD), include (optional comma-separated: holidays,leave,timesheets).',
+    description:
+      'Retrieve a unified calendar feed including holidays, leave requests, and timesheets for a user. Query parameters: user_id (optional, defaults to current user), from (required YYYY-MM-DD), to (required YYYY-MM-DD), include (optional comma-separated: holidays,leave,timesheets).',
   })
   @ApiOkResponse({
     description: 'Calendar feed retrieved successfully',

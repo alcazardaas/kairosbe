@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { projects, projectMembers, users } from '../db/schema';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -173,12 +178,7 @@ export class ProjectsService {
       })
       .from(projectMembers)
       .leftJoin(users, eq(projectMembers.userId, users.id))
-      .where(
-        and(
-          eq(projectMembers.tenantId, tenantId),
-          eq(projectMembers.projectId, projectId),
-        ),
-      );
+      .where(and(eq(projectMembers.tenantId, tenantId), eq(projectMembers.projectId, projectId)));
 
     return members;
   }
@@ -196,11 +196,7 @@ export class ProjectsService {
     }
 
     // Check if user exists in this tenant
-    const [membership] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+    const [membership] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
 
     if (!membership) {
       throw new BadRequestException('User not found in this tenant');
@@ -282,12 +278,7 @@ export class ProjectsService {
       })
       .from(projectMembers)
       .innerJoin(projects, eq(projectMembers.projectId, projects.id))
-      .where(
-        and(
-          eq(projectMembers.tenantId, tenantId),
-          eq(projectMembers.userId, userId),
-        ),
-      )
+      .where(and(eq(projectMembers.tenantId, tenantId), eq(projectMembers.userId, userId)))
       .orderBy(desc(projects.name));
 
     return myProjects;

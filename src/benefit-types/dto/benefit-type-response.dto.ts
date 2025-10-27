@@ -105,6 +105,12 @@ export class BenefitTypeDto {
   requires_approval: boolean;
 
   @ApiProperty({
+    description: 'Whether negative balance is allowed (e.g., unpaid leave)',
+    example: false,
+  })
+  allow_negative_balance: boolean;
+
+  @ApiProperty({
     description: 'Creation timestamp',
     example: '2025-01-15T10:00:00.000Z',
     required: false,

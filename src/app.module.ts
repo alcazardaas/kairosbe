@@ -14,6 +14,8 @@ import { HolidaysModule } from './holidays/holidays.module';
 import { TimesheetPoliciesModule } from './timesheet-policies/timesheet-policies.module';
 import { LeaveRequestsModule } from './leave-requests/leave-requests.module';
 import { CalendarModule } from './calendar/calendar.module';
+import { UsersModule } from './users/users.module';
+import { OrganizationModule } from './organization/organization.module';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { CalendarModule } from './calendar/calendar.module';
     TimesheetPoliciesModule,
     LeaveRequestsModule,
     CalendarModule,
+    UsersModule,
+    OrganizationModule,
   ],
   controllers: [],
   providers: [],

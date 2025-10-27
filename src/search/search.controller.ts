@@ -8,10 +8,7 @@ import {
 } from '@nestjs/swagger';
 import { SearchService } from './search.service';
 import { CurrentTenantId } from '../auth/decorators/current-user.decorator';
-import {
-  SearchProjectsResponseDto,
-  SearchTasksResponseDto,
-} from './dto/search-response.dto';
+import { SearchProjectsResponseDto, SearchTasksResponseDto } from './dto/search-response.dto';
 import { ErrorResponseDto } from '../common/dto/response.dto';
 
 @ApiTags('Search')

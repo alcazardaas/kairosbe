@@ -14,7 +14,9 @@
       "Bash(timeout 10 pnpm dev:*)",
       "Bash(pnpm tsx scripts/seed-demo-data.ts)",
       "Bash(pnpm export:openapi)",
-      "Bash(cat openapi.json)"
+      "Bash(cat openapi.json)",
+      "Bash(docker-compose exec:*)",
+      "Bash(docker exec:*)"
     ],
     "deny": [],
     "ask": []

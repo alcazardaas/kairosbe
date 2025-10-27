@@ -25,6 +25,7 @@ export const benefitTypes = pgTable(
     name: text('name').notNull(),
     unit: text('unit').notNull(),
     requiresApproval: boolean('requires_approval').notNull().default(true),
+    allowNegativeBalance: boolean('allow_negative_balance').notNull().default(false),
   },
   (table) => ({
     uniqTenantKey: unique().on(table.tenantId, table.key),

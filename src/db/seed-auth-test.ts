@@ -35,40 +35,53 @@ async function seed() {
     console.log(`✅ Created tenant: ${tenant.name} (${tenant.slug}) - ID: ${tenant.id}`);
 
     // Create user
-    const userResult = await pool.query(`
+    const userResult = await pool.query(
+      `
       INSERT INTO users (email, password_hash, name, locale)
       VALUES ('test@example.com', $1, 'Test User', 'en')
       ON CONFLICT (email) DO UPDATE SET
         password_hash = EXCLUDED.password_hash,
         name = EXCLUDED.name
       RETURNING id, email, name
-    `, [passwordHash]);
+    `,
+      [passwordHash],
+    );
     const user = userResult.rows[0];
     console.log(`✅ Created user: ${user.email} (${user.name}) - ID: ${user.id}`);
 
     // Create membership
-    const membershipResult = await pool.query(`
+    const membershipResult = await pool.query(
+      `
       INSERT INTO memberships (tenant_id, user_id, role, status)
       VALUES ($1, $2, 'admin', 'active')
       ON CONFLICT (tenant_id, user_id) DO UPDATE SET
         role = EXCLUDED.role,
         status = EXCLUDED.status
       RETURNING id, role, status
-    `, [tenant.id, user.id]);
+    `,
+      [tenant.id, user.id],
+    );
     const membership = membershipResult.rows[0];
-    console.log(`✅ Created membership: ${membership.role} (${membership.status}) - ID: ${membership.id}`);
+    console.log(
+      `✅ Created membership: ${membership.role} (${membership.status}) - ID: ${membership.id}`,
+    );
 
     // Create timesheet policy for tenant
-    const policyResult = await pool.query(`
+    const policyResult = await pool.query(
+      `
       INSERT INTO timesheet_policies (tenant_id, week_start, max_hours_per_day, allow_overtime, lock_after_approval)
       VALUES ($1, 1, 12, true, true)
       ON CONFLICT (tenant_id) DO UPDATE SET
         week_start = EXCLUDED.week_start,
         max_hours_per_day = EXCLUDED.max_hours_per_day
       RETURNING tenant_id, week_start, max_hours_per_day
-    `, [tenant.id]);
+    `,
+      [tenant.id],
+    );
     const policy = policyResult.rows[0];
-    console.log(`✅ Created timesheet policy: week_start=${policy.week_start}, max_hours=${policy.max_hours_per_day}`);
+    console.log(
+      `✅ Created timesheet policy: week_start=${policy.week_start}, max_hours=${policy.max_hours_per_day}`,
+    );
 
     console.log('\n🎉 Seed completed successfully!\n');
     console.log('Test credentials:');
