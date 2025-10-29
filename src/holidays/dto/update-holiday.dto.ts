@@ -9,6 +9,9 @@ export const updateHolidaySchema = z.object({
     })
     .optional(),
   name: z.string().min(1, 'Name is required').max(255, 'Name too long').optional(),
+  type: z.enum(['public', 'company', 'regional']).optional(),
+  is_recurring: z.boolean().optional(),
+  description: z.string().optional().nullable(),
 });
 
 export type UpdateHolidayDto = z.infer<typeof updateHolidaySchema>;

@@ -4,7 +4,7 @@ import { holidays } from '../db/schema/holidays';
 import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { UpdateHolidayDto } from './dto/update-holiday.dto';
 import { QueryHolidaysDto } from './dto/query-holidays.dto';
-import { eq, and, ilike, sql, desc, asc, gte, lt, isNull } from 'drizzle-orm';
+import { eq, and, ilike, sql, desc, asc, gte, lte, lt, isNull } from 'drizzle-orm';
 import { PaginatedResponse } from '../common/types/pagination.types';
 import { createPaginatedResponse, calculateOffset } from '../common/helpers/pagination.helper';
 
@@ -14,7 +14,8 @@ export class HolidaysService {
 
   async findAll(query: QueryHolidaysDto): Promise<PaginatedResponse<typeof holidays.$inferSelect>> {
     const db = this.dbService.getDb();
-    const { page, limit, sort, tenant_id, country_code, year, search } = query;
+    const { page, limit, sort, tenant_id, country_code, year, search, type, startDate, endDate, upcoming } =
+      query;
     const offset = calculateOffset(page, limit);
 
     // Build where conditions
@@ -29,14 +30,38 @@ export class HolidaysService {
     if (country_code) {
       conditions.push(eq(holidays.countryCode, country_code));
     }
+    if (type) {
+      conditions.push(eq(holidays.type, type));
+    }
     if (year) {
-      const startDate = new Date(`${year}-01-01`);
-      const endDate = new Date(`${year + 1}-01-01`);
-      conditions.push(gte(holidays.date, startDate));
-      conditions.push(lt(holidays.date, endDate));
+      const yearStartDate = new Date(`${year}-01-01`);
+      const yearEndDate = new Date(`${year + 1}-01-01`);
+      conditions.push(gte(holidays.date, yearStartDate));
+      conditions.push(lt(holidays.date, yearEndDate));
+    }
+    if (startDate) {
+      conditions.push(gte(holidays.date, new Date(startDate)));
+    }
+    if (endDate) {
+      conditions.push(lte(holidays.date, new Date(endDate)));
+    }
+    if (upcoming) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      conditions.push(gte(holidays.date, today));
     }
     if (search) {
       conditions.push(ilike(holidays.name, `%${search}%`));
+    }
+
+    // Default behavior: if no date filters provided, show next 12 months
+    if (!year && !startDate && !endDate && !upcoming) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const oneYearFromNow = new Date(today);
+      oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+      conditions.push(gte(holidays.date, today));
+      conditions.push(lte(holidays.date, oneYearFromNow));
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

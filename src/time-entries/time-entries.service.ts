@@ -259,19 +259,72 @@ export class TimeEntriesService {
   }
 
   /**
-   * Get total hours for a user in a specific week
+   * Get weekly hours for a user with daily breakdown
    */
-  async getWeeklyHours(userId: string, weekStartDate: string): Promise<number> {
+  async getWeeklyHours(
+    userId: string,
+    weekStartDate: string,
+  ): Promise<{
+    userId: string;
+    weekStartDate: string;
+    weekEndDate: string;
+    totalHours: number;
+    hoursPerDay: Record<string, number>;
+    entriesCount: number;
+  }> {
     const db = this.dbService.getDb();
 
-    const result = await db
-      .select({ total: sql<number>`COALESCE(SUM(CAST(${timeEntries.hours} AS NUMERIC)), 0)` })
-      .from(timeEntries)
-      .where(
-        and(eq(timeEntries.userId, userId), eq(timeEntries.weekStartDate, new Date(weekStartDate))),
-      );
+    // Calculate week end date (6 days after start)
+    const weekStart = new Date(weekStartDate);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    const weekEndDate = weekEnd.toISOString().split('T')[0];
 
-    return Number(result[0]?.total || 0);
+    // Get all time entries for the week
+    const entries = await db
+      .select({
+        dayOfWeek: timeEntries.dayOfWeek,
+        hours: timeEntries.hours,
+      })
+      .from(timeEntries)
+      .where(and(eq(timeEntries.userId, userId), eq(timeEntries.weekStartDate, new Date(weekStartDate))));
+
+    // Initialize hoursPerDay with all 7 days set to 0
+    const hoursPerDay: Record<string, number> = {};
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(date.getDate() + i);
+      const dateKey = date.toISOString().split('T')[0];
+      hoursPerDay[dateKey] = 0;
+    }
+
+    // Aggregate hours by day
+    let totalHours = 0;
+    entries.forEach((entry) => {
+      const hours = Number(entry.hours);
+      totalHours += hours;
+
+      // Calculate date for this day of week
+      const date = new Date(weekStart);
+      date.setDate(date.getDate() + entry.dayOfWeek);
+      const dateKey = date.toISOString().split('T')[0];
+      hoursPerDay[dateKey] += hours;
+    });
+
+    // Round totalHours and hoursPerDay to 2 decimal places
+    totalHours = Math.round(totalHours * 100) / 100;
+    Object.keys(hoursPerDay).forEach((key) => {
+      hoursPerDay[key] = Math.round(hoursPerDay[key] * 100) / 100;
+    });
+
+    return {
+      userId,
+      weekStartDate,
+      weekEndDate,
+      totalHours,
+      hoursPerDay,
+      entriesCount: entries.length,
+    };
   }
 
   /**
@@ -286,6 +339,112 @@ export class TimeEntriesService {
       .where(eq(timeEntries.projectId, projectId));
 
     return Number(result[0]?.total || 0);
+  }
+
+  /**
+   * Get user project statistics with optional date filtering
+   */
+  async getUserProjectStats(
+    userId: string,
+    filters: {
+      weekStartDate?: string;
+      startDate?: string;
+      endDate?: string;
+    },
+  ): Promise<{
+    userId: string;
+    totalHours: number;
+    projects: Array<{
+      projectId: string;
+      projectName: string;
+      totalHours: number;
+      percentage: number;
+    }>;
+  }> {
+    const db = this.dbService.getDb();
+
+    // Build where conditions
+    const conditions = [eq(timeEntries.userId, userId)];
+
+    // If weekStartDate is provided, filter for that specific week
+    if (filters.weekStartDate) {
+      conditions.push(eq(timeEntries.weekStartDate, new Date(filters.weekStartDate)));
+    }
+    // Otherwise, if startDate/endDate are provided, use date range
+    else {
+      if (filters.startDate) {
+        conditions.push(gte(timeEntries.weekStartDate, new Date(filters.startDate)));
+      }
+      if (filters.endDate) {
+        conditions.push(lte(timeEntries.weekStartDate, new Date(filters.endDate)));
+      }
+    }
+
+    // If no date filters provided, default to current week
+    if (!filters.weekStartDate && !filters.startDate && !filters.endDate) {
+      // Calculate current week start based on Monday (can be enhanced with policy later)
+      const now = new Date();
+      const currentDay = now.getDay(); // 0=Sunday, 6=Saturday
+      const daysToMonday = currentDay === 0 ? 6 : currentDay - 1;
+      const weekStart = new Date(now);
+      weekStart.setDate(weekStart.getDate() - daysToMonday);
+      weekStart.setHours(0, 0, 0, 0);
+      const weekStartDate = weekStart.toISOString().split('T')[0];
+      conditions.push(eq(timeEntries.weekStartDate, new Date(weekStartDate)));
+    }
+
+    // Get time entries with project details
+    const entries = await db
+      .select({
+        projectId: timeEntries.projectId,
+        projectName: projects.name,
+        hours: timeEntries.hours,
+      })
+      .from(timeEntries)
+      .leftJoin(projects, eq(timeEntries.projectId, projects.id))
+      .where(and(...conditions));
+
+    // Aggregate by project
+    const projectMap = new Map<
+      string,
+      { projectId: string; projectName: string; totalHours: number }
+    >();
+    let totalHours = 0;
+
+    entries.forEach((entry) => {
+      const hours = Number(entry.hours);
+      totalHours += hours;
+
+      const projectId = entry.projectId;
+      const projectName = entry.projectName || 'Unknown Project';
+
+      if (projectMap.has(projectId)) {
+        projectMap.get(projectId)!.totalHours += hours;
+      } else {
+        projectMap.set(projectId, {
+          projectId,
+          projectName,
+          totalHours: hours,
+        });
+      }
+    });
+
+    // Convert map to array and calculate percentages
+    const projectsArray = Array.from(projectMap.values()).map((project) => ({
+      projectId: project.projectId,
+      projectName: project.projectName,
+      totalHours: Math.round(project.totalHours * 100) / 100,
+      percentage: totalHours > 0 ? Math.round((project.totalHours / totalHours) * 10000) / 100 : 0,
+    }));
+
+    // Sort by totalHours descending
+    projectsArray.sort((a, b) => b.totalHours - a.totalHours);
+
+    return {
+      userId,
+      totalHours: Math.round(totalHours * 100) / 100,
+      projects: projectsArray,
+    };
   }
 
   /**

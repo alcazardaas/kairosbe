@@ -7,8 +7,17 @@ export class CreateHolidayRequestDto {
   @ApiProperty({
     description: 'Tenant ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
+    required: false,
+    nullable: true,
   })
-  tenant_id: string;
+  tenant_id?: string | null;
+
+  @ApiProperty({
+    description: 'Country code (2-letter ISO)',
+    example: 'US',
+    maxLength: 2,
+  })
+  country_code: string;
 
   @ApiProperty({
     description: 'Holiday name',
@@ -24,14 +33,38 @@ export class CreateHolidayRequestDto {
   date: string;
 
   @ApiProperty({
+    description: 'Holiday type',
+    example: 'public',
+    enum: ['public', 'company', 'regional'],
+    default: 'public',
+  })
+  type: string;
+
+  @ApiProperty({
     description: 'Whether this is a recurring annual holiday',
     example: true,
     default: false,
   })
   is_recurring: boolean;
+
+  @ApiProperty({
+    description: 'Optional description',
+    example: 'Public holiday celebrated nationwide',
+    required: false,
+    nullable: true,
+  })
+  description?: string | null;
 }
 
 export class UpdateHolidayRequestDto {
+  @ApiProperty({
+    description: 'Country code (2-letter ISO)',
+    example: 'US',
+    maxLength: 2,
+    required: false,
+  })
+  country_code?: string;
+
   @ApiProperty({
     description: 'Holiday name',
     example: 'Independence Day',
@@ -48,11 +81,27 @@ export class UpdateHolidayRequestDto {
   date?: string;
 
   @ApiProperty({
+    description: 'Holiday type',
+    example: 'public',
+    enum: ['public', 'company', 'regional'],
+    required: false,
+  })
+  type?: string;
+
+  @ApiProperty({
     description: 'Whether this is a recurring annual holiday',
     example: false,
     required: false,
   })
   is_recurring?: boolean;
+
+  @ApiProperty({
+    description: 'Optional description',
+    example: 'Annual company celebration',
+    required: false,
+    nullable: true,
+  })
+  description?: string | null;
 }
 
 // ===== Entity DTOs =====
@@ -65,10 +114,17 @@ export class HolidayDto {
   id: string;
 
   @ApiProperty({
-    description: 'Tenant ID',
+    description: 'Tenant ID (null for global holidays)',
     example: '123e4567-e89b-12d3-a456-426614174000',
+    nullable: true,
   })
-  tenant_id: string;
+  tenant_id: string | null;
+
+  @ApiProperty({
+    description: 'Country code (2-letter ISO)',
+    example: 'US',
+  })
+  country_code: string;
 
   @ApiProperty({
     description: 'Holiday name',
@@ -77,10 +133,17 @@ export class HolidayDto {
   name: string;
 
   @ApiProperty({
-    description: 'Holiday date',
+    description: 'Holiday date (YYYY-MM-DD)',
     example: '2025-01-01',
   })
   date: string;
+
+  @ApiProperty({
+    description: 'Holiday type',
+    example: 'public',
+    enum: ['public', 'company', 'regional'],
+  })
+  type: string;
 
   @ApiProperty({
     description: 'Whether this is a recurring annual holiday',
@@ -89,18 +152,11 @@ export class HolidayDto {
   is_recurring: boolean;
 
   @ApiProperty({
-    description: 'Creation timestamp',
-    example: '2025-01-15T10:00:00.000Z',
-    required: false,
+    description: 'Optional description',
+    example: 'Public holiday celebrated nationwide',
+    nullable: true,
   })
-  created_at?: string;
-
-  @ApiProperty({
-    description: 'Last update timestamp',
-    example: '2025-01-20T15:30:00.000Z',
-    required: false,
-  })
-  updated_at?: string;
+  description: string | null;
 }
 
 // ===== Response DTOs =====

@@ -28,10 +28,15 @@ import { QueryTimeEntriesDto, queryTimeEntriesSchema } from './dto/query-time-en
 import { BulkTimeEntryDto, bulkTimeEntrySchema } from './dto/bulk-time-entry.dto';
 import { CopyWeekDto, copyWeekSchema } from './dto/copy-week.dto';
 import {
+  QueryUserProjectStatsDto,
+  queryUserProjectStatsSchema,
+} from './dto/query-user-project-stats.dto';
+import {
   TimeEntryResponseDto,
   TimeEntryListResponseDto,
   WeeklyHoursDto,
   ProjectHoursDto,
+  UserProjectStatsDto,
 } from './dto/time-entry-response.dto';
 import {
   WeekViewResponseDto,
@@ -164,8 +169,9 @@ export class TimeEntriesController {
 
   @Get('stats/weekly/:userId/:weekStartDate')
   @ApiOperation({
-    summary: 'Get weekly hours for a user',
-    description: 'Calculate total hours worked by a user for a specific week.',
+    summary: 'Get weekly hours for a user with daily breakdown',
+    description:
+      'Calculate total hours worked by a user for a specific week, including daily breakdown, week end date, and entry count.',
   })
   @ApiOkResponse({
     description: 'Weekly hours retrieved successfully',
@@ -179,8 +185,7 @@ export class TimeEntriesController {
     @Param('userId') userId: string,
     @Param('weekStartDate') weekStartDate: string,
   ) {
-    const total = await this.timeEntriesService.getWeeklyHours(userId, weekStartDate);
-    return { userId, weekStartDate, totalHours: total };
+    return this.timeEntriesService.getWeeklyHours(userId, weekStartDate);
   }
 
   @Get('stats/project/:projectId')
@@ -199,6 +204,31 @@ export class TimeEntriesController {
   async getProjectHours(@Param('projectId') projectId: string) {
     const total = await this.timeEntriesService.getProjectHours(projectId);
     return { projectId, totalHours: total };
+  }
+
+  @Get('stats/user-projects/:userId')
+  @ApiOperation({
+    summary: 'Get user project statistics',
+    description:
+      'Calculate hours distribution across projects for a user with optional date filtering. Defaults to current week if no filters provided.',
+  })
+  @ApiOkResponse({
+    description: 'User project statistics retrieved successfully',
+    type: UserProjectStatsDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid query parameters',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
+  async getUserProjectStats(
+    @Param('userId') userId: string,
+    @Query(new ZodValidationPipe(queryUserProjectStatsSchema)) query: QueryUserProjectStatsDto,
+  ) {
+    return this.timeEntriesService.getUserProjectStats(userId, query);
   }
 
   @Get('week/:userId/:weekStartDate')

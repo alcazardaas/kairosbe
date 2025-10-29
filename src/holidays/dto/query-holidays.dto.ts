@@ -11,6 +11,23 @@ export const queryHolidaysSchema = z.object({
   country_code: z.string().length(2).toUpperCase().optional(),
   year: z.coerce.number().int().min(1900).max(2100).optional(),
   search: z.string().max(255).optional(),
+  type: z.enum(['public', 'company', 'regional']).optional(),
+  startDate: z
+    .string()
+    .refine((date) => !isNaN(Date.parse(date)), {
+      message: 'Invalid date format',
+    })
+    .optional(),
+  endDate: z
+    .string()
+    .refine((date) => !isNaN(Date.parse(date)), {
+      message: 'Invalid date format',
+    })
+    .optional(),
+  upcoming: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
 });
 
 export type QueryHolidaysDto = z.infer<typeof queryHolidaysSchema>;

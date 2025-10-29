@@ -7,6 +7,9 @@ export const createHolidaySchema = z.object({
     message: 'Invalid date format. Use ISO 8601 format (YYYY-MM-DD)',
   }),
   name: z.string().min(1, 'Name is required').max(255, 'Name too long'),
+  type: z.enum(['public', 'company', 'regional']).default('public'),
+  is_recurring: z.boolean().default(false),
+  description: z.string().optional().nullable(),
 });
 
 export type CreateHolidayDto = z.infer<typeof createHolidaySchema>;

@@ -152,16 +152,44 @@ export class WeeklyHoursDto {
   userId: string;
 
   @ApiProperty({
-    description: 'Week start date',
-    example: '2025-01-20',
+    description: 'Week start date (YYYY-MM-DD)',
+    example: '2025-01-27',
   })
   weekStartDate: string;
 
   @ApiProperty({
+    description: 'Week end date (YYYY-MM-DD)',
+    example: '2025-02-02',
+  })
+  weekEndDate: string;
+
+  @ApiProperty({
     description: 'Total hours for the week',
-    example: 40.0,
+    example: 42.5,
   })
   totalHours: number;
+
+  @ApiProperty({
+    description: 'Hours per day (date keys in YYYY-MM-DD format)',
+    example: {
+      '2025-01-27': 8.5,
+      '2025-01-28': 7.0,
+      '2025-01-29': 8.0,
+      '2025-01-30': 8.0,
+      '2025-01-31': 7.5,
+      '2025-02-01': 3.5,
+      '2025-02-02': 0,
+    },
+    type: 'object',
+    additionalProperties: { type: 'number' },
+  })
+  hoursPerDay: Record<string, number>;
+
+  @ApiProperty({
+    description: 'Total number of time entries in the week',
+    example: 15,
+  })
+  entriesCount: number;
 }
 
 export class ProjectHoursDto {
@@ -176,6 +204,53 @@ export class ProjectHoursDto {
     example: 120.5,
   })
   totalHours: number;
+}
+
+export class ProjectStatsDto {
+  @ApiProperty({
+    description: 'Project ID',
+    example: 'proj-001',
+  })
+  projectId: string;
+
+  @ApiProperty({
+    description: 'Project name',
+    example: 'Kairos Frontend',
+  })
+  projectName: string;
+
+  @ApiProperty({
+    description: 'Total hours logged to this project',
+    example: 25.5,
+  })
+  totalHours: number;
+
+  @ApiProperty({
+    description: 'Percentage of total hours (rounded to 2 decimal places)',
+    example: 60.0,
+  })
+  percentage: number;
+}
+
+export class UserProjectStatsDto {
+  @ApiProperty({
+    description: 'User ID',
+    example: 'user123',
+  })
+  userId: string;
+
+  @ApiProperty({
+    description: 'Total hours across all projects',
+    example: 42.5,
+  })
+  totalHours: number;
+
+  @ApiProperty({
+    description: 'Project statistics sorted by total hours descending',
+    type: [ProjectStatsDto],
+    isArray: true,
+  })
+  projects: ProjectStatsDto[];
 }
 
 // ===== Response DTOs =====

@@ -50,6 +50,13 @@
       "when": 1761601378996,
       "tag": "0006_serious_havok",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1761772289446,
+      "tag": "0007_cuddly_sinister_six",
+      "breakpoints": true
     }
   ]
 }
