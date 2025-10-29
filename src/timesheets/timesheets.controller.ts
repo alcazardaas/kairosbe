@@ -30,6 +30,10 @@ import {
   CreateTimesheetRequestDto,
   ReviewTimesheetRequestDto,
 } from './dto/timesheet-response.dto';
+import {
+  TimesheetValidationResponseDto,
+  RecallTimesheetResponseDto,
+} from './dto/validation-response.dto';
 import { CurrentTenantId, CurrentSession } from '../auth/decorators/current-user.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ErrorResponseDto } from '../common/dto/response.dto';
@@ -39,6 +43,28 @@ import { ErrorResponseDto } from '../common/dto/response.dto';
 @Controller('timesheets')
 export class TimesheetsController {
   constructor(private readonly timesheetsService: TimesheetsService) {}
+
+  @Get('my-current')
+  @ApiOperation({
+    summary: 'Get or create current week timesheet',
+    description:
+      'Retrieve the current week timesheet for the logged-in user, or create a new draft if it does not exist.',
+  })
+  @ApiOkResponse({
+    description: 'Current week timesheet retrieved or created',
+    type: TimesheetResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
+  async getMyCurrent(@CurrentTenantId() tenantId: string, @CurrentSession() session: any) {
+    // Get week start from policy (would need to be passed or fetched)
+    const timesheet = await this.timesheetsService.getMyCurrent(tenantId, session.userId, 1);
+    return {
+      data: timesheet,
+    };
+  }
 
   @Get()
   @ApiOperation({
@@ -269,5 +295,59 @@ export class TimesheetsController {
     @CurrentSession() session: any,
   ) {
     await this.timesheetsService.remove(tenantId, id, session.userId);
+  }
+
+  @Post(':id/validate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Validate timesheet against policy rules',
+    description:
+      'Validate a timesheet against tenant policy rules (e.g., max hours per day). Returns errors and warnings.',
+  })
+  @ApiOkResponse({
+    description: 'Validation completed',
+    type: TimesheetValidationResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Timesheet not found',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
+  async validate(@CurrentTenantId() tenantId: string, @Param('id') id: string) {
+    return this.timesheetsService.validateTimesheet(tenantId, id);
+  }
+
+  @Post(':id/recall')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Recall a submitted timesheet',
+    description:
+      'Recall a submitted timesheet back to draft status. Only allowed before the timesheet is reviewed.',
+  })
+  @ApiOkResponse({
+    description: 'Timesheet recalled successfully',
+    type: RecallTimesheetResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Timesheet cannot be recalled (invalid status or already reviewed)',
+    type: ErrorResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Timesheet not found',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
+  async recall(
+    @CurrentTenantId() tenantId: string,
+    @Param('id') id: string,
+    @CurrentSession() session: any,
+  ) {
+    return this.timesheetsService.recall(tenantId, id, session.userId);
   }
 }

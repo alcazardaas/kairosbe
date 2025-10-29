@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { eq, and, sql, desc, gte, lte, inArray } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { timesheets, timeEntries, users, profiles } from '../db/schema';
+import { timesheets, timeEntries, users, profiles, timesheetPolicies } from '../db/schema';
 import { CreateTimesheetDto } from './dto/create-timesheet.dto';
 import { ReviewTimesheetDto } from './dto/review-timesheet.dto';
 
@@ -366,5 +366,230 @@ export class TimesheetsService {
     }
 
     return hoursMap;
+  }
+
+  /**
+   * Validate timesheet against policy rules
+   */
+  async validateTimesheet(tenantId: string, timesheetId: string) {
+    const [timesheet] = await this.db.db
+      .select()
+      .from(timesheets)
+      .where(and(eq(timesheets.id, timesheetId), eq(timesheets.tenantId, tenantId)))
+      .limit(1);
+
+    if (!timesheet) {
+      throw new NotFoundException(`Timesheet with ID ${timesheetId} not found`);
+    }
+
+    // Get tenant policy
+    const [policy] = await this.db.db
+      .select()
+      .from(timesheetPolicies)
+      .where(eq(timesheetPolicies.tenantId, tenantId))
+      .limit(1);
+
+    // Get all time entries for this timesheet
+    const entries = await this.db.db
+      .select()
+      .from(timeEntries)
+      .where(
+        and(
+          eq(timeEntries.tenantId, tenantId),
+          eq(timeEntries.userId, timesheet.userId),
+          sql`${timeEntries.weekStartDate} = ${timesheet.weekStartDate}`,
+        ),
+      );
+
+    const errors: any[] = [];
+    const warnings: any[] = [];
+
+    // Calculate daily totals
+    const dailyTotals: Record<number, number> = {};
+    let weeklyTotal = 0;
+    const projectSet = new Set<string>();
+
+    entries.forEach((entry) => {
+      const hours = Number(entry.hours);
+      dailyTotals[entry.dayOfWeek] = (dailyTotals[entry.dayOfWeek] || 0) + hours;
+      weeklyTotal += hours;
+      projectSet.add(entry.projectId);
+    });
+
+    // Validate daily max hours
+    if (policy && policy.maxHoursPerDay) {
+      Object.entries(dailyTotals).forEach(([day, hours]) => {
+        if (hours > Number(policy.maxHoursPerDay)) {
+          const weekStart = new Date(timesheet.weekStartDate);
+          const entryDate = new Date(weekStart);
+          entryDate.setDate(entryDate.getDate() + Number(day));
+
+          const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+          errors.push({
+            type: 'max_hours_exceeded',
+            severity: 'error',
+            message: `${dayNames[Number(day)]} exceeds maximum ${policy.maxHoursPerDay} hours per day (logged: ${hours})`,
+            day_of_week: Number(day),
+            date: entryDate.toISOString().split('T')[0],
+            hours,
+            max_allowed: Number(policy.maxHoursPerDay),
+          });
+        }
+      });
+    }
+
+    // Check for empty days (warning only)
+    for (let day = 0; day < 7; day++) {
+      if (!dailyTotals[day]) {
+        const weekStart = new Date(timesheet.weekStartDate);
+        const entryDate = new Date(weekStart);
+        entryDate.setDate(entryDate.getDate() + day);
+
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        warnings.push({
+          type: 'no_entries',
+          severity: 'warning',
+          message: `No time entries for ${dayNames[day]}`,
+          day_of_week: day,
+          date: entryDate.toISOString().split('T')[0],
+        });
+      }
+    }
+
+    // Warning for low weekly hours (assuming 40 hours standard)
+    const expectedWeeklyHours = 40;
+    if (weeklyTotal < expectedWeeklyHours) {
+      warnings.push({
+        type: 'low_hours',
+        severity: 'warning',
+        message: `Total hours (${weeklyTotal}) below expected (${expectedWeeklyHours})`,
+        hours: weeklyTotal,
+        expected: expectedWeeklyHours,
+      });
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      warnings,
+      summary: {
+        total_hours: weeklyTotal,
+        days_with_entries: Object.keys(dailyTotals).length,
+        entry_count: entries.length,
+        project_count: projectSet.size,
+        status: timesheet.status,
+      },
+    };
+  }
+
+  /**
+   * Recall a submitted timesheet back to draft
+   */
+  async recall(tenantId: string, timesheetId: string, currentUserId: string) {
+    const [timesheet] = await this.db.db
+      .select()
+      .from(timesheets)
+      .where(and(eq(timesheets.id, timesheetId), eq(timesheets.tenantId, tenantId)))
+      .limit(1);
+
+    if (!timesheet) {
+      throw new NotFoundException(`Timesheet with ID ${timesheetId} not found`);
+    }
+
+    if (timesheet.status !== 'submitted') {
+      throw new BadRequestException(
+        `Cannot recall timesheet. Current status: ${timesheet.status}. Only submitted timesheets can be recalled.`,
+      );
+    }
+
+    // Check if user owns this timesheet
+    if (timesheet.userId !== currentUserId) {
+      throw new ForbiddenException('You can only recall your own timesheets');
+    }
+
+    // Check if already reviewed
+    if (timesheet.reviewedAt) {
+      throw new BadRequestException('Cannot recall timesheet that has already been reviewed');
+    }
+
+    const previousStatus = timesheet.status;
+
+    const [updated] = await this.db.db
+      .update(timesheets)
+      .set({
+        status: 'draft',
+        submittedAt: null,
+        submittedByUserId: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(timesheets.id, timesheetId))
+      .returning();
+
+    return {
+      id: updated.id,
+      status: updated.status,
+      previous_status: previousStatus,
+      recalled_at: new Date(),
+      recalled_by_user_id: currentUserId,
+    };
+  }
+
+  /**
+   * Get or create current week's timesheet for logged-in user
+   */
+  async getMyCurrent(tenantId: string, userId: string, weekStartPolicy: number = 1) {
+    // Calculate current week start date based on policy
+    const now = new Date();
+    const currentDay = now.getDay(); // 0=Sunday, 6=Saturday
+
+    // Calculate days to subtract to get to week start
+    let daysToSubtract = currentDay - weekStartPolicy;
+    if (daysToSubtract < 0) {
+      daysToSubtract += 7;
+    }
+
+    const weekStart = new Date(now);
+    weekStart.setDate(weekStart.getDate() - daysToSubtract);
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekStartDate = weekStart.toISOString().split('T')[0];
+
+    // Try to find existing timesheet
+    const [existing] = await this.db.db
+      .select()
+      .from(timesheets)
+      .where(
+        and(
+          eq(timesheets.tenantId, tenantId),
+          eq(timesheets.userId, userId),
+          eq(timesheets.weekStartDate, weekStartDate),
+        ),
+      )
+      .limit(1);
+
+    if (existing) {
+      return {
+        ...existing,
+        auto_created: false,
+      };
+    }
+
+    // Create new draft timesheet
+    const [newTimesheet] = await this.db.db
+      .insert(timesheets)
+      .values({
+        tenantId,
+        userId,
+        weekStartDate,
+        status: 'draft',
+      })
+      .returning();
+
+    return {
+      ...newTimesheet,
+      auto_created: true,
+    };
   }
 }
