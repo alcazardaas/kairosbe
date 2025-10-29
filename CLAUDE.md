@@ -4,10 +4,10 @@ Project: Kairos Backend
 Stack: NestJS + TypeScript + PostgreSQL 16 (Docker)
 Runtime: Node 22
 
-Goal: Provide a simple, clean REST API with authentication and multi-tenancy support. Focus on correctness, clarity, and maintainability.
+Goal: Provide a production-ready REST API for timesheet and PTO management with authentication, multi-tenancy, and approval workflows. Focus on correctness, clarity, and maintainability.
 
-The API must use **Drizzle ORM** for database access and migrations.
-The SQL in /referenceDBTABLES is the source of truth; Drizzle is only for queries, migrations, and type-safety.
+The API uses **Drizzle ORM** for database access and migrations.
+The SQL in /referenceDBTABLES is the source of truth; Drizzle provides type-safety and migration tooling.
 
 Note: The database schema reference is located at /referenceDBTABLES/01_script_db_reference.sql.
 This file mirrors the live schema from the actual database.
@@ -16,11 +16,30 @@ This file mirrors the live schema from the actual database.
 
 ## Context
 
-- Framework: NestJS (REST)
-- Database: PostgreSQL 16
-- Scope: Full-featured timesheet and PTO management system with auth, multi-tenancy, and approval workflows
-- Current implementation: CRUD endpoints for projects, tasks, time_entries, benefit_types, holidays, timesheet_policies
-- In progress: Authentication, sessions, timesheet lifecycle, project membership, PTO workflows
+- Framework: NestJS (REST API)
+- Database: PostgreSQL 16 with RLS (Row Level Security)
+- ORM: Drizzle ORM
+- Authentication: Session-based (database-backed)
+- Multi-tenancy: Full tenant isolation via RLS
+- Status: **Production-ready** - All 7 implementation phases complete
+
+### Implemented Features
+
+**✅ Complete Feature Set:**
+- Authentication & session management
+- Weekly timesheet grid with bulk operations
+- Timesheet submission & approval workflow
+- Project & task management
+- Project membership tracking
+- PTO/Leave request management with balances
+- Manager team views & calendar
+- Organization & user management
+- Dashboard analytics endpoints
+- Search & filtering helpers
+- Holiday management
+- Timesheet policy configuration
+
+**Total Endpoints:** 71 (see docs/USER_STORIES_COMPLETE.md)
 
 ---
 
@@ -28,9 +47,8 @@ This file mirrors the live schema from the actual database.
 
 1. Keep modules small and explicit.
 2. Do not abstract prematurely.
-3. Database schema in /init is the source of truth.
-4. Always explain what changed, why, and how to test it.
-5. Consistency and clarity are more important than brevity.
+3. Always explain what changed, why, and how to test it.
+4. Consistency and clarity are more important than brevity.
 
 ---
 
@@ -41,58 +59,155 @@ This file mirrors the live schema from the actual database.
 | Package manager | pnpm |
 | Validation | zod schemas (DTOs) |
 | Lint / Format | ESLint + Prettier |
-| Logging | nestjs-pino |
+| Logging | nestjs-pino (structured JSON logs) |
 | Testing | vitest + supertest |
-| DB Layer | drizzle-orm or pg (typed) |
+| DB Layer | drizzle-orm + pg (typed queries) |
 | Migrations | drizzle-kit |
 | Base path | /api/v1 |
-| Env vars | DATABASE_URL, PORT, LOG_LEVEL, etc. |
+| Env vars | DATABASE_URL, PORT, LOG_LEVEL, SESSION_SECRET, etc. |
 
 ---
 
 ## Project Structure
 
+```
 kairosbe/
   src/
-    app.module.ts
+    main.ts                      # Application entry
+    app.module.ts                # Root module
     db/
-    common/
-    projects/
-    tasks/
-    time-entries/
-    benefit-types/
-    holidays/
-    timesheet-policies/
-  docker-compose.yml
-  package.json
+      db.module.ts               # Database module
+      db.service.ts              # Drizzle connection
+      schema/                    # Schema definitions
+      seed-*.ts                  # Seed scripts
+    common/                      # Shared utilities, pipes
+    auth/                        # Authentication & sessions
+    timesheets/                  # Timesheet lifecycle
+    time-entries/                # Time entry CRUD + stats
+    projects/                    # Project management
+    tasks/                       # Task management
+    my-projects/                 # User project assignments
+    leave-requests/              # PTO/leave management
+    benefit-types/               # Benefit type configuration
+    holidays/                    # Holiday calendar
+    timesheet-policies/          # Timesheet policy config
+    users/                       # User management (admin)
+    organization/                # Organization settings
+    calendar/                    # Unified calendar feed
+    search/                      # Search helpers
+    health/                      # Health check
+  docs/                          # API documentation
+    USER_STORIES_COMPLETE.md     # Complete feature reference
+    FRONTEND_API_REFERENCE.md    # Frontend integration guide
+    DASHBOARD_API_SPEC.md        # Dashboard endpoints
+    MANAGER_TEAM_VIEWS.md        # Manager features
+    API_*.md                     # Feature-specific docs
+  postman/                       # Postman collections
+  referenceDBTABLES/             # Database schema source
+  docker-compose.yml             # PostgreSQL 16 container
   .env.example
+```
 
 ---
 
 ## API Rules
 
-- Use plural nouns: /projects, /time-entries
-- Pagination: ?page=1&limit=20 (defaults: page=1, limit=20)
-- Sorting: ?sort=created_at:desc
-- Response:
-  {
-    "data": [],
-    "meta": { "page": 1, "limit": 20, "total": 42 }
+### Endpoints
+- Use plural nouns: `/projects`, `/time-entries`
+- Version prefix: `/api/v1`
+- RESTful conventions: GET (list/read), POST (create), PATCH (update), DELETE (delete)
+
+### Pagination
+- Query params: `?page=1&limit=20`
+- Defaults: page=1, limit=20, max=100
+- Response includes meta: `{ page, limit, total }`
+
+### Sorting
+- Query param: `?sort=field:asc|desc`
+- Example: `?sort=created_at:desc`
+
+### Filtering
+- Use query parameters for filters
+- Date ranges: `?from=2025-01-01&to=2025-12-31`
+- Status filters: `?status=pending`
+- Boolean flags: `?team=true&mine=false`
+
+### Response Format
+```json
+{
+  "data": [...],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 42
   }
-- Errors: { "error": "...", "message": "...", "statusCode": 400 }
-- Dates: ISO 8601 UTC
-- Validation: handled by ZodValidationPipe
+}
+```
+
+### Error Format
+```json
+{
+  "error": "Bad Request",
+  "message": "Validation failed: email is required",
+  "statusCode": 400
+}
+```
+
+### Dates
+- All dates in ISO 8601 format (YYYY-MM-DD or full ISO datetime)
+- Timezone: UTC
+- Week start day configurable per tenant
+
+### Validation
+- All inputs validated via ZodValidationPipe
+- DTOs use zod schemas
+- Clear error messages returned
 
 ---
 
 ## Database Rules
 
 - The SQL in /referenceDBTABLES is canonical. Never modify structure silently.
-- Use parameterized queries only.
-- Add indexes for frequent filters.
-- RLS enforcement will be enabled as part of auth implementation.
+- Use parameterized queries only (SQL injection prevention).
+- Add indexes for frequent filters and joins.
+- RLS (Row Level Security) enforces tenant isolation.
 - Do not expose internal IDs or stack traces in production.
-- Sessions are stored in database for security and scalability.
+- Sessions stored in database for security and scalability.
+- All timestamps in UTC.
+
+### Performance
+- Composite indexes on common filter patterns
+- Pagination required for large result sets
+- Connection pooling via pg pool
+
+---
+
+## Authentication & Authorization
+
+### Session Management
+- Sessions stored in database (`sessions` table)
+- Session tokens are opaque UUIDs, not JWTs
+- Default TTL: 30 days (configurable via SESSION_TTL env var)
+- Refresh tokens rotate on use (TTL: 90 days)
+- Logout invalidates session immediately
+
+### Multi-Tenancy
+- Users can belong to multiple tenants via `memberships` table
+- Each session is scoped to one active tenant
+- RLS policies enforce tenant isolation at database level
+- `set_config('app.tenant_id', ...)` called per request
+- All queries automatically scoped to session's tenant
+
+### Authorization (RBAC)
+- Three roles: **admin**, **manager**, **employee**
+- Permissions derived from role and membership status
+- Guards check role + tenant membership before operations
+- Manager-employee relationship via `profiles.manager_user_id`
+
+**Role Capabilities:**
+- **Employee**: Log time, submit timesheets, request leave
+- **Manager**: All employee capabilities + approve team timesheets/leave
+- **Admin**: All manager capabilities + user management, org settings, configuration
 
 ---
 
@@ -117,116 +232,296 @@ If unsure, ask clear questions before proceeding.
 - Do not modify unrelated modules when fixing or adding features.
 - Do not expose password hashes or session tokens in API responses.
 - Do not store sensitive data in JWTs (keep tokens opaque).
+- Do not skip validation on user inputs.
+- Do not create N+1 query problems (use joins or eager loading).
 
 ---
 
 ## Prompt Patterns
 
 Add module:
-"Create holidays CRUD (list, get, create, update, delete)."
+"Create a new module for X with CRUD operations."
 
 Add pagination:
-"Add ?page, ?limit, and ?sort to GET /projects."
+"Add pagination support to GET /endpoint with page, limit, and sort."
 
 Add database change:
-"Add index on time_entries(tenant_id, user_id, week_start_date)."
+"Add composite index on table(field1, field2, field3) for common query pattern."
+
+Add endpoint:
+"Create POST /endpoint with validation and error handling."
 
 ---
 
-## Implementation Roadmap
+## Implementation Status
 
-All 7 phases are now complete:
+### ✅ All 7 Phases Complete
 
-### ✅ 1. Auth & Session (COMPLETE)
+#### Phase 1: Auth & Session Management ✅
+- POST `/auth/login` - Email/password authentication
+- POST `/auth/refresh` - Refresh session token
+- POST `/auth/logout` - Invalidate session
+- GET `/auth/me` - Current user context (user, tenant, role, permissions, timesheetPolicy)
+- Session TTL configurable via environment variable
 
-- POST /auth/login - Email/password authentication
-- POST /auth/refresh - Refresh session token
-- POST /auth/logout - Invalidate session
-- GET /me - Current user context (user, tenant, role, permissions, timesheetPolicy)
-- Session TTL configurable via environment variable (default: 30 days)
+#### Phase 2: Timesheet Lifecycle ✅
+- GET `/timesheets?user_id&week_start&status&team=true` - List timesheets with team filtering
+- GET `/timesheets/:id` - Get timesheet with time entries
+- GET `/timesheets/my-current` - Get/create current week timesheet
+- POST `/timesheets` - Create draft timesheet
+- POST `/timesheets/:id/submit` - Submit for approval
+- POST `/timesheets/:id/approve` - Approve timesheet (manager)
+- POST `/timesheets/:id/reject` - Reject with reason (manager)
+- POST `/timesheets/:id/recall` - Recall submitted timesheet
+- POST `/timesheets/:id/validate` - Validate against policy rules
+- DELETE `/timesheets/:id` - Delete draft only
 
-### ✅ 2. Timesheet Lifecycle (COMPLETE)
+#### Phase 3: Time Entry Management ✅
+- GET `/time-entries/week/:userId/:weekStartDate` - Week view with aggregations
+- POST `/time-entries` - Create single entry (with validation)
+- POST `/time-entries/bulk` - Bulk create/update entries
+- POST `/time-entries/copy-week` - Copy previous week
+- PATCH `/time-entries/:id` - Update entry (hours/note only)
+- DELETE `/time-entries/:id` - Delete entry
+- GET `/time-entries/stats/weekly/:userId/:weekStartDate` - Weekly statistics
+- GET `/time-entries/stats/user-projects/:userId` - Project distribution
 
-- GET /timesheets?user_id&week_start&status - List timesheets
-- GET /timesheets/:id - Get timesheet with time entries
-- POST /timesheets - Create draft timesheet
-- POST /timesheets/:id/submit - Submit for approval
-- POST /timesheets/:id/approve - Approve timesheet
-- POST /timesheets/:id/reject - Reject with reason
-- DELETE /timesheets/:id - Delete draft only
+#### Phase 4: Project Access & Membership ✅
+- GET `/projects` - List projects (CRUD)
+- POST `/projects` - Create project
+- GET `/projects/:id/members` - List project members
+- POST `/projects/:id/members` - Assign user to project
+- DELETE `/projects/:id/members/:userId` - Remove member
+- GET `/my/projects` - Projects current user can log time to
 
-### ✅ 3. Project Access & Membership (COMPLETE)
+#### Phase 5: PTO Balances & Leave Requests ✅
+- GET `/leave-requests/users/:userId/benefits` - User's benefit balances
+- GET `/leave-requests?mine=true|team=true&status=pending` - List requests
+- GET `/leave-requests/:id` - Get single request
+- POST `/leave-requests` - Create leave request (validates balance)
+- POST `/leave-requests/:id/approve` - Approve request (updates balance)
+- POST `/leave-requests/:id/reject` - Reject request
+- DELETE `/leave-requests/:id` - Cancel own pending request
 
-- GET /projects/:id/members - List project members
-- POST /projects/:id/members - Assign user to project
-- DELETE /projects/:id/members/:userId - Remove member
-- GET /my/projects - Projects current user can log time to
+#### Phase 6: Search & Helpers ✅
+- GET `/search/projects?q=&limit=` - Search projects by name/code
+- GET `/search/tasks?q=&project_id=&limit=` - Search tasks with optional project filter
 
-### ✅ 4. PTO Balances & Leave Requests (COMPLETE)
-
-- GET /leave-requests/users/:userId/benefits - User's benefit balances
-- GET /leave-requests?mine=true|team=true&status=pending - List requests
-- GET /leave-requests/:id - Get single request
-- POST /leave-requests - Create leave request
-- POST /leave-requests/:id/approve - Approve request (updates balance)
-- POST /leave-requests/:id/reject - Reject request
-- DELETE /leave-requests/:id - Cancel own pending request
-
-### ✅ 5. Policy Surface for Frontend Boot (COMPLETE)
-
-- GET /me includes tenant's timesheetPolicy
-- Frontend configures week grid based on policy
-
-### ✅ 6. Search Helpers (COMPLETE)
-
-- GET /search/projects?q=&limit= - Search projects by name/code
-- GET /search/tasks?q=&project_id=&limit= - Search tasks with optional project filter
-
-### ✅ 7. Manager Team Views (COMPLETE)
-
-- GET /timesheets?team=true&status=pending&from=&to= - View team timesheets with pagination
-- GET /leave-requests?team=true&status=pending&from=&to= - View team leave requests with date overlap
-- GET /calendar?user_id=&from=&to=&include= - Unified calendar feed (holidays, leave, timesheets)
-- Team defined as direct reports via profiles.manager_user_id
+#### Phase 7: Manager Team Views ✅
+- GET `/timesheets?team=true&status=pending&from=&to=` - View team timesheets with pagination
+- GET `/leave-requests?team=true&status=pending&from=&to=` - View team leave requests
+- GET `/calendar?user_id=&from=&to=&include=` - Unified calendar feed (holidays, leave, timesheets)
+- Team defined as direct reports via `profiles.manager_user_id`
 - RBAC enforced at service level
-- See [docs/PHASE_7_MANAGER_VIEWS.md](docs/PHASE_7_MANAGER_VIEWS.md) for details
+
+#### Additional Features ✅
+- GET `/users` - User management (admin/manager)
+- POST `/users` - Create/invite user
+- PATCH `/users/:id` - Update user
+- DELETE `/users/:id` - Deactivate user
+- GET `/organization` - Organization settings (admin)
+- PATCH `/organization` - Update organization (admin)
+- GET `/holidays` - Holiday calendar with filters
+- GET `/benefit-types` - Benefit type management
+- GET `/timesheet-policies/:tenantId` - Get/update tenant policy
+- GET `/tasks` - Task management (hierarchical)
 
 ---
 
-## Authentication & Authorization
+## Documentation
 
-### Session Management
+### User Stories
+- **[docs/USER_STORIES_COMPLETE.md](docs/USER_STORIES_COMPLETE.md)** - Complete feature reference with 71 user stories
+  - Maps all features to API endpoints
+  - Includes acceptance criteria
+  - Request/response examples
+  - Implementation priorities
 
-- Sessions stored in database (sessions table)
-- Session tokens are opaque UUIDs, not JWTs
-- Session TTL is long-lived (configurable, default 30 days)
-- Refresh tokens rotate on use
-- Logout invalidates session immediately
+### API References
+- **[docs/FRONTEND_API_REFERENCE.md](docs/FRONTEND_API_REFERENCE.md)** - Frontend integration guide
+- **[docs/DASHBOARD_API_SPEC.md](docs/DASHBOARD_API_SPEC.md)** - Dashboard widget endpoints
+- **[docs/MANAGER_TEAM_VIEWS.md](docs/MANAGER_TEAM_VIEWS.md)** - Manager-specific features
+- **[docs/API_TIMESHEET_FRONTEND.md](docs/API_TIMESHEET_FRONTEND.md)** - Timesheet grid integration
 
-### Multi-Tenancy
+### Testing
+- **Postman collections** in `/postman` directory
+- Seed scripts: `pnpm db:seed:manager` for demo data
+- cURL examples in all documentation
 
-- Users can belong to multiple tenants via memberships
-- Each session is scoped to one active tenant
-- RLS policies enforce tenant isolation at database level
-- set_config('app.tenant_id', ...) called per request
+---
 
-### Authorization
+## Testing & Verification
 
-- Role-based: admin, manager, employee
-- Permissions derived from role and membership status
-- Guards check role + tenant membership before allowing operations
+### Manual Testing
+```bash
+# Start development server
+pnpm dev
+
+# Health check
+curl http://localhost:3000/api/v1/health
+
+# Create demo data
+pnpm db:seed:manager
+
+# Login as manager
+curl -X POST http://localhost:3000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"manager@demo.com","password":"password123"}'
+```
+
+### Automated Testing
+```bash
+# Run all tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Run tests with coverage
+pnpm test:cov
+```
+
+---
+
+## Common Operations
+
+### Adding a New Endpoint
+1. Create/update controller with new endpoint
+2. Create/update service with business logic
+3. Add DTOs with zod validation
+4. Add authorization checks (guards/decorators)
+5. Test with cURL or Postman
+6. Update documentation
+7. Run `pnpm build` to verify
+
+### Database Changes
+1. Update schema in `/src/db/schema/`
+2. Generate migration: `pnpm db:generate`
+3. Review migration in `/drizzle/migrations/`
+4. Apply migration: `pnpm db:migrate`
+5. Update `/referenceDBTABLES/` if needed
+
+### Adding Validation
+1. Create zod schema in DTO file
+2. Use schema in controller with validation pipe
+3. Test invalid inputs return 400 errors
+4. Document validation rules
 
 ---
 
 ## Commit Checklist
 
-- Lint and build pass.
-- DTOs validate inputs.
-- Unit and e2e tests pass.
-- SQL is safe and parameterized.
-- Correct HTTP status codes used.
-- Example curl commands work.
-- Documentation updated if needed.
+Before committing code:
+
+- [ ] Lint and build pass: `pnpm lint && pnpm build`
+- [ ] DTOs validate inputs with zod
+- [ ] Tests pass: `pnpm test`
+- [ ] SQL queries are parameterized (no SQL injection)
+- [ ] Correct HTTP status codes used (200, 201, 400, 401, 403, 404, 500)
+- [ ] Error messages are clear and actionable
+- [ ] Authorization checks in place
+- [ ] Tenant isolation maintained (RLS)
+- [ ] Documentation updated if API changed
+- [ ] Example curl commands tested
+
+---
+
+## Troubleshooting
+
+### Database Connection Issues
+- Verify `DATABASE_URL` in `.env`
+- Check PostgreSQL is running: `docker ps`
+- Test connection: `psql $DATABASE_URL`
+
+### Authentication Errors
+- Verify `SESSION_SECRET` is set in production
+- Check session hasn't expired
+- Verify user has membership in tenant
+
+### Permission Errors (403)
+- Check user role and permissions
+- Verify manager-employee relationship
+- Check project membership for time entries
+
+### Build Errors
+- Clear cache: `rm -rf dist node_modules && pnpm install`
+- Verify Node version: `node --version` (should be 22+)
+- Check TypeScript errors: `pnpm build`
+
+---
+
+## Environment Variables
+
+Required:
+- `DATABASE_URL` - PostgreSQL connection string
+- `SESSION_SECRET` - Secret for signing tokens (production)
+
+Optional with defaults:
+- `NODE_ENV` - development | production (default: development)
+- `PORT` - Server port (default: 3000)
+- `LOG_LEVEL` - debug | info | warn | error (default: info)
+- `SESSION_TTL` - Session lifetime in seconds (default: 2592000 = 30 days)
+- `REFRESH_TOKEN_TTL` - Refresh token lifetime (default: 7776000 = 90 days)
+
+See `.env.example` for complete list.
+
+---
+
+## Performance Optimization
+
+### Database
+- Composite indexes on common query patterns
+- Connection pooling (configured in db.service.ts)
+- Pagination on large result sets
+- Avoid N+1 queries (use joins)
+
+### API
+- Response compression (enabled in main.ts)
+- Request validation with zod (fast schema validation)
+- Structured logging (JSON format for easy parsing)
+
+### Caching Opportunities
+- Timesheet policies (rarely change)
+- Benefit types (static configuration)
+- Holidays (annual data)
+- Project lists (moderate change frequency)
+
+---
+
+## Security Checklist
+
+- [x] Session tokens are opaque UUIDs
+- [x] Sessions stored in database (not client-side)
+- [x] Password hashing with bcrypt
+- [x] SQL injection prevention (parameterized queries)
+- [x] Input validation on all endpoints (zod)
+- [x] CORS configured (see main.ts)
+- [x] RLS enforces tenant isolation
+- [x] Authorization checks on protected routes
+- [x] No sensitive data in error messages
+- [x] Rate limiting (TODO: add in production)
+- [x] HTTPS required in production
+
+---
+
+## Deployment Notes
+
+### Production Checklist
+1. Set `NODE_ENV=production`
+2. Set strong `SESSION_SECRET` (use secrets manager)
+3. Configure `DATABASE_URL` to production database
+4. Enable HTTPS
+5. Configure CORS for frontend domain
+6. Set up database backups
+7. Configure monitoring and alerting
+8. Run migrations: `pnpm db:migrate`
+9. Build: `pnpm build`
+10. Start: `pnpm start:prod`
+
+### Health Monitoring
+- Health endpoint: `GET /api/v1/health`
+- Returns database connection status
+- Use for load balancer health checks
 
 ---
 
