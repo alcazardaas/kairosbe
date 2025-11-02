@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Put,
   Delete,
   Query,
   Body,
@@ -230,5 +231,40 @@ export class UsersController {
     @CurrentSession() session: any,
   ) {
     await this.usersService.delete(tenantId, userId, session.userId);
+  }
+
+  @Put(':id/reactivate')
+  @Roles('admin', 'manager')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Reactivate a disabled user',
+    description:
+      'Reactivate a disabled user by setting their membership status back to "active". Admins can reactivate any user. Managers can only reactivate their direct reports.',
+  })
+  @ApiNoContentResponse({
+    description: 'User reactivated successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'User is already active',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
+  @ApiForbiddenResponse({
+    description: 'Access denied. Managers can only reactivate their direct reports.',
+    type: ErrorResponseDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found in this tenant',
+    type: ErrorResponseDto,
+  })
+  async reactivate(
+    @CurrentTenantId() tenantId: string,
+    @Param('id') userId: string,
+    @CurrentSession() session: any,
+  ) {
+    await this.usersService.reactivate(tenantId, userId, session.userId);
   }
 }

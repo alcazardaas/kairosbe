@@ -408,6 +408,61 @@ export class UsersService {
   }
 
   /**
+   * Reactivate a disabled user
+   */
+  async reactivate(tenantId: string, userId: string, currentUserId: string) {
+    const db = this.dbService.getDb();
+
+    // Verify user exists in tenant
+    const [membership] = await db
+      .select()
+      .from(memberships)
+      .where(and(eq(memberships.tenantId, tenantId), eq(memberships.userId, userId)))
+      .limit(1);
+
+    if (!membership) {
+      throw new NotFoundException('User not found in this tenant');
+    }
+
+    // Check if user is already active
+    if (membership.status === 'active') {
+      throw new BadRequestException('User is already active');
+    }
+
+    // Get current user's role to check permissions
+    const [currentUserMembership] = await db
+      .select({ role: memberships.role })
+      .from(memberships)
+      .where(and(eq(memberships.tenantId, tenantId), eq(memberships.userId, currentUserId)))
+      .limit(1);
+
+    // If current user is a manager (not admin), verify target is a direct report
+    if (currentUserMembership?.role === 'manager') {
+      const [profile] = await db
+        .select()
+        .from(profiles)
+        .where(
+          and(
+            eq(profiles.tenantId, tenantId),
+            eq(profiles.userId, userId),
+            eq(profiles.managerUserId, currentUserId),
+          ),
+        )
+        .limit(1);
+
+      if (!profile) {
+        throw new ForbiddenException('You can only reactivate your direct reports');
+      }
+    }
+
+    // Update membership status to active
+    await db
+      .update(memberships)
+      .set({ status: 'active' })
+      .where(and(eq(memberships.tenantId, tenantId), eq(memberships.userId, userId)));
+  }
+
+  /**
    * Validate manager assignment (prevent circular references)
    */
   private async validateManager(tenantId: string, managerId: string, userId: string) {
