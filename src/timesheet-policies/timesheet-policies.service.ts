@@ -30,6 +30,7 @@ export class TimesheetPoliciesService {
   }
 
   async create(
+    tenantId: string,
     createTimesheetPolicyDto: CreateTimesheetPolicyDto,
   ): Promise<typeof timesheetPolicies.$inferSelect> {
     const db = this.dbService.getDb();
@@ -38,7 +39,7 @@ export class TimesheetPoliciesService {
       const result = await db
         .insert(timesheetPolicies)
         .values({
-          tenantId: createTimesheetPolicyDto.tenant_id,
+          tenantId: tenantId,
           weekStart: createTimesheetPolicyDto.week_start,
           maxHoursPerDay: createTimesheetPolicyDto.max_hours_per_day?.toString(),
           allowOvertime: createTimesheetPolicyDto.allow_overtime,
@@ -51,7 +52,7 @@ export class TimesheetPoliciesService {
       // Handle unique constraint violation (tenant_id is primary key)
       if (error.code === '23505') {
         throw new ConflictException(
-          `Timesheet policy for tenant ${createTimesheetPolicyDto.tenant_id} already exists`,
+          `Timesheet policy for tenant ${tenantId} already exists`,
         );
       }
       throw error;

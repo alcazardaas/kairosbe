@@ -191,12 +191,98 @@ kairosbe/
 - Refresh tokens rotate on use (TTL: 90 days)
 - Logout invalidates session immediately
 
-### Multi-Tenancy
-- Users can belong to multiple tenants via `memberships` table
-- Each session is scoped to one active tenant
-- RLS policies enforce tenant isolation at database level
-- `set_config('app.tenant_id', ...)` called per request
-- All queries automatically scoped to session's tenant
+### Multi-Tenancy & Tenant Handling
+
+**IMPORTANT: Tenant ID is NEVER sent by the frontend in request parameters or body.**
+
+#### How Tenant Context Works
+
+1. **Session Binding:**
+   - Users can belong to multiple tenants via `memberships` table
+   - Each session is scoped to **exactly one active tenant**
+   - Tenant ID is stored in the `sessions` table alongside user ID
+   - When user logs in, they can optionally specify which tenant to use
+   - If not specified, the first active membership is used
+
+2. **Automatic Tenant Extraction:**
+   - `AuthGuard` validates session token on every request
+   - Tenant ID is extracted from the session and attached to `request.tenantId`
+   - Controllers use `@CurrentTenantId()` decorator to inject tenant ID
+   - **Frontend NEVER needs to send tenant_id in URLs, query params, or request bodies**
+
+3. **Pattern Used in ALL Controllers:**
+   ```typescript
+   @Get()
+   async findAll(@CurrentTenantId() tenantId: string) {
+     return this.service.findAll(tenantId);
+   }
+
+   @Post()
+   async create(
+     @CurrentTenantId() tenantId: string,
+     @Body() createDto: CreateDto
+   ) {
+     return this.service.create(tenantId, createDto);
+   }
+   ```
+
+4. **Service Layer Pattern:**
+   - All service methods receive `tenantId` as **first parameter**
+   - Services apply tenant filtering in database queries
+   - Example: `async findAll(tenantId: string, userId: string, filters?: Filters)`
+
+5. **Database Isolation:**
+   - RLS policies enforce tenant isolation at database level
+   - `set_config('app.tenant_id', ...)` called per request
+   - All queries automatically scoped to session's tenant
+   - Even if tenant_id is wrong in code, RLS prevents cross-tenant access
+
+#### Frontend Implementation
+
+**✅ Correct Pattern:**
+```typescript
+// Login - receive and store tenant_id
+const { sessionToken, tenantId, userId } = await login(email, password);
+localStorage.setItem('sessionToken', sessionToken);
+localStorage.setItem('tenantId', tenantId);  // For display only
+
+// All subsequent requests - ONLY send session token
+fetch('/api/v1/timesheets', {
+  headers: { 'Authorization': `Bearer ${sessionToken}` }
+  // NO tenant_id in URL, query params, or body!
+});
+```
+
+**❌ Wrong Pattern:**
+```typescript
+// DON'T send tenant_id in URLs or body
+fetch(`/api/v1/timesheets/${tenantId}`);  // ❌ Wrong
+fetch('/api/v1/timesheets', {
+  body: JSON.stringify({ tenant_id: tenantId, ... })  // ❌ Wrong
+});
+```
+
+#### Tenant Switching
+
+If a user belongs to multiple tenants and wants to switch:
+```typescript
+// Re-login with different tenant_id
+await login(email, password, { tenantId: newTenantId });
+// New session created with new tenant context
+```
+
+#### When Tenant ID IS Available to Frontend
+
+Frontend receives `tenantId` in two places:
+1. **Login response:** `POST /api/v1/auth/login` returns `{ sessionToken, tenantId, userId, ... }`
+2. **Session info:** `GET /api/v1/auth/me` returns `{ user, tenant: { id }, membership, ... }`
+
+Use this tenant_id for:
+- Display purposes (show which org user is logged into)
+- Multi-tenant switching UI (if user has multiple memberships)
+- Client-side caching/state management keys
+
+**DO NOT use tenant_id in API requests** - backend gets it from session automatically.
 
 ### Authorization (RBAC)
 - Three roles: **admin**, **manager**, **employee**
@@ -234,6 +320,8 @@ If unsure, ask clear questions before proceeding.
 - Do not store sensitive data in JWTs (keep tokens opaque).
 - Do not skip validation on user inputs.
 - Do not create N+1 query problems (use joins or eager loading).
+- **Do not add tenant_id as a route parameter (e.g., `/:tenantId`) or expect it in request bodies** - always use `@CurrentTenantId()` decorator.
+- **Do not break the tenant handling pattern** - all controllers must use `@CurrentTenantId()` to extract tenant from session.
 
 ---
 

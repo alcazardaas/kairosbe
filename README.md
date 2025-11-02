@@ -280,10 +280,122 @@ curl -X POST http://localhost:3000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"password123"}'
 
+# Response includes sessionToken AND tenantId
+# {
+#   "data": {
+#     "sessionToken": "uuid-token-here",
+#     "tenantId": "tenant-uuid-here",  // Store for display, NOT for requests
+#     "userId": "user-uuid-here",
+#     "expiresAt": "2025-12-01T..."
+#   }
+# }
+
 # Use returned sessionToken in subsequent requests
 curl -H "Authorization: Bearer <sessionToken>" \
   http://localhost:3000/api/v1/auth/me
 ```
+
+### Multi-Tenancy & Tenant Handling
+
+**🚨 IMPORTANT: Frontend NEVER sends `tenant_id` in requests**
+
+#### How It Works
+
+1. **Session-Based Tenant Context:**
+   - Each session is bound to exactly one tenant
+   - Tenant ID is stored in the database with the session
+   - Backend automatically extracts tenant ID from session token
+   - Frontend only needs to send `Authorization: Bearer <token>` header
+
+2. **Login Flow:**
+   ```bash
+   # Login response includes tenantId
+   POST /api/v1/auth/login
+   # Response: { sessionToken, tenantId, userId, ... }
+
+   # Store sessionToken for API calls
+   # Store tenantId for display purposes only (show which org user is in)
+   ```
+
+3. **All API Requests:**
+   ```bash
+   # ✅ CORRECT - Only send session token
+   GET /api/v1/timesheets
+   Authorization: Bearer <sessionToken>
+
+   # ❌ WRONG - Don't send tenant_id
+   GET /api/v1/timesheets?tenant_id=xxx  # ❌ Not needed
+   GET /api/v1/timesheets/${tenantId}    # ❌ Not in URL
+   POST /api/v1/timesheets
+   Body: { tenant_id: xxx, ... }         # ❌ Not in body
+   ```
+
+4. **Backend Pattern (all controllers):**
+   - Controllers use `@CurrentTenantId()` decorator
+   - Tenant ID extracted from validated session automatically
+   - No tenant_id in route parameters or request bodies
+   - Services receive tenant_id as first parameter from decorator
+
+5. **When You Need Tenant ID on Frontend:**
+   - **Display**: Show organization name/ID in UI
+   - **Multi-tenant switching**: User selects different tenant, re-login required
+   - **Caching**: Use as cache key prefix
+   - **DO NOT**: Send in API requests (backend handles it)
+
+#### Example Frontend Code
+
+```typescript
+// ✅ Login - receive and store tenant_id
+const loginResponse = await fetch('/api/v1/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password })
+});
+
+const { sessionToken, tenantId, userId } = await loginResponse.json();
+
+// Store both
+localStorage.setItem('sessionToken', sessionToken);
+localStorage.setItem('tenantId', tenantId);  // For display only!
+
+// ✅ All other requests - just send token
+const timesheets = await fetch('/api/v1/timesheets', {
+  headers: {
+    'Authorization': `Bearer ${sessionToken}`
+    // NO tenant_id needed - backend gets it from session!
+  }
+});
+
+// ✅ Use tenant_id for display
+const displayOrgName = () => {
+  const tenantId = localStorage.getItem('tenantId');
+  return `Organization: ${tenantId}`;
+};
+```
+
+#### Multi-Tenant User Switching
+
+If a user belongs to multiple tenants:
+
+```typescript
+// User selects different tenant from dropdown
+const newTenantId = selectedTenant.id;
+
+// Re-login with specific tenant_id
+await fetch('/api/v1/auth/login', {
+  method: 'POST',
+  body: JSON.stringify({
+    email,
+    password,
+    tenantId: newTenantId  // Optional: specify which tenant to use
+  })
+});
+
+// New session created with new tenant context
+// Update stored sessionToken and tenantId
+```
+
+**Key Takeaway:** Tenant isolation is enforced at the session level. Frontend developers never need to worry about sending tenant_id in API requests - just include the session token and the backend handles the rest.
 
 ---
 
@@ -391,7 +503,7 @@ curl -H "Authorization: Bearer <sessionToken>" \
 - Organization: GET, PATCH `/organization`
 - Benefit Types: CRUD `/benefit-types`
 - Holidays: CRUD `/holidays`
-- Timesheet Policies: GET, PATCH `/timesheet-policies/:tenantId`
+- Timesheet Policies: GET, POST, PATCH, DELETE `/timesheet-policies` (tenant from session)
 
 ### 🔍 Search & Helpers (3 endpoints)
 - `GET /search/projects` - Search projects

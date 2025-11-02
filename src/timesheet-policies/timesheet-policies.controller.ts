@@ -5,7 +5,6 @@ import {
   Patch,
   Delete,
   Body,
-  Param,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -35,6 +34,7 @@ import {
 } from './dto/timesheet-policy-response.dto';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ErrorResponseDto } from '../common/dto/response.dto';
+import { CurrentTenantId } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Timesheet Policies')
 @ApiSecurity('session')
@@ -44,25 +44,8 @@ export class TimesheetPoliciesController {
 
   @Get()
   @ApiOperation({
-    summary: 'List all timesheet policies',
-    description: 'Retrieve all timesheet policies across tenants.',
-  })
-  @ApiOkResponse({
-    description: 'Timesheet policies retrieved successfully',
-    type: TimesheetPolicyListResponseDto,
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Invalid or expired session token',
-    type: ErrorResponseDto,
-  })
-  async findAll() {
-    return this.timesheetPoliciesService.findAll();
-  }
-
-  @Get(':tenantId')
-  @ApiOperation({
-    summary: 'Get timesheet policy for a tenant',
-    description: 'Retrieve the timesheet policy configuration for a specific tenant.',
+    summary: 'Get timesheet policy for current tenant',
+    description: 'Retrieve the timesheet policy configuration for the authenticated user\'s tenant.',
   })
   @ApiOkResponse({
     description: 'Timesheet policy retrieved successfully',
@@ -76,14 +59,14 @@ export class TimesheetPoliciesController {
     description: 'Invalid or expired session token',
     type: ErrorResponseDto,
   })
-  async findOne(@Param('tenantId') tenantId: string) {
+  async findOne(@CurrentTenantId() tenantId: string) {
     return this.timesheetPoliciesService.findOne(tenantId);
   }
 
   @Post()
   @ApiOperation({
     summary: 'Create a timesheet policy',
-    description: 'Create a new timesheet policy for a tenant.',
+    description: 'Create a new timesheet policy for the current tenant.',
   })
   @ApiCreatedResponse({
     description: 'Timesheet policy created successfully',
@@ -98,16 +81,17 @@ export class TimesheetPoliciesController {
     type: ErrorResponseDto,
   })
   async create(
+    @CurrentTenantId() tenantId: string,
     @Body(new ZodValidationPipe(createTimesheetPolicySchema))
     createTimesheetPolicyDto: CreateTimesheetPolicyDto,
   ) {
-    return this.timesheetPoliciesService.create(createTimesheetPolicyDto);
+    return this.timesheetPoliciesService.create(tenantId, createTimesheetPolicyDto);
   }
 
-  @Patch(':tenantId')
+  @Patch()
   @ApiOperation({
     summary: 'Update a timesheet policy',
-    description: 'Update the timesheet policy configuration for a tenant.',
+    description: 'Update the timesheet policy configuration for the current tenant.',
   })
   @ApiOkResponse({
     description: 'Timesheet policy updated successfully',
@@ -126,18 +110,18 @@ export class TimesheetPoliciesController {
     type: ErrorResponseDto,
   })
   async update(
-    @Param('tenantId') tenantId: string,
+    @CurrentTenantId() tenantId: string,
     @Body(new ZodValidationPipe(updateTimesheetPolicySchema))
     updateTimesheetPolicyDto: UpdateTimesheetPolicyDto,
   ) {
     return this.timesheetPoliciesService.update(tenantId, updateTimesheetPolicyDto);
   }
 
-  @Delete(':tenantId')
+  @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Delete a timesheet policy',
-    description: 'Delete the timesheet policy for a tenant.',
+    description: 'Delete the timesheet policy for the current tenant.',
   })
   @ApiNoContentResponse({
     description: 'Timesheet policy deleted successfully',
@@ -150,7 +134,7 @@ export class TimesheetPoliciesController {
     description: 'Invalid or expired session token',
     type: ErrorResponseDto,
   })
-  async remove(@Param('tenantId') tenantId: string) {
+  async remove(@CurrentTenantId() tenantId: string) {
     return this.timesheetPoliciesService.remove(tenantId);
   }
 }

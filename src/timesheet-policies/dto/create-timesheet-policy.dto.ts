@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 export const createTimesheetPolicySchema = z.object({
-  tenant_id: z.string().uuid('Invalid tenant_id format'),
   week_start: z
     .number()
     .int()
