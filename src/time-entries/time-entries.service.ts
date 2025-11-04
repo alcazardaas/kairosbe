@@ -505,13 +505,14 @@ export class TimeEntriesService {
 
     const weeklyTotal = dailyTotals.reduce((sum, hours) => sum + hours, 0);
 
-    // Get timesheet if exists
-    const [timesheet] = await db
+    // Get or create timesheet
+    let [timesheet] = await db
       .select({
         id: timesheets.id,
         status: timesheets.status,
         submitted_at: timesheets.submittedAt,
         reviewed_at: timesheets.reviewedAt,
+        review_note: timesheets.reviewNote,
       })
       .from(timesheets)
       .where(
@@ -522,6 +523,27 @@ export class TimeEntriesService {
         ),
       )
       .limit(1);
+
+    // Auto-create draft timesheet if not found
+    if (!timesheet) {
+      const [newTimesheet] = await db
+        .insert(timesheets)
+        .values({
+          tenantId,
+          userId,
+          weekStartDate,
+          status: 'draft',
+        })
+        .returning({
+          id: timesheets.id,
+          status: timesheets.status,
+          submitted_at: timesheets.submittedAt,
+          reviewed_at: timesheets.reviewedAt,
+          review_note: timesheets.reviewNote,
+        });
+
+      timesheet = newTimesheet;
+    }
 
     // Format entries with date calculated from week_start_date + day_of_week
     const formattedEntries = entries.map((entry) => {
@@ -542,6 +564,14 @@ export class TimeEntriesService {
       };
     });
 
+    // Convert by_project object to projectBreakdown array
+    const projectBreakdown = Object.entries(byProject).map(([projectId, info]) => ({
+      projectId,
+      projectName: info.project_name,
+      projectCode: info.project_code,
+      totalHours: Math.round(info.hours * 100) / 100,
+    }));
+
     return {
       week_start_date: weekStartDate,
       week_end_date: weekEnd.toISOString().split('T')[0],
@@ -550,7 +580,8 @@ export class TimeEntriesService {
       daily_totals: dailyTotals.map((h) => Math.round(h * 100) / 100),
       weekly_total: Math.round(weeklyTotal * 100) / 100,
       by_project: byProject,
-      timesheet: timesheet || null,
+      projectBreakdown,
+      timesheet: timesheet,
     };
   }
 

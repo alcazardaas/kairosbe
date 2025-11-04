@@ -11,6 +11,20 @@ class ProjectInfo {
   hours: number;
 }
 
+class ProjectBreakdownItem {
+  @ApiProperty()
+  projectId: string;
+
+  @ApiProperty()
+  projectName: string;
+
+  @ApiProperty()
+  projectCode: string;
+
+  @ApiProperty()
+  totalHours: number;
+}
+
 class WeekTimeEntry {
   @ApiProperty()
   id: string;
@@ -55,6 +69,9 @@ class TimesheetInfo {
 
   @ApiProperty({ required: false })
   reviewed_at: Date | null;
+
+  @ApiProperty({ required: false })
+  review_note: string | null;
 }
 
 export class WeekViewResponseDto {
@@ -63,6 +80,9 @@ export class WeekViewResponseDto {
 
   @ApiProperty()
   week_end_date: string;
+
+  @ApiProperty()
+  user_id: string;
 
   @ApiProperty({ type: [WeekTimeEntry] })
   entries: WeekTimeEntry[];
@@ -75,6 +95,9 @@ export class WeekViewResponseDto {
 
   @ApiProperty()
   by_project: Record<string, ProjectInfo>;
+
+  @ApiProperty({ type: [ProjectBreakdownItem] })
+  projectBreakdown: ProjectBreakdownItem[];
 
   @ApiProperty({ required: false })
   timesheet: TimesheetInfo | null;
