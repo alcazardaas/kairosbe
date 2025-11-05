@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 
 class ProjectInfo {
   @ApiProperty()
-  project_name: string;
+  projectName: string;
 
   @ApiProperty()
-  project_code: string;
+  projectCode: string;
 
   @ApiProperty()
   hours: number;
@@ -30,22 +30,22 @@ class WeekTimeEntry {
   id: string;
 
   @ApiProperty()
-  project_id: string;
+  projectId: string;
 
   @ApiProperty()
-  project_name: string;
+  projectName: string;
 
   @ApiProperty()
-  project_code: string;
+  projectCode: string;
 
   @ApiProperty({ required: false })
-  task_id: string | null;
+  taskId: string | null;
 
   @ApiProperty({ required: false })
-  task_name: string | null;
+  taskName: string | null;
 
   @ApiProperty()
-  day_of_week: number;
+  dayOfWeek: number;
 
   @ApiProperty()
   date: string;
@@ -65,36 +65,36 @@ class TimesheetInfo {
   status: string;
 
   @ApiProperty({ required: false })
-  submitted_at: Date | null;
+  submittedAt: Date | null;
 
   @ApiProperty({ required: false })
-  reviewed_at: Date | null;
+  reviewedAt: Date | null;
 
   @ApiProperty({ required: false })
-  review_note: string | null;
+  reviewNote: string | null;
 }
 
 export class WeekViewResponseDto {
   @ApiProperty()
-  week_start_date: string;
+  weekStartDate: string;
 
   @ApiProperty()
-  week_end_date: string;
+  weekEndDate: string;
 
   @ApiProperty()
-  user_id: string;
+  userId: string;
 
   @ApiProperty({ type: [WeekTimeEntry] })
   entries: WeekTimeEntry[];
 
   @ApiProperty({ type: [Number] })
-  daily_totals: number[];
+  dailyTotals: number[];
 
   @ApiProperty()
-  weekly_total: number;
+  weeklyTotal: number;
 
   @ApiProperty()
-  by_project: Record<string, ProjectInfo>;
+  byProject: Record<string, ProjectInfo>;
 
   @ApiProperty({ type: [ProjectBreakdownItem] })
   projectBreakdown: ProjectBreakdownItem[];
@@ -115,22 +115,22 @@ export class BulkTimeEntryResultDto {
 
   @ApiProperty()
   summary: {
-    created_count: number;
-    updated_count: number;
-    error_count: number;
-    total_requested: number;
+    createdCount: number;
+    updatedCount: number;
+    errorCount: number;
+    totalRequested: number;
   };
 }
 
 export class CopyWeekResponseDto {
   @ApiProperty()
-  copied_count: number;
+  copiedCount: number;
 
   @ApiProperty()
-  skipped_count: number;
+  skippedCount: number;
 
   @ApiProperty()
-  overwritten_count: number;
+  overwrittenCount: number;
 
   @ApiProperty()
   entries: any[];

@@ -8,19 +8,19 @@ export class CreateTimeEntryRequestDto {
     description: 'Tenant ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  tenant_id: string;
+  tenantId: string;
 
   @ApiProperty({
     description: 'User ID',
     example: '123e4567-e89b-12d3-a456-426614174001',
   })
-  user_id: string;
+  userId: string;
 
   @ApiProperty({
     description: 'Project ID',
     example: '123e4567-e89b-12d3-a456-426614174002',
   })
-  project_id: string;
+  projectId: string;
 
   @ApiProperty({
     description: 'Task ID (optional)',
@@ -28,13 +28,13 @@ export class CreateTimeEntryRequestDto {
     required: false,
     nullable: true,
   })
-  task_id?: string | null;
+  taskId?: string | null;
 
   @ApiProperty({
     description: 'Week start date (ISO 8601)',
     example: '2025-01-20T00:00:00.000Z',
   })
-  week_start_date: string;
+  weekStartDate: string;
 
   @ApiProperty({
     description: 'Day of week (0=Sunday, 1=Monday, ..., 6=Saturday)',
@@ -42,7 +42,7 @@ export class CreateTimeEntryRequestDto {
     minimum: 0,
     maximum: 6,
   })
-  day_of_week: number;
+  dayOfWeek: number;
 
   @ApiProperty({
     description: 'Hours worked',
@@ -91,38 +91,38 @@ export class TimeEntryDto {
     description: 'Tenant ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  tenant_id: string;
+  tenantId: string;
 
   @ApiProperty({
     description: 'User ID',
     example: '123e4567-e89b-12d3-a456-426614174001',
   })
-  user_id: string;
+  userId: string;
 
   @ApiProperty({
     description: 'Project ID',
     example: '123e4567-e89b-12d3-a456-426614174002',
   })
-  project_id: string;
+  projectId: string;
 
   @ApiProperty({
     description: 'Task ID',
     example: '123e4567-e89b-12d3-a456-426614174005',
     nullable: true,
   })
-  task_id: string | null;
+  taskId: string | null;
 
   @ApiProperty({
     description: 'Week start date',
     example: '2025-01-20T00:00:00.000Z',
   })
-  week_start_date: string;
+  weekStartDate: string;
 
   @ApiProperty({
     description: 'Day of week (0=Sunday, 1=Monday, ..., 6=Saturday)',
     example: 1,
   })
-  day_of_week: number;
+  dayOfWeek: number;
 
   @ApiProperty({
     description: 'Hours worked',
@@ -141,7 +141,7 @@ export class TimeEntryDto {
     description: 'Creation timestamp',
     example: '2025-01-20T09:00:00.000Z',
   })
-  created_at: string;
+  createdAt: string;
 }
 
 export class WeeklyHoursDto {

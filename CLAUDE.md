@@ -68,6 +68,83 @@ This file mirrors the live schema from the actual database.
 
 ---
 
+## Naming Conventions
+
+**CRITICAL: Maintain strict separation between API and database naming:**
+
+### API Layer (camelCase)
+All external-facing JSON (requests, responses, DTOs) use **camelCase**:
+- Request DTOs (zod schemas): `userId`, `weekStartDate`, `projectId`
+- Response DTOs (@ApiProperty): `createdAt`, `updatedAt`, `timeEntries`
+- Query parameters: `?userId=...&weekStartDate=...`
+- JSON payloads: `{ "userId": "...", "dayOfWeek": 0 }`
+
+### Database Layer (snake_case)
+All SQL and database schemas use **snake_case**:
+- Column names: `user_id`, `week_start_date`, `project_id`
+- Table names: `time_entries`, `leave_requests`, `project_members`
+- SQL queries: `WHERE user_id = $1 AND week_start_date = $2`
+
+### TypeScript Code (camelCase)
+All TypeScript identifiers use **camelCase**:
+- Variables: `const userId = ...`
+- Functions: `function getUserById() { ... }`
+- Class methods: `async findByUserId() { ... }`
+
+### Transformation Pattern
+
+**Services handle transformation between layers:**
+
+```typescript
+// Service receives DTO (camelCase)
+async create(tenantId: string, dto: CreateTimeEntryDto) {
+  // Transform to snake_case for database
+  const dbData = transformKeysToSnake(dto);
+
+  // Insert into database
+  const result = await db.insert(timeEntries).values(dbData);
+
+  // Transform result back to camelCase for API response
+  return transformKeysToCamel(result);
+}
+```
+
+**Use transformation helpers:**
+- `transformKeysToCamel(obj)` - Convert DB results → API responses
+- `transformKeysToSnake(obj)` - Convert API requests → DB queries
+- Located in: `src/common/helpers/case-transform.helper.ts`
+
+### Common Field Mappings
+
+| Database (snake_case) | API (camelCase) |
+|-----------------------|-----------------|
+| `tenant_id` | `tenantId` |
+| `user_id` | `userId` |
+| `project_id` | `projectId` |
+| `task_id` | `taskId` |
+| `week_start_date` | `weekStartDate` |
+| `day_of_week` | `dayOfWeek` |
+| `created_at` | `createdAt` |
+| `updated_at` | `updatedAt` |
+| `time_entries` | `timeEntries` |
+| `leave_requests` | `leaveRequests` |
+| `parent_task_id` | `parentTaskId` |
+| `manager_user_id` | `managerUserId` |
+| `country_code` | `countryCode` |
+| `is_recurring` | `isRecurring` |
+| `requires_approval` | `requiresApproval` |
+| `page_size` | `pageSize` |
+
+### Why This Matters
+
+- **Consistency**: JavaScript/TypeScript community uses camelCase
+- **SQL Convention**: Database world uses snake_case
+- **Clear Boundaries**: Transformation happens at service layer
+- **Type Safety**: DTOs match API contract, not DB schema
+- **Documentation**: OpenAPI specs show camelCase (developer-friendly)
+
+---
+
 ## Project Structure
 
 ```

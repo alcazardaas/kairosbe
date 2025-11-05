@@ -28,48 +28,48 @@ export class TimeEntriesService {
       page,
       limit,
       sort,
-      tenant_id,
-      user_id,
-      project_id,
-      task_id,
-      week_start_date,
-      week_end_date,
-      day_of_week,
+      tenantId,
+      userId,
+      projectId,
+      taskId,
+      weekStartDate,
+      weekEndDate,
+      dayOfWeek,
     } = query;
     const offset = calculateOffset(page, limit);
 
     // Build where conditions
     const conditions = [];
-    if (tenant_id) {
-      conditions.push(eq(timeEntries.tenantId, tenant_id));
+    if (tenantId) {
+      conditions.push(eq(timeEntries.tenantId, tenantId));
     }
-    if (user_id) {
-      conditions.push(eq(timeEntries.userId, user_id));
+    if (userId) {
+      conditions.push(eq(timeEntries.userId, userId));
     }
-    if (project_id) {
-      conditions.push(eq(timeEntries.projectId, project_id));
+    if (projectId) {
+      conditions.push(eq(timeEntries.projectId, projectId));
     }
-    if (task_id !== undefined) {
-      if (task_id === null) {
+    if (taskId !== undefined) {
+      if (taskId === null) {
         conditions.push(isNull(timeEntries.taskId));
       } else {
-        conditions.push(eq(timeEntries.taskId, task_id));
+        conditions.push(eq(timeEntries.taskId, taskId));
       }
     }
-    // Handle week_start_date and week_end_date filtering
-    if (week_start_date && week_end_date) {
-      // Date range filtering: week_start_date between start and end
-      conditions.push(gte(timeEntries.weekStartDate, new Date(week_start_date)));
-      conditions.push(lte(timeEntries.weekStartDate, new Date(week_end_date)));
-    } else if (week_start_date) {
+    // Handle weekStartDate and weekEndDate filtering
+    if (weekStartDate && weekEndDate) {
+      // Date range filtering: weekStartDate between start and end
+      conditions.push(gte(timeEntries.weekStartDate, new Date(weekStartDate)));
+      conditions.push(lte(timeEntries.weekStartDate, new Date(weekEndDate)));
+    } else if (weekStartDate) {
       // Exact match for backward compatibility
-      conditions.push(eq(timeEntries.weekStartDate, new Date(week_start_date)));
-    } else if (week_end_date) {
+      conditions.push(eq(timeEntries.weekStartDate, new Date(weekStartDate)));
+    } else if (weekEndDate) {
       // Filter by end date only
-      conditions.push(lte(timeEntries.weekStartDate, new Date(week_end_date)));
+      conditions.push(lte(timeEntries.weekStartDate, new Date(weekEndDate)));
     }
-    if (day_of_week !== undefined) {
-      conditions.push(eq(timeEntries.dayOfWeek, day_of_week));
+    if (dayOfWeek !== undefined) {
+      conditions.push(eq(timeEntries.dayOfWeek, dayOfWeek));
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -128,34 +128,34 @@ export class TimeEntriesService {
 
     // Validate project membership
     const isMember = await this.validateProjectMembership(
-      createTimeEntryDto.tenant_id,
-      createTimeEntryDto.user_id,
-      createTimeEntryDto.project_id,
+      createTimeEntryDto.tenantId,
+      createTimeEntryDto.userId,
+      createTimeEntryDto.projectId,
     );
 
     if (!isMember) {
       throw new ForbiddenException(
-        `User is not a member of project ${createTimeEntryDto.project_id}`,
+        `User is not a member of project ${createTimeEntryDto.projectId}`,
       );
     }
 
     // Validate timesheet is editable
     await this.validateTimesheetEditable(
-      createTimeEntryDto.tenant_id,
-      createTimeEntryDto.user_id,
-      createTimeEntryDto.week_start_date,
+      createTimeEntryDto.tenantId,
+      createTimeEntryDto.userId,
+      createTimeEntryDto.weekStartDate,
     );
 
     try {
       const result = await db
         .insert(timeEntries)
         .values({
-          tenantId: createTimeEntryDto.tenant_id,
-          userId: createTimeEntryDto.user_id,
-          projectId: createTimeEntryDto.project_id,
-          taskId: createTimeEntryDto.task_id,
-          weekStartDate: new Date(createTimeEntryDto.week_start_date),
-          dayOfWeek: createTimeEntryDto.day_of_week,
+          tenantId: createTimeEntryDto.tenantId,
+          userId: createTimeEntryDto.userId,
+          projectId: createTimeEntryDto.projectId,
+          taskId: createTimeEntryDto.taskId,
+          weekStartDate: new Date(createTimeEntryDto.weekStartDate),
+          dayOfWeek: createTimeEntryDto.dayOfWeek,
           hours: createTimeEntryDto.hours.toString(),
           note: createTimeEntryDto.note,
         })
@@ -173,23 +173,23 @@ export class TimeEntriesService {
       if (error.code === '23503') {
         if (error.constraint?.includes('project_id')) {
           throw new BadRequestException(
-            `Project with ID ${createTimeEntryDto.project_id} not found`,
+            `Project with ID ${createTimeEntryDto.projectId} not found`,
           );
         }
         if (error.constraint?.includes('user_id')) {
-          throw new BadRequestException(`User with ID ${createTimeEntryDto.user_id} not found`);
+          throw new BadRequestException(`User with ID ${createTimeEntryDto.userId} not found`);
         }
         if (error.constraint?.includes('task_id')) {
-          throw new BadRequestException(`Task with ID ${createTimeEntryDto.task_id} not found`);
+          throw new BadRequestException(`Task with ID ${createTimeEntryDto.taskId} not found`);
         }
         if (error.constraint?.includes('tenant_id')) {
-          throw new BadRequestException(`Tenant with ID ${createTimeEntryDto.tenant_id} not found`);
+          throw new BadRequestException(`Tenant with ID ${createTimeEntryDto.tenantId} not found`);
         }
       }
       // Handle check constraint violations
       if (error.code === '23514') {
         if (error.constraint?.includes('day_of_week')) {
-          throw new BadRequestException('day_of_week must be between 0 and 6');
+          throw new BadRequestException('dayOfWeek must be between 0 and 6');
         }
         if (error.constraint?.includes('hours')) {
           throw new BadRequestException('hours must be >= 0');
@@ -598,15 +598,15 @@ export class TimeEntriesService {
     for (const entry of bulkDto.entries) {
       const isMember = await this.validateProjectMembership(
         tenantId,
-        bulkDto.user_id,
-        entry.project_id,
+        bulkDto.userId,
+        entry.projectId,
       );
 
       if (!isMember) {
         errors.push({
-          day_of_week: entry.day_of_week,
-          project_id: entry.project_id,
-          error: `User is not a member of project ${entry.project_id}`,
+          dayOfWeek: entry.dayOfWeek,
+          projectId: entry.projectId,
+          error: `User is not a member of project ${entry.projectId}`,
         });
         continue;
       }
@@ -619,13 +619,13 @@ export class TimeEntriesService {
           .where(
             and(
               eq(timeEntries.tenantId, tenantId),
-              eq(timeEntries.userId, bulkDto.user_id),
-              eq(timeEntries.projectId, entry.project_id),
-              entry.task_id
-                ? eq(timeEntries.taskId, entry.task_id)
+              eq(timeEntries.userId, bulkDto.userId),
+              eq(timeEntries.projectId, entry.projectId),
+              entry.taskId
+                ? eq(timeEntries.taskId, entry.taskId)
                 : isNull(timeEntries.taskId),
-              eq(timeEntries.weekStartDate, new Date(bulkDto.week_start_date)),
-              eq(timeEntries.dayOfWeek, entry.day_of_week),
+              eq(timeEntries.weekStartDate, new Date(bulkDto.weekStartDate)),
+              eq(timeEntries.dayOfWeek, entry.dayOfWeek),
             ),
           )
           .limit(1);
@@ -648,11 +648,11 @@ export class TimeEntriesService {
             .insert(timeEntries)
             .values({
               tenantId,
-              userId: bulkDto.user_id,
-              projectId: entry.project_id,
-              taskId: entry.task_id,
-              weekStartDate: new Date(bulkDto.week_start_date),
-              dayOfWeek: entry.day_of_week,
+              userId: bulkDto.userId,
+              projectId: entry.projectId,
+              taskId: entry.taskId,
+              weekStartDate: new Date(bulkDto.weekStartDate),
+              dayOfWeek: entry.dayOfWeek,
               hours: entry.hours.toString(),
               note: entry.note,
             })
@@ -662,8 +662,8 @@ export class TimeEntriesService {
         }
       } catch (error) {
         errors.push({
-          day_of_week: entry.day_of_week,
-          project_id: entry.project_id,
+          dayOfWeek: entry.dayOfWeek,
+          projectId: entry.projectId,
           error: error.message || 'Unknown error',
         });
       }
@@ -674,10 +674,10 @@ export class TimeEntriesService {
       updated,
       errors,
       summary: {
-        created_count: created.length,
-        updated_count: updated.length,
-        error_count: errors.length,
-        total_requested: bulkDto.entries.length,
+        createdCount: created.length,
+        updatedCount: updated.length,
+        errorCount: errors.length,
+        totalRequested: bulkDto.entries.length,
       },
     };
   }
@@ -695,16 +695,16 @@ export class TimeEntriesService {
       .where(
         and(
           eq(timeEntries.tenantId, tenantId),
-          eq(timeEntries.userId, copyDto.user_id),
-          eq(timeEntries.weekStartDate, new Date(copyDto.from_week_start)),
+          eq(timeEntries.userId, copyDto.userId),
+          eq(timeEntries.weekStartDate, new Date(copyDto.fromWeekStart)),
         ),
       );
 
     if (sourceEntries.length === 0) {
       return {
-        copied_count: 0,
-        skipped_count: 0,
-        overwritten_count: 0,
+        copiedCount: 0,
+        skippedCount: 0,
+        overwrittenCount: 0,
         entries: [],
         skipped: [],
       };
@@ -723,33 +723,33 @@ export class TimeEntriesService {
           .where(
             and(
               eq(timeEntries.tenantId, tenantId),
-              eq(timeEntries.userId, copyDto.user_id),
+              eq(timeEntries.userId, copyDto.userId),
               eq(timeEntries.projectId, sourceEntry.projectId),
               sourceEntry.taskId
                 ? eq(timeEntries.taskId, sourceEntry.taskId)
                 : isNull(timeEntries.taskId),
-              eq(timeEntries.weekStartDate, new Date(copyDto.to_week_start)),
+              eq(timeEntries.weekStartDate, new Date(copyDto.toWeekStart)),
               eq(timeEntries.dayOfWeek, sourceEntry.dayOfWeek),
             ),
           )
           .limit(1);
 
-        if (existing.length > 0 && !copyDto.overwrite_existing) {
+        if (existing.length > 0 && !copyDto.overwriteExisting) {
           skipped.push({
-            day_of_week: sourceEntry.dayOfWeek,
-            project_id: sourceEntry.projectId,
+            dayOfWeek: sourceEntry.dayOfWeek,
+            projectId: sourceEntry.projectId,
             reason: 'Entry already exists',
           });
           continue;
         }
 
-        if (existing.length > 0 && copyDto.overwrite_existing) {
+        if (existing.length > 0 && copyDto.overwriteExisting) {
           // Update existing entry
           const [updated] = await db
             .update(timeEntries)
             .set({
               hours: sourceEntry.hours,
-              note: copyDto.copy_notes ? sourceEntry.note : null,
+              note: copyDto.copyNotes ? sourceEntry.note : null,
             })
             .where(eq(timeEntries.id, existing[0].id))
             .returning();
@@ -762,13 +762,13 @@ export class TimeEntriesService {
             .insert(timeEntries)
             .values({
               tenantId,
-              userId: copyDto.user_id,
+              userId: copyDto.userId,
               projectId: sourceEntry.projectId,
               taskId: sourceEntry.taskId,
-              weekStartDate: new Date(copyDto.to_week_start),
+              weekStartDate: new Date(copyDto.toWeekStart),
               dayOfWeek: sourceEntry.dayOfWeek,
               hours: sourceEntry.hours,
-              note: copyDto.copy_notes ? sourceEntry.note : null,
+              note: copyDto.copyNotes ? sourceEntry.note : null,
             })
             .returning();
 
@@ -776,17 +776,17 @@ export class TimeEntriesService {
         }
       } catch (error) {
         skipped.push({
-          day_of_week: sourceEntry.dayOfWeek,
-          project_id: sourceEntry.projectId,
+          dayOfWeek: sourceEntry.dayOfWeek,
+          projectId: sourceEntry.projectId,
           reason: error.message || 'Unknown error',
         });
       }
     }
 
     return {
-      copied_count: copiedEntries.length - overwrittenCount,
-      skipped_count: skipped.length,
-      overwritten_count: overwrittenCount,
+      copiedCount: copiedEntries.length - overwrittenCount,
+      skippedCount: skipped.length,
+      overwrittenCount: overwrittenCount,
       entries: copiedEntries,
       skipped,
     };
