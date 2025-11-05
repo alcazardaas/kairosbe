@@ -226,7 +226,7 @@ export class LeaveRequestListResponseDto {
     description: 'Page size',
     example: 20,
   })
-  page_size: number;
+  pageSize: number;
 
   @ApiProperty({
     description: 'Total number of leave requests',

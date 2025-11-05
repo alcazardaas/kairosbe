@@ -21,7 +21,7 @@ export class UsersService {
 
   async findAll(tenantId: string, query: QueryUsersDto): Promise<PaginatedResponse<any>> {
     const db = this.dbService.getDb();
-    const { page, limit, sort, q, role, status, manager_id } = query;
+    const { page, limit, sort, q, role, status, managerId } = query;
     const offset = calculateOffset(page, limit);
 
     // Build where conditions
@@ -46,8 +46,8 @@ export class UsersService {
     }
 
     // Filter by manager (direct reports)
-    if (manager_id) {
-      conditions.push(eq(profiles.managerUserId, manager_id));
+    if (managerId) {
+      conditions.push(eq(profiles.managerUserId, managerId));
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
