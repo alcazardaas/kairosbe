@@ -17,16 +17,14 @@ import { createPaginatedResponse, calculateOffset } from '../common/helpers/pagi
 export class ProjectsService {
   constructor(private readonly dbService: DbService) {}
 
-  async findAll(query: QueryProjectsDto): Promise<PaginatedResponse<typeof projects.$inferSelect>> {
+  async findAll(tenantId: string, query: QueryProjectsDto): Promise<PaginatedResponse<typeof projects.$inferSelect>> {
     const db = this.dbService.getDb();
-    const { page, limit, sort, tenant_id, active, search } = query;
+    const { page, limit, sort, active, search } = query;
     const offset = calculateOffset(page, limit);
 
-    // Build where conditions
-    const conditions = [];
-    if (tenant_id) {
-      conditions.push(eq(projects.tenantId, tenant_id));
-    }
+    // Build where conditions - always filter by tenantId
+    const conditions = [eq(projects.tenantId, tenantId)];
+
     if (active !== undefined) {
       conditions.push(eq(projects.active, active));
     }
@@ -34,7 +32,7 @@ export class ProjectsService {
       conditions.push(ilike(projects.name, `%${search}%`));
     }
 
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const whereClause = and(...conditions);
 
     // Parse sort parameter
     let orderByClause;
@@ -45,7 +43,6 @@ export class ProjectsService {
         name: projects.name,
         code: projects.code,
         active: projects.active,
-        tenant_id: projects.tenantId,
       };
       const column = columnMap[field];
       if (column) {
@@ -72,9 +69,13 @@ export class ProjectsService {
     return createPaginatedResponse(data, total, page, limit);
   }
 
-  async findOne(id: string): Promise<typeof projects.$inferSelect> {
+  async findOne(tenantId: string, id: string): Promise<typeof projects.$inferSelect> {
     const db = this.dbService.getDb();
-    const result = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+    const result = await db
+      .select()
+      .from(projects)
+      .where(and(eq(projects.id, id), eq(projects.tenantId, tenantId)))
+      .limit(1);
 
     if (!result.length) {
       throw new NotFoundException(`Project with ID ${id} not found`);
@@ -83,17 +84,22 @@ export class ProjectsService {
     return result[0];
   }
 
-  async create(createProjectDto: CreateProjectDto): Promise<typeof projects.$inferSelect> {
+  async create(tenantId: string, createProjectDto: CreateProjectDto): Promise<typeof projects.$inferSelect> {
     const db = this.dbService.getDb();
 
     try {
       const result = await db
         .insert(projects)
         .values({
-          tenantId: createProjectDto.tenant_id,
+          tenantId,
           name: createProjectDto.name,
           code: createProjectDto.code,
           active: createProjectDto.active,
+          description: createProjectDto.description,
+          startDate: createProjectDto.startDate,
+          endDate: createProjectDto.endDate,
+          clientName: createProjectDto.clientName,
+          budgetHours: createProjectDto.budgetHours?.toString(),
         })
         .returning();
 
@@ -110,23 +116,33 @@ export class ProjectsService {
   }
 
   async update(
+    tenantId: string,
     id: string,
     updateProjectDto: UpdateProjectDto,
   ): Promise<typeof projects.$inferSelect> {
     const db = this.dbService.getDb();
 
-    // Check if project exists
-    await this.findOne(id);
+    // Check if project exists and belongs to tenant
+    await this.findOne(tenantId, id);
 
     try {
+      const updateData: any = {
+        updatedAt: new Date(),
+      };
+
+      if (updateProjectDto.name !== undefined) updateData.name = updateProjectDto.name;
+      if (updateProjectDto.code !== undefined) updateData.code = updateProjectDto.code;
+      if (updateProjectDto.active !== undefined) updateData.active = updateProjectDto.active;
+      if (updateProjectDto.description !== undefined) updateData.description = updateProjectDto.description;
+      if (updateProjectDto.startDate !== undefined) updateData.startDate = updateProjectDto.startDate;
+      if (updateProjectDto.endDate !== undefined) updateData.endDate = updateProjectDto.endDate;
+      if (updateProjectDto.clientName !== undefined) updateData.clientName = updateProjectDto.clientName;
+      if (updateProjectDto.budgetHours !== undefined) updateData.budgetHours = updateProjectDto.budgetHours?.toString();
+
       const result = await db
         .update(projects)
-        .set({
-          ...(updateProjectDto.name !== undefined && { name: updateProjectDto.name }),
-          ...(updateProjectDto.code !== undefined && { code: updateProjectDto.code }),
-          ...(updateProjectDto.active !== undefined && { active: updateProjectDto.active }),
-        })
-        .where(eq(projects.id, id))
+        .set(updateData)
+        .where(and(eq(projects.id, id), eq(projects.tenantId, tenantId)))
         .returning();
 
       return result[0];
@@ -141,13 +157,13 @@ export class ProjectsService {
     }
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(tenantId: string, id: string): Promise<void> {
     const db = this.dbService.getDb();
 
-    // Check if project exists
-    await this.findOne(id);
+    // Check if project exists and belongs to tenant
+    await this.findOne(tenantId, id);
 
-    await db.delete(projects).where(eq(projects.id, id));
+    await db.delete(projects).where(and(eq(projects.id, id), eq(projects.tenantId, tenantId)));
   }
 
   // ===== Project Membership Methods =====
@@ -159,10 +175,7 @@ export class ProjectsService {
     const db = this.dbService.getDb();
 
     // Verify project exists and belongs to tenant
-    const project = await this.findOne(projectId);
-    if (project.tenantId !== tenantId) {
-      throw new NotFoundException('Project not found');
-    }
+    await this.findOne(tenantId, projectId);
 
     const members = await db
       .select({
@@ -189,11 +202,8 @@ export class ProjectsService {
   async addMember(tenantId: string, projectId: string, userId: string, role?: string) {
     const db = this.dbService.getDb();
 
-    // Verify project exists
-    const project = await this.findOne(projectId);
-    if (project.tenantId !== tenantId) {
-      throw new NotFoundException('Project not found');
-    }
+    // Verify project exists and belongs to tenant
+    await this.findOne(tenantId, projectId);
 
     // Check if user exists in this tenant
     const [membership] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
@@ -238,11 +248,8 @@ export class ProjectsService {
   async removeMember(tenantId: string, projectId: string, userId: string) {
     const db = this.dbService.getDb();
 
-    // Verify project exists
-    const project = await this.findOne(projectId);
-    if (project.tenantId !== tenantId) {
-      throw new NotFoundException('Project not found');
-    }
+    // Verify project exists and belongs to tenant
+    await this.findOne(tenantId, projectId);
 
     const result = await db
       .delete(projectMembers)
@@ -258,6 +265,84 @@ export class ProjectsService {
     if (result.length === 0) {
       throw new NotFoundException('User is not a member of this project');
     }
+  }
+
+  /**
+   * Add multiple members to a project in bulk
+   */
+  async bulkAddMembers(tenantId: string, projectId: string, userIds: string[], role?: string) {
+    const db = this.dbService.getDb();
+
+    // Verify project exists and belongs to tenant
+    await this.findOne(tenantId, projectId);
+
+    const results: {
+      success: Array<{ userId: string; membershipId: string }>;
+      failed: Array<{ userId: string; reason: string }>;
+    } = {
+      success: [],
+      failed: [],
+    };
+
+    // Process each user
+    for (const userId of userIds) {
+      try {
+        // Check if user exists in this tenant
+        const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+
+        if (!user) {
+          results.failed.push({
+            userId,
+            reason: 'User not found in this tenant',
+          });
+          continue;
+        }
+
+        // Check if already a member
+        const [existing] = await db
+          .select()
+          .from(projectMembers)
+          .where(
+            and(
+              eq(projectMembers.tenantId, tenantId),
+              eq(projectMembers.projectId, projectId),
+              eq(projectMembers.userId, userId),
+            ),
+          )
+          .limit(1);
+
+        if (existing) {
+          results.failed.push({
+            userId,
+            reason: 'User is already a member of this project',
+          });
+          continue;
+        }
+
+        // Add member
+        const [member] = await db
+          .insert(projectMembers)
+          .values({
+            tenantId,
+            projectId,
+            userId,
+            role: role || 'member',
+          })
+          .returning();
+
+        results.success.push({
+          userId,
+          membershipId: member.id,
+        });
+      } catch (error) {
+        results.failed.push({
+          userId,
+          reason: error.message || 'Unknown error',
+        });
+      }
+    }
+
+    return results;
   }
 
   /**

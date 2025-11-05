@@ -3,6 +3,8 @@
  * Creates:
  * - 1 manager user
  * - 2 employee users (direct reports)
+ * - 4 demo projects (Website, Mobile App, API, Internal Tools)
+ * - Project memberships for all users
  * - Submitted timesheets for employees
  * - Pending leave requests for employees
  * - Sample holidays
@@ -24,6 +26,8 @@ const {
   benefitTypes,
   benefitBalances,
   holidays,
+  projects,
+  projectMembers,
 } = schema;
 
 async function seed() {
@@ -178,7 +182,135 @@ async function seed() {
       console.log('✓ Benefit balances created');
     }
 
-    // 5. Create submitted timesheets
+    // 5. Create demo projects
+    console.log('Creating projects...');
+    const projectsData = [
+      {
+        name: 'Website Redesign',
+        code: 'WEB-001',
+        active: true,
+        description: 'Complete redesign of the company website with modern UI/UX',
+        startDate: '2025-11-01',
+        endDate: '2026-02-28',
+        clientName: 'Acme Corporation',
+        budgetHours: '500.00',
+      },
+      {
+        name: 'Mobile App Development',
+        code: 'MOB-001',
+        active: true,
+        description: 'Native mobile app for iOS and Android platforms',
+        startDate: '2025-12-01',
+        endDate: '2026-06-30',
+        clientName: 'TechStart Inc',
+        budgetHours: '800.00',
+      },
+      {
+        name: 'API Integration',
+        code: 'API-001',
+        active: true,
+        description: 'Integration with third-party payment and CRM systems',
+        startDate: '2025-11-15',
+        endDate: '2026-01-31',
+        clientName: 'Global Services Ltd',
+        budgetHours: '200.00',
+      },
+      {
+        name: 'Internal Tools',
+        code: 'INT-001',
+        active: true,
+        description: 'Development of internal automation and reporting tools',
+        startDate: '2025-10-01',
+        endDate: '2026-12-31',
+        clientName: null,
+        budgetHours: '400.00',
+      },
+    ];
+
+    const createdProjects = [];
+    for (const proj of projectsData) {
+      const [project] = await db
+        .insert(projects)
+        .values({
+          tenantId,
+          name: proj.name,
+          code: proj.code,
+          active: proj.active,
+          description: proj.description,
+          startDate: proj.startDate,
+          endDate: proj.endDate,
+          clientName: proj.clientName,
+          budgetHours: proj.budgetHours,
+        })
+        .onConflictDoNothing()
+        .returning();
+
+      const projectId =
+        project?.id ||
+        (
+          await db
+            .select()
+            .from(projects)
+            .where(and(eq(projects.tenantId, tenantId), eq(projects.name, proj.name)))
+            .limit(1)
+        )[0]?.id;
+
+      if (projectId) {
+        createdProjects.push(projectId);
+        console.log(`✓ Project: ${proj.name} (${projectId})`);
+      }
+    }
+
+    // 6. Assign employees to projects
+    console.log('Creating project memberships...');
+    // Manager is assigned to all projects as observer
+    for (const projectId of createdProjects) {
+      await db
+        .insert(projectMembers)
+        .values({
+          tenantId,
+          projectId,
+          userId: managerId,
+          role: 'observer',
+        })
+        .onConflictDoNothing();
+    }
+
+    // Employee 1 (Bob) - assigned to first 2 projects
+    if (createdProjects.length >= 2) {
+      for (let i = 0; i < 2; i++) {
+        await db
+          .insert(projectMembers)
+          .values({
+            tenantId,
+            projectId: createdProjects[i],
+            userId: employees[0],
+            role: 'member',
+          })
+          .onConflictDoNothing();
+      }
+      console.log(`✓ Assigned ${employees[0]} to 2 projects`);
+    }
+
+    // Employee 2 (Carol) - assigned to last 2 projects
+    if (createdProjects.length >= 3) {
+      for (let i = 2; i < Math.min(4, createdProjects.length); i++) {
+        await db
+          .insert(projectMembers)
+          .values({
+            tenantId,
+            projectId: createdProjects[i],
+            userId: employees[1],
+            role: 'member',
+          })
+          .onConflictDoNothing();
+      }
+      console.log(`✓ Assigned ${employees[1]} to 2 projects`);
+    }
+
+    console.log('✓ Project memberships created');
+
+    // 7. Create submitted timesheets
     console.log('Creating timesheets...');
     const weekStart = '2025-10-13'; // Monday of current week
 
@@ -197,7 +329,7 @@ async function seed() {
     }
     console.log('✓ Timesheets created');
 
-    // 6. Create pending leave requests
+    // 8. Create pending leave requests
     console.log('Creating leave requests...');
     if (benefitTypeId) {
       await db
@@ -231,7 +363,7 @@ async function seed() {
       console.log('✓ Leave requests created');
     }
 
-    // 7. Create sample holidays
+    // 9. Create sample holidays
     console.log('Creating holidays...');
     await db
       .insert(holidays)
@@ -256,13 +388,21 @@ async function seed() {
     console.log('\n✅ Seed completed successfully!');
     console.log('\n📋 Demo Credentials:');
     console.log('Manager: manager@demo.com / password123');
-    console.log('Employee 1: bob@demo.com / password123');
-    console.log('Employee 2: carol@demo.com / password123');
+    console.log('Employee 1: bob@demo.com / password123 (assigned to 2 projects)');
+    console.log('Employee 2: carol@demo.com / password123 (assigned to 2 projects)');
+    console.log('\n📊 Demo Data Created:');
+    console.log(`- ${createdProjects.length} projects (Website Redesign, Mobile App, API Integration, Internal Tools)`);
+    console.log('- Project memberships for all users');
+    console.log('- Submitted timesheets for employees');
+    console.log('- Pending leave requests');
+    console.log('- Sample holidays');
     console.log('\n💡 Usage:');
-    console.log('1. Login as manager@demo.com');
-    console.log('2. Use GET /timesheets?team=true&status=submitted');
-    console.log('3. Use GET /leave-requests?team=true&status=pending');
-    console.log('4. Use GET /calendar?user_id=<employee_id>&from=2025-10-01&to=2025-12-31');
+    console.log('1. Login as manager@demo.com or bob@demo.com');
+    console.log('2. Use GET /api/v1/projects - View all projects');
+    console.log('3. Use GET /api/v1/my/projects - View assigned projects');
+    console.log('4. Use GET /api/v1/timesheets?team=true&status=submitted');
+    console.log('5. Use GET /api/v1/leave-requests?team=true&status=pending');
+    console.log('6. Use POST /api/v1/time-entries - Log time to assigned projects');
   } catch (error) {
     console.error('❌ Seed failed:', error);
     throw error;

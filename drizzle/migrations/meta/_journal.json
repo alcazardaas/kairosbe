@@ -57,6 +57,13 @@
       "when": 1761772289446,
       "tag": "0007_cuddly_sinister_six",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1762297507708,
+      "tag": "0008_last_gauntlet",
+      "breakpoints": true
     }
   ]
 }

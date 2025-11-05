@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, boolean, unique } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, boolean, unique, date, decimal, timestamp } from 'drizzle-orm/pg-core';
 import { tenants } from './tenants';
 
 export const projects = pgTable(
@@ -11,6 +11,13 @@ export const projects = pgTable(
     name: text('name').notNull(),
     code: text('code'),
     active: boolean('active').notNull().default(true),
+    description: text('description'),
+    startDate: date('start_date'),
+    endDate: date('end_date'),
+    clientName: text('client_name'),
+    budgetHours: decimal('budget_hours', { precision: 10, scale: 2 }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
   (table) => ({
     uniqTenantName: unique().on(table.tenantId, table.name),

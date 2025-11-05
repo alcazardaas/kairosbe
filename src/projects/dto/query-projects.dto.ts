@@ -7,7 +7,6 @@ export const queryProjectsSchema = z.object({
     .string()
     .regex(/^[a-z_]+:(asc|desc)$/)
     .optional(),
-  tenant_id: z.string().uuid().optional(),
   active: z.coerce.boolean().optional(),
   search: z.string().max(255).optional(),
 });
