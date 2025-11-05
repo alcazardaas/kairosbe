@@ -7,8 +7,8 @@ export const queryHolidaysSchema = z.object({
     .string()
     .regex(/^[a-z_]+:(asc|desc)$/)
     .optional(),
-  tenant_id: z.string().uuid().optional().nullable(),
-  country_code: z.string().length(2).toUpperCase().optional(),
+  tenantId: z.string().uuid().optional().nullable(),
+  countryCode: z.string().length(2).toUpperCase().optional(),
   year: z.coerce.number().int().min(1900).max(2100).optional(),
   search: z.string().max(255).optional(),
   type: z.enum(['public', 'company', 'regional']).optional(),
