@@ -7,6 +7,7 @@ import { QueryBenefitTypesDto } from './dto/query-benefit-types.dto';
 import { eq, and, ilike, sql, desc, asc } from 'drizzle-orm';
 import { PaginatedResponse } from '../common/types/pagination.types';
 import { createPaginatedResponse, calculateOffset } from '../common/helpers/pagination.helper';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 @Injectable()
 export class BenefitTypesService {
@@ -14,21 +15,21 @@ export class BenefitTypesService {
 
   async findAll(
     query: QueryBenefitTypesDto,
-  ): Promise<PaginatedResponse<typeof benefitTypes.$inferSelect>> {
+  ): Promise<PaginatedResponse<any>> {
     const db = this.dbService.getDb();
-    const { page, limit, sort, tenant_id, unit, requires_approval, search } = query;
+    const { page, limit, sort, tenantId, unit, requiresApproval, search } = query;
     const offset = calculateOffset(page, limit);
 
     // Build where conditions
     const conditions = [];
-    if (tenant_id) {
-      conditions.push(eq(benefitTypes.tenantId, tenant_id));
+    if (tenantId) {
+      conditions.push(eq(benefitTypes.tenantId, tenantId));
     }
     if (unit) {
       conditions.push(eq(benefitTypes.unit, unit));
     }
-    if (requires_approval !== undefined) {
-      conditions.push(eq(benefitTypes.requiresApproval, requires_approval));
+    if (requiresApproval !== undefined) {
+      conditions.push(eq(benefitTypes.requiresApproval, requiresApproval));
     }
     if (search) {
       conditions.push(ilike(benefitTypes.name, `%${search}%`));
@@ -45,8 +46,8 @@ export class BenefitTypesService {
         key: benefitTypes.key,
         name: benefitTypes.name,
         unit: benefitTypes.unit,
-        tenant_id: benefitTypes.tenantId,
-        requires_approval: benefitTypes.requiresApproval,
+        tenantId: benefitTypes.tenantId,
+        requiresApproval: benefitTypes.requiresApproval,
       };
       const column = columnMap[field];
       if (column) {
@@ -70,10 +71,11 @@ export class BenefitTypesService {
       .limit(limit)
       .offset(offset);
 
-    return createPaginatedResponse(data, total, page, limit);
+    const transformedData = data.map((item) => transformKeysToCamel(item));
+    return createPaginatedResponse(transformedData, total, page, limit);
   }
 
-  async findOne(id: string): Promise<typeof benefitTypes.$inferSelect> {
+  async findOne(id: string): Promise<any> {
     const db = this.dbService.getDb();
     const result = await db.select().from(benefitTypes).where(eq(benefitTypes.id, id)).limit(1);
 
@@ -81,27 +83,27 @@ export class BenefitTypesService {
       throw new NotFoundException(`Benefit type with ID ${id} not found`);
     }
 
-    return result[0];
+    return transformKeysToCamel(result[0]);
   }
 
   async create(
     createBenefitTypeDto: CreateBenefitTypeDto,
-  ): Promise<typeof benefitTypes.$inferSelect> {
+  ): Promise<any> {
     const db = this.dbService.getDb();
 
     try {
       const result = await db
         .insert(benefitTypes)
         .values({
-          tenantId: createBenefitTypeDto.tenant_id,
+          tenantId: createBenefitTypeDto.tenantId,
           key: createBenefitTypeDto.key,
           name: createBenefitTypeDto.name,
           unit: createBenefitTypeDto.unit,
-          requiresApproval: createBenefitTypeDto.requires_approval,
+          requiresApproval: createBenefitTypeDto.requiresApproval,
         })
         .returning();
 
-      return result[0];
+      return transformKeysToCamel(result[0]);
     } catch (error) {
       // Handle unique constraint violation (tenant_id + key must be unique)
       if (error.code === '23505') {
@@ -116,7 +118,7 @@ export class BenefitTypesService {
   async update(
     id: string,
     updateBenefitTypeDto: UpdateBenefitTypeDto,
-  ): Promise<typeof benefitTypes.$inferSelect> {
+  ): Promise<any> {
     const db = this.dbService.getDb();
 
     // Check if benefit type exists
@@ -127,14 +129,14 @@ export class BenefitTypesService {
       .set({
         ...(updateBenefitTypeDto.name !== undefined && { name: updateBenefitTypeDto.name }),
         ...(updateBenefitTypeDto.unit !== undefined && { unit: updateBenefitTypeDto.unit }),
-        ...(updateBenefitTypeDto.requires_approval !== undefined && {
-          requiresApproval: updateBenefitTypeDto.requires_approval,
+        ...(updateBenefitTypeDto.requiresApproval !== undefined && {
+          requiresApproval: updateBenefitTypeDto.requiresApproval,
         }),
       })
       .where(eq(benefitTypes.id, id))
       .returning();
 
-    return result[0];
+    return transformKeysToCamel(result[0]);
   }
 
   async remove(id: string): Promise<void> {

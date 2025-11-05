@@ -7,9 +7,9 @@ export const queryTasksSchema = z.object({
     .string()
     .regex(/^[a-z_]+:(asc|desc)$/)
     .optional(),
-  tenant_id: z.string().uuid().optional(),
-  project_id: z.string().uuid().optional(),
-  parent_task_id: z.string().uuid().optional().nullable(),
+  tenantId: z.string().uuid().optional(),
+  projectId: z.string().uuid().optional(),
+  parentTaskId: z.string().uuid().optional().nullable(),
   search: z.string().max(255).optional(),
 });
 

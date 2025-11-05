@@ -4,17 +4,19 @@ import { timesheetPolicies } from '../db/schema/timesheet-policies';
 import { CreateTimesheetPolicyDto } from './dto/create-timesheet-policy.dto';
 import { UpdateTimesheetPolicyDto } from './dto/update-timesheet-policy.dto';
 import { eq } from 'drizzle-orm';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 @Injectable()
 export class TimesheetPoliciesService {
   constructor(private readonly dbService: DbService) {}
 
-  async findAll(): Promise<Array<typeof timesheetPolicies.$inferSelect>> {
+  async findAll(): Promise<any[]> {
     const db = this.dbService.getDb();
-    return db.select().from(timesheetPolicies);
+    const results = await db.select().from(timesheetPolicies);
+    return results.map((result) => transformKeysToCamel(result));
   }
 
-  async findOne(tenantId: string): Promise<typeof timesheetPolicies.$inferSelect> {
+  async findOne(tenantId: string): Promise<any> {
     const db = this.dbService.getDb();
     const result = await db
       .select()
@@ -26,13 +28,13 @@ export class TimesheetPoliciesService {
       throw new NotFoundException(`Timesheet policy for tenant ${tenantId} not found`);
     }
 
-    return result[0];
+    return transformKeysToCamel(result[0]);
   }
 
   async create(
     tenantId: string,
     createTimesheetPolicyDto: CreateTimesheetPolicyDto,
-  ): Promise<typeof timesheetPolicies.$inferSelect> {
+  ): Promise<any> {
     const db = this.dbService.getDb();
 
     try {
@@ -40,14 +42,14 @@ export class TimesheetPoliciesService {
         .insert(timesheetPolicies)
         .values({
           tenantId: tenantId,
-          weekStart: createTimesheetPolicyDto.week_start,
-          maxHoursPerDay: createTimesheetPolicyDto.max_hours_per_day?.toString(),
-          allowOvertime: createTimesheetPolicyDto.allow_overtime,
-          lockAfterApproval: createTimesheetPolicyDto.lock_after_approval,
+          weekStart: createTimesheetPolicyDto.weekStart,
+          maxHoursPerDay: createTimesheetPolicyDto.maxHoursPerDay?.toString(),
+          allowOvertime: createTimesheetPolicyDto.allowOvertime,
+          lockAfterApproval: createTimesheetPolicyDto.lockAfterApproval,
         })
         .returning();
 
-      return result[0];
+      return transformKeysToCamel(result[0]);
     } catch (error) {
       // Handle unique constraint violation (tenant_id is primary key)
       if (error.code === '23505') {
@@ -62,7 +64,7 @@ export class TimesheetPoliciesService {
   async update(
     tenantId: string,
     updateTimesheetPolicyDto: UpdateTimesheetPolicyDto,
-  ): Promise<typeof timesheetPolicies.$inferSelect> {
+  ): Promise<any> {
     const db = this.dbService.getDb();
 
     // Check if policy exists
@@ -71,23 +73,23 @@ export class TimesheetPoliciesService {
     const result = await db
       .update(timesheetPolicies)
       .set({
-        ...(updateTimesheetPolicyDto.week_start !== undefined && {
-          weekStart: updateTimesheetPolicyDto.week_start,
+        ...(updateTimesheetPolicyDto.weekStart !== undefined && {
+          weekStart: updateTimesheetPolicyDto.weekStart,
         }),
-        ...(updateTimesheetPolicyDto.max_hours_per_day !== undefined && {
-          maxHoursPerDay: updateTimesheetPolicyDto.max_hours_per_day?.toString(),
+        ...(updateTimesheetPolicyDto.maxHoursPerDay !== undefined && {
+          maxHoursPerDay: updateTimesheetPolicyDto.maxHoursPerDay?.toString(),
         }),
-        ...(updateTimesheetPolicyDto.allow_overtime !== undefined && {
-          allowOvertime: updateTimesheetPolicyDto.allow_overtime,
+        ...(updateTimesheetPolicyDto.allowOvertime !== undefined && {
+          allowOvertime: updateTimesheetPolicyDto.allowOvertime,
         }),
-        ...(updateTimesheetPolicyDto.lock_after_approval !== undefined && {
-          lockAfterApproval: updateTimesheetPolicyDto.lock_after_approval,
+        ...(updateTimesheetPolicyDto.lockAfterApproval !== undefined && {
+          lockAfterApproval: updateTimesheetPolicyDto.lockAfterApproval,
         }),
       })
       .where(eq(timesheetPolicies.tenantId, tenantId))
       .returning();
 
-    return result[0];
+    return transformKeysToCamel(result[0]);
   }
 
   async remove(tenantId: string): Promise<void> {

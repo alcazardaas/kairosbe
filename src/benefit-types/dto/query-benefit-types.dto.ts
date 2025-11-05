@@ -7,9 +7,9 @@ export const queryBenefitTypesSchema = z.object({
     .string()
     .regex(/^[a-z_]+:(asc|desc)$/)
     .optional(),
-  tenant_id: z.string().uuid().optional(),
+  tenantId: z.string().uuid().optional(),
   unit: z.enum(['days', 'hours']).optional(),
-  requires_approval: z.coerce.boolean().optional(),
+  requiresApproval: z.coerce.boolean().optional(),
   search: z.string().max(255).optional(),
 });
 

@@ -8,7 +8,7 @@ export class CreateBenefitTypeRequestDto {
     description: 'Tenant ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  tenant_id: string;
+  tenantId: string;
 
   @ApiProperty({
     description: 'Benefit type key (unique identifier)',
@@ -36,7 +36,7 @@ export class CreateBenefitTypeRequestDto {
     example: true,
     default: true,
   })
-  requires_approval: boolean;
+  requiresApproval: boolean;
 }
 
 export class UpdateBenefitTypeRequestDto {
@@ -61,7 +61,7 @@ export class UpdateBenefitTypeRequestDto {
     example: false,
     required: false,
   })
-  requires_approval?: boolean;
+  requiresApproval?: boolean;
 }
 
 // ===== Entity DTOs =====
@@ -77,7 +77,7 @@ export class BenefitTypeDto {
     description: 'Tenant ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  tenant_id: string;
+  tenantId: string;
 
   @ApiProperty({
     description: 'Benefit type key',
@@ -102,27 +102,27 @@ export class BenefitTypeDto {
     description: 'Whether approval is required',
     example: true,
   })
-  requires_approval: boolean;
+  requiresApproval: boolean;
 
   @ApiProperty({
     description: 'Whether negative balance is allowed (e.g., unpaid leave)',
     example: false,
   })
-  allow_negative_balance: boolean;
+  allowNegativeBalance: boolean;
 
   @ApiProperty({
     description: 'Creation timestamp',
     example: '2025-01-15T10:00:00.000Z',
     required: false,
   })
-  created_at?: string;
+  createdAt?: string;
 
   @ApiProperty({
     description: 'Last update timestamp',
     example: '2025-01-20T15:30:00.000Z',
     required: false,
   })
-  updated_at?: string;
+  updatedAt?: string;
 }
 
 // ===== Response DTOs =====
