@@ -70,21 +70,18 @@ export class UsersService {
       }
     }
 
-    // Get total count
+    // Get total count (distinct users to avoid counting duplicates from profile joins)
     const countResult = await db
-      .select({ count: sql<number>`count(*)::int` })
+      .select({ count: sql<number>`count(DISTINCT ${memberships.userId})::int` })
       .from(memberships)
       .innerJoin(users, eq(memberships.userId, users.id))
-      .leftJoin(
-        profiles,
-        and(eq(profiles.userId, users.id), eq(profiles.tenantId, memberships.tenantId)),
-      )
       .where(whereClause);
     const total = countResult[0]?.count || 0;
 
-    // Get paginated data
+    // Get paginated data with DISTINCT ON to avoid duplicates from profile joins
+    // Note: After adding UNIQUE constraint, this defensive approach ensures robustness
     const data = await db
-      .select({
+      .selectDistinctOn([users.id], {
         id: users.id,
         email: users.email,
         name: users.name,
@@ -111,7 +108,7 @@ export class UsersService {
         and(eq(profiles.userId, users.id), eq(profiles.tenantId, memberships.tenantId)),
       )
       .where(whereClause)
-      .orderBy(orderByClause || asc(users.name))
+      .orderBy(users.id, orderByClause || asc(users.name))
       .limit(limit)
       .offset(offset);
 

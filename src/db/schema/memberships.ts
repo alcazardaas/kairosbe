@@ -35,17 +35,23 @@ export const invitations = pgTable('invitations', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const profiles = pgTable('profiles', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  tenantId: uuid('tenant_id')
-    .notNull()
-    .references(() => tenants.id, { onDelete: 'cascade' }),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  jobTitle: text('job_title'),
-  startDate: timestamp('start_date', { mode: 'date' }),
-  managerUserId: uuid('manager_user_id').references(() => users.id),
-  location: text('location'),
-  phone: text('phone'),
-});
+export const profiles = pgTable(
+  'profiles',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    jobTitle: text('job_title'),
+    startDate: timestamp('start_date', { mode: 'date' }),
+    managerUserId: uuid('manager_user_id').references(() => users.id),
+    location: text('location'),
+    phone: text('phone'),
+  },
+  (table) => ({
+    uniqueTenantUser: unique().on(table.tenantId, table.userId),
+  }),
+);
