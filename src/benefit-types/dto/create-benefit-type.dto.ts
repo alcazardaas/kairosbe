@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const createBenefitTypeSchema = z.object({
-  tenant_id: z.string().uuid('Invalid tenant_id format'),
+  tenantId: z.string().uuid('Invalid tenantId format'),
   key: z
     .string()
     .min(1, 'Key is required')
@@ -11,7 +11,7 @@ export const createBenefitTypeSchema = z.object({
   unit: z.enum(['days', 'hours'], {
     errorMap: () => ({ message: 'Unit must be either "days" or "hours"' }),
   }),
-  requires_approval: z.boolean().default(true),
+  requiresApproval: z.boolean().default(true),
 });
 
 export type CreateBenefitTypeDto = z.infer<typeof createBenefitTypeSchema>;

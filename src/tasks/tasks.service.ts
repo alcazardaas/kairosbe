@@ -12,30 +12,31 @@ import { QueryTasksDto } from './dto/query-tasks.dto';
 import { eq, and, ilike, sql, desc, asc, isNull } from 'drizzle-orm';
 import { PaginatedResponse } from '../common/types/pagination.types';
 import { createPaginatedResponse, calculateOffset } from '../common/helpers/pagination.helper';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 @Injectable()
 export class TasksService {
   constructor(private readonly dbService: DbService) {}
 
-  async findAll(query: QueryTasksDto): Promise<PaginatedResponse<typeof tasks.$inferSelect>> {
+  async findAll(query: QueryTasksDto): Promise<PaginatedResponse<any>> {
     const db = this.dbService.getDb();
-    const { page, limit, sort, tenant_id, project_id, parent_task_id, search } = query;
+    const { page, limit, sort, tenantId, projectId, parentTaskId, search } = query;
     const offset = calculateOffset(page, limit);
 
     // Build where conditions
     const conditions = [];
-    if (tenant_id) {
-      conditions.push(eq(tasks.tenantId, tenant_id));
+    if (tenantId) {
+      conditions.push(eq(tasks.tenantId, tenantId));
     }
-    if (project_id) {
-      conditions.push(eq(tasks.projectId, project_id));
+    if (projectId) {
+      conditions.push(eq(tasks.projectId, projectId));
     }
-    if (parent_task_id !== undefined) {
-      // Allow filtering for null parent_task_id (root tasks)
-      if (parent_task_id === null) {
+    if (parentTaskId !== undefined) {
+      // Allow filtering for null parentTaskId (root tasks)
+      if (parentTaskId === null) {
         conditions.push(isNull(tasks.parentTaskId));
       } else {
-        conditions.push(eq(tasks.parentTaskId, parent_task_id));
+        conditions.push(eq(tasks.parentTaskId, parentTaskId));
       }
     }
     if (search) {
@@ -51,9 +52,9 @@ export class TasksService {
       const columnMap: Record<string, any> = {
         id: tasks.id,
         name: tasks.name,
-        tenant_id: tasks.tenantId,
-        project_id: tasks.projectId,
-        parent_task_id: tasks.parentTaskId,
+        tenantId: tasks.tenantId,
+        projectId: tasks.projectId,
+        parentTaskId: tasks.parentTaskId,
       };
       const column = columnMap[field];
       if (column) {
@@ -77,10 +78,11 @@ export class TasksService {
       .limit(limit)
       .offset(offset);
 
-    return createPaginatedResponse(data, total, page, limit);
+    const transformedData = data.map((item) => transformKeysToCamel(item));
+    return createPaginatedResponse(transformedData, total, page, limit);
   }
 
-  async findOne(id: string): Promise<typeof tasks.$inferSelect> {
+  async findOne(id: string): Promise<any> {
     const db = this.dbService.getDb();
     const result = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
 
@@ -88,29 +90,29 @@ export class TasksService {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
 
-    return result[0];
+    return transformKeysToCamel(result[0]);
   }
 
-  async create(createTaskDto: CreateTaskDto): Promise<typeof tasks.$inferSelect> {
+  async create(createTaskDto: CreateTaskDto): Promise<any> {
     const db = this.dbService.getDb();
 
-    // Validate parent_task_id exists if provided
-    if (createTaskDto.parent_task_id) {
-      await this.findOne(createTaskDto.parent_task_id);
+    // Validate parentTaskId exists if provided
+    if (createTaskDto.parentTaskId) {
+      await this.findOne(createTaskDto.parentTaskId);
     }
 
     try {
       const result = await db
         .insert(tasks)
         .values({
-          tenantId: createTaskDto.tenant_id,
-          projectId: createTaskDto.project_id,
+          tenantId: createTaskDto.tenantId,
+          projectId: createTaskDto.projectId,
           name: createTaskDto.name,
-          parentTaskId: createTaskDto.parent_task_id,
+          parentTaskId: createTaskDto.parentTaskId,
         })
         .returning();
 
-      return result[0];
+      return transformKeysToCamel(result[0]);
     } catch (error) {
       // Handle unique constraint violation (tenant_id + project_id + name must be unique)
       if (error.code === '23505') {
@@ -121,33 +123,33 @@ export class TasksService {
       // Handle foreign key constraint violations
       if (error.code === '23503') {
         if (error.constraint?.includes('project_id')) {
-          throw new BadRequestException(`Project with ID ${createTaskDto.project_id} not found`);
+          throw new BadRequestException(`Project with ID ${createTaskDto.projectId} not found`);
         }
         if (error.constraint?.includes('tenant_id')) {
-          throw new BadRequestException(`Tenant with ID ${createTaskDto.tenant_id} not found`);
+          throw new BadRequestException(`Tenant with ID ${createTaskDto.tenantId} not found`);
         }
       }
       throw error;
     }
   }
 
-  async update(id: string, updateTaskDto: UpdateTaskDto): Promise<typeof tasks.$inferSelect> {
+  async update(id: string, updateTaskDto: UpdateTaskDto): Promise<any> {
     const db = this.dbService.getDb();
 
     // Check if task exists
     await this.findOne(id);
 
     // Prevent circular references: task cannot be its own parent
-    if (updateTaskDto.parent_task_id && updateTaskDto.parent_task_id === id) {
+    if (updateTaskDto.parentTaskId && updateTaskDto.parentTaskId === id) {
       throw new BadRequestException('A task cannot be its own parent');
     }
 
-    // Validate parent_task_id exists if provided
-    if (updateTaskDto.parent_task_id) {
-      await this.findOne(updateTaskDto.parent_task_id);
+    // Validate parentTaskId exists if provided
+    if (updateTaskDto.parentTaskId) {
+      await this.findOne(updateTaskDto.parentTaskId);
 
       // Additional check: prevent circular reference chains
-      await this.validateNoCircularReference(id, updateTaskDto.parent_task_id);
+      await this.validateNoCircularReference(id, updateTaskDto.parentTaskId);
     }
 
     try {
@@ -155,14 +157,14 @@ export class TasksService {
         .update(tasks)
         .set({
           ...(updateTaskDto.name !== undefined && { name: updateTaskDto.name }),
-          ...(updateTaskDto.parent_task_id !== undefined && {
-            parentTaskId: updateTaskDto.parent_task_id,
+          ...(updateTaskDto.parentTaskId !== undefined && {
+            parentTaskId: updateTaskDto.parentTaskId,
           }),
         })
         .where(eq(tasks.id, id))
         .returning();
 
-      return result[0];
+      return transformKeysToCamel(result[0]);
     } catch (error) {
       // Handle unique constraint violation
       if (error.code === '23505') {

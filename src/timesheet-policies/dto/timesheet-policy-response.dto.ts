@@ -7,14 +7,14 @@ export class CreateTimesheetPolicyRequestDto {
     description: 'Tenant ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  tenant_id: string;
+  tenantId: string;
 
   @ApiProperty({
     description: 'Standard hours per week',
     example: 40,
     minimum: 0,
   })
-  hours_per_week: number;
+  hoursPerWeek: number;
 
   @ApiProperty({
     description: 'Week start day (0=Sunday, 1=Monday, ..., 6=Saturday)',
@@ -22,21 +22,21 @@ export class CreateTimesheetPolicyRequestDto {
     minimum: 0,
     maximum: 6,
   })
-  week_start_day: number;
+  weekStartDay: number;
 
   @ApiProperty({
     description: 'Whether approval is required for timesheets',
     example: true,
     default: true,
   })
-  require_approval: boolean;
+  requireApproval: boolean;
 
   @ApiProperty({
     description: 'Whether editing is allowed after submission',
     example: false,
     default: false,
   })
-  allow_edit_after_submit: boolean;
+  allowEditAfterSubmit: boolean;
 }
 
 export class UpdateTimesheetPolicyRequestDto {
@@ -46,7 +46,7 @@ export class UpdateTimesheetPolicyRequestDto {
     minimum: 0,
     required: false,
   })
-  hours_per_week?: number;
+  hoursPerWeek?: number;
 
   @ApiProperty({
     description: 'Week start day (0=Sunday, 1=Monday, ..., 6=Saturday)',
@@ -55,21 +55,21 @@ export class UpdateTimesheetPolicyRequestDto {
     maximum: 6,
     required: false,
   })
-  week_start_day?: number;
+  weekStartDay?: number;
 
   @ApiProperty({
     description: 'Whether approval is required for timesheets',
     example: false,
     required: false,
   })
-  require_approval?: boolean;
+  requireApproval?: boolean;
 
   @ApiProperty({
     description: 'Whether editing is allowed after submission',
     example: true,
     required: false,
   })
-  allow_edit_after_submit?: boolean;
+  allowEditAfterSubmit?: boolean;
 }
 
 // ===== Entity DTOs =====
@@ -79,45 +79,45 @@ export class TimesheetPolicyDto {
     description: 'Tenant ID (primary key)',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  tenant_id: string;
+  tenantId: string;
 
   @ApiProperty({
     description: 'Standard hours per week',
     example: 40,
   })
-  hours_per_week: number;
+  hoursPerWeek: number;
 
   @ApiProperty({
     description: 'Week start day (0=Sunday, 1=Monday, ..., 6=Saturday)',
     example: 1,
   })
-  week_start_day: number;
+  weekStartDay: number;
 
   @ApiProperty({
     description: 'Whether approval is required for timesheets',
     example: true,
   })
-  require_approval: boolean;
+  requireApproval: boolean;
 
   @ApiProperty({
     description: 'Whether editing is allowed after submission',
     example: false,
   })
-  allow_edit_after_submit: boolean;
+  allowEditAfterSubmit: boolean;
 
   @ApiProperty({
     description: 'Creation timestamp',
     example: '2025-01-15T10:00:00.000Z',
     required: false,
   })
-  created_at?: string;
+  createdAt?: string;
 
   @ApiProperty({
     description: 'Last update timestamp',
     example: '2025-01-20T15:30:00.000Z',
     required: false,
   })
-  updated_at?: string;
+  updatedAt?: string;
 }
 
 // ===== Response DTOs =====

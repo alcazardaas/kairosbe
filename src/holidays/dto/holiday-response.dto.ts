@@ -10,14 +10,14 @@ export class CreateHolidayRequestDto {
     required: false,
     nullable: true,
   })
-  tenant_id?: string | null;
+  tenantId?: string | null;
 
   @ApiProperty({
     description: 'Country code (2-letter ISO)',
     example: 'US',
     maxLength: 2,
   })
-  country_code: string;
+  countryCode: string;
 
   @ApiProperty({
     description: 'Holiday name',
@@ -45,7 +45,7 @@ export class CreateHolidayRequestDto {
     example: true,
     default: false,
   })
-  is_recurring: boolean;
+  isRecurring: boolean;
 
   @ApiProperty({
     description: 'Optional description',
@@ -63,7 +63,7 @@ export class UpdateHolidayRequestDto {
     maxLength: 2,
     required: false,
   })
-  country_code?: string;
+  countryCode?: string;
 
   @ApiProperty({
     description: 'Holiday name',
@@ -93,7 +93,7 @@ export class UpdateHolidayRequestDto {
     example: false,
     required: false,
   })
-  is_recurring?: boolean;
+  isRecurring?: boolean;
 
   @ApiProperty({
     description: 'Optional description',
@@ -118,13 +118,13 @@ export class HolidayDto {
     example: '123e4567-e89b-12d3-a456-426614174000',
     nullable: true,
   })
-  tenant_id: string | null;
+  tenantId: string | null;
 
   @ApiProperty({
     description: 'Country code (2-letter ISO)',
     example: 'US',
   })
-  country_code: string;
+  countryCode: string;
 
   @ApiProperty({
     description: 'Holiday name',
@@ -149,7 +149,7 @@ export class HolidayDto {
     description: 'Whether this is a recurring annual holiday',
     example: true,
   })
-  is_recurring: boolean;
+  isRecurring: boolean;
 
   @ApiProperty({
     description: 'Optional description',

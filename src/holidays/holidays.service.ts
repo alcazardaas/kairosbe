@@ -7,28 +7,29 @@ import { QueryHolidaysDto } from './dto/query-holidays.dto';
 import { eq, and, ilike, sql, desc, asc, gte, lte, lt, isNull } from 'drizzle-orm';
 import { PaginatedResponse } from '../common/types/pagination.types';
 import { createPaginatedResponse, calculateOffset } from '../common/helpers/pagination.helper';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 @Injectable()
 export class HolidaysService {
   constructor(private readonly dbService: DbService) {}
 
-  async findAll(query: QueryHolidaysDto): Promise<PaginatedResponse<typeof holidays.$inferSelect>> {
+  async findAll(query: QueryHolidaysDto): Promise<PaginatedResponse<any>> {
     const db = this.dbService.getDb();
-    const { page, limit, sort, tenant_id, country_code, year, search, type, startDate, endDate, upcoming } =
+    const { page, limit, sort, tenantId, countryCode, year, search, type, startDate, endDate, upcoming } =
       query;
     const offset = calculateOffset(page, limit);
 
     // Build where conditions
     const conditions = [];
-    if (tenant_id !== undefined) {
-      if (tenant_id === null) {
+    if (tenantId !== undefined) {
+      if (tenantId === null) {
         conditions.push(isNull(holidays.tenantId));
       } else {
-        conditions.push(eq(holidays.tenantId, tenant_id));
+        conditions.push(eq(holidays.tenantId, tenantId));
       }
     }
-    if (country_code) {
-      conditions.push(eq(holidays.countryCode, country_code));
+    if (countryCode) {
+      conditions.push(eq(holidays.countryCode, countryCode));
     }
     if (type) {
       conditions.push(eq(holidays.type, type));
@@ -74,8 +75,8 @@ export class HolidaysService {
         id: holidays.id,
         date: holidays.date,
         name: holidays.name,
-        country_code: holidays.countryCode,
-        tenant_id: holidays.tenantId,
+        countryCode: holidays.countryCode,
+        tenantId: holidays.tenantId,
       };
       const column = columnMap[field];
       if (column) {
@@ -99,10 +100,11 @@ export class HolidaysService {
       .limit(limit)
       .offset(offset);
 
-    return createPaginatedResponse(data, total, page, limit);
+    const transformedData = data.map((item) => transformKeysToCamel(item));
+    return createPaginatedResponse(transformedData, total, page, limit);
   }
 
-  async findOne(id: string): Promise<typeof holidays.$inferSelect> {
+  async findOne(id: string): Promise<any> {
     const db = this.dbService.getDb();
     const result = await db.select().from(holidays).where(eq(holidays.id, id)).limit(1);
 
@@ -110,29 +112,32 @@ export class HolidaysService {
       throw new NotFoundException(`Holiday with ID ${id} not found`);
     }
 
-    return result[0];
+    return transformKeysToCamel(result[0]);
   }
 
-  async create(createHolidayDto: CreateHolidayDto): Promise<typeof holidays.$inferSelect> {
+  async create(createHolidayDto: CreateHolidayDto): Promise<any> {
     const db = this.dbService.getDb();
 
     const result = await db
       .insert(holidays)
       .values({
-        tenantId: createHolidayDto.tenant_id,
-        countryCode: createHolidayDto.country_code,
+        tenantId: createHolidayDto.tenantId,
+        countryCode: createHolidayDto.countryCode,
         date: new Date(createHolidayDto.date),
         name: createHolidayDto.name,
+        type: createHolidayDto.type,
+        isRecurring: createHolidayDto.isRecurring,
+        description: createHolidayDto.description,
       })
       .returning();
 
-    return result[0];
+    return transformKeysToCamel(result[0]);
   }
 
   async update(
     id: string,
     updateHolidayDto: UpdateHolidayDto,
-  ): Promise<typeof holidays.$inferSelect> {
+  ): Promise<any> {
     const db = this.dbService.getDb();
 
     // Check if holiday exists
@@ -141,16 +146,19 @@ export class HolidaysService {
     const result = await db
       .update(holidays)
       .set({
-        ...(updateHolidayDto.country_code !== undefined && {
-          countryCode: updateHolidayDto.country_code,
+        ...(updateHolidayDto.countryCode !== undefined && {
+          countryCode: updateHolidayDto.countryCode,
         }),
         ...(updateHolidayDto.date !== undefined && { date: new Date(updateHolidayDto.date) }),
         ...(updateHolidayDto.name !== undefined && { name: updateHolidayDto.name }),
+        ...(updateHolidayDto.type !== undefined && { type: updateHolidayDto.type }),
+        ...(updateHolidayDto.isRecurring !== undefined && { isRecurring: updateHolidayDto.isRecurring }),
+        ...(updateHolidayDto.description !== undefined && { description: updateHolidayDto.description }),
       })
       .where(eq(holidays.id, id))
       .returning();
 
-    return result[0];
+    return transformKeysToCamel(result[0]);
   }
 
   async remove(id: string): Promise<void> {

@@ -7,13 +7,13 @@ export class CreateTimesheetRequestDto {
     description: 'User ID',
     example: '123e4567-e89b-12d3-a456-426614174001',
   })
-  user_id: string;
+  userId: string;
 
   @ApiProperty({
     description: 'Week start date (YYYY-MM-DD)',
     example: '2025-01-20',
   })
-  week_start_date: string;
+  weekStartDate: string;
 }
 
 export class ReviewTimesheetRequestDto {
@@ -112,7 +112,7 @@ export class TimesheetDto {
     type: Array,
     required: false,
   })
-  time_entries?: any[];
+  timeEntries?: any[];
 }
 
 export class TimesheetPaginationMetaDto {
@@ -126,7 +126,7 @@ export class TimesheetPaginationMetaDto {
     description: 'Page size',
     example: 20,
   })
-  page_size: number;
+  pageSize: number;
 
   @ApiProperty({
     description: 'Total number of timesheets',
@@ -163,7 +163,7 @@ export class TimesheetListResponseDto {
     description: 'Page size',
     example: 20,
   })
-  page_size: number;
+  pageSize: number;
 
   @ApiProperty({
     description: 'Total number of timesheets',

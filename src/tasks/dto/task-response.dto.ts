@@ -8,13 +8,13 @@ export class CreateTaskRequestDto {
     description: 'Tenant ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  tenant_id: string;
+  tenantId: string;
 
   @ApiProperty({
     description: 'Project ID',
     example: '123e4567-e89b-12d3-a456-426614174002',
   })
-  project_id: string;
+  projectId: string;
 
   @ApiProperty({
     description: 'Task name',
@@ -30,7 +30,7 @@ export class CreateTaskRequestDto {
     required: false,
     nullable: true,
   })
-  parent_task_id?: string | null;
+  parentTaskId?: string | null;
 }
 
 export class UpdateTaskRequestDto {
@@ -49,7 +49,7 @@ export class UpdateTaskRequestDto {
     required: false,
     nullable: true,
   })
-  parent_task_id?: string | null;
+  parentTaskId?: string | null;
 }
 
 // ===== Entity DTOs =====
@@ -65,13 +65,13 @@ export class TaskDto {
     description: 'Tenant ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  tenant_id: string;
+  tenantId: string;
 
   @ApiProperty({
     description: 'Project ID',
     example: '123e4567-e89b-12d3-a456-426614174002',
   })
-  project_id: string;
+  projectId: string;
 
   @ApiProperty({
     description: 'Task name',
@@ -84,21 +84,21 @@ export class TaskDto {
     example: '123e4567-e89b-12d3-a456-426614174004',
     nullable: true,
   })
-  parent_task_id: string | null;
+  parentTaskId: string | null;
 
   @ApiProperty({
     description: 'Creation timestamp',
     example: '2025-01-15T10:00:00.000Z',
     required: false,
   })
-  created_at?: string;
+  createdAt?: string;
 
   @ApiProperty({
     description: 'Last update timestamp',
     example: '2025-01-20T15:30:00.000Z',
     required: false,
   })
-  updated_at?: string;
+  updatedAt?: string;
 }
 
 // ===== Response DTOs =====

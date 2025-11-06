@@ -10,7 +10,7 @@ export const queryUsersSchema = z.object({
   q: z.string().max(255).optional(), // Search by name or email
   role: z.enum(['admin', 'manager', 'employee']).optional(),
   status: z.enum(['active', 'invited', 'disabled']).optional(),
-  manager_id: z.string().uuid().optional(), // Filter by manager (direct reports)
+  managerId: z.string().uuid().optional(), // Filter by manager (direct reports)
 });
 
 export type QueryUsersDto = z.infer<typeof queryUsersSchema>;

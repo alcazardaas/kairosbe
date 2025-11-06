@@ -8,7 +8,7 @@ export class CreateProjectRequestDto {
     description: 'Tenant ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  tenant_id: string;
+  tenantId: string;
 
   @ApiProperty({
     description: 'Project name',
@@ -90,7 +90,7 @@ export class ProjectDto {
     description: 'Tenant ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  tenant_id: string;
+  tenantId: string;
 
   @ApiProperty({
     description: 'Project name',
@@ -116,14 +116,14 @@ export class ProjectDto {
     example: '2025-01-15T10:00:00.000Z',
     required: false,
   })
-  created_at?: string;
+  createdAt?: string;
 
   @ApiProperty({
     description: 'Last update timestamp',
     example: '2025-01-20T15:30:00.000Z',
     required: false,
   })
-  updated_at?: string;
+  updatedAt?: string;
 }
 
 export class ProjectMemberDto {

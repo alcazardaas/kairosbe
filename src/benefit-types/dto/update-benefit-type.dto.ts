@@ -7,7 +7,7 @@ export const updateBenefitTypeSchema = z.object({
       errorMap: () => ({ message: 'Unit must be either "days" or "hours"' }),
     })
     .optional(),
-  requires_approval: z.boolean().optional(),
+  requiresApproval: z.boolean().optional(),
 });
 
 export type UpdateBenefitTypeDto = z.infer<typeof updateBenefitTypeSchema>;

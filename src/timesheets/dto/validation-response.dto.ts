@@ -11,7 +11,7 @@ class ValidationError {
   message: string;
 
   @ApiProperty({ required: false })
-  day_of_week?: number;
+  dayOfWeek?: number;
 
   @ApiProperty({ required: false })
   date?: string;
@@ -20,21 +20,21 @@ class ValidationError {
   hours?: number;
 
   @ApiProperty({ required: false})
-  max_allowed?: number;
+  maxAllowed?: number;
 }
 
 class ValidationSummary {
   @ApiProperty()
-  total_hours: number;
+  totalHours: number;
 
   @ApiProperty()
-  days_with_entries: number;
+  daysWithEntries: number;
 
   @ApiProperty()
-  entry_count: number;
+  entryCount: number;
 
   @ApiProperty()
-  project_count: number;
+  projectCount: number;
 
   @ApiProperty()
   status: string;
@@ -62,11 +62,11 @@ export class RecallTimesheetResponseDto {
   status: string;
 
   @ApiProperty()
-  previous_status: string;
+  previousStatus: string;
 
   @ApiProperty()
-  recalled_at: Date;
+  recalledAt: Date;
 
   @ApiProperty()
-  recalled_by_user_id: string;
+  recalledByUserId: string;
 }
