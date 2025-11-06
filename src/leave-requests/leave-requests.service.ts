@@ -84,6 +84,8 @@ export class LeaveRequestsService {
       .select({
         id: benefitRequests.id,
         userId: benefitRequests.userId,
+        userName: users.name,
+        userEmail: users.email,
         benefitTypeId: benefitRequests.benefitTypeId,
         startDate: benefitRequests.startDate,
         endDate: benefitRequests.endDate,
@@ -93,11 +95,6 @@ export class LeaveRequestsService {
         approvedAt: benefitRequests.approvedAt,
         note: benefitRequests.note,
         createdAt: benefitRequests.createdAt,
-        user: {
-          id: users.id,
-          email: users.email,
-          name: users.name,
-        },
         benefitType: {
           id: benefitTypes.id,
           key: benefitTypes.key,
@@ -129,6 +126,8 @@ export class LeaveRequestsService {
       .select({
         id: benefitRequests.id,
         userId: benefitRequests.userId,
+        userName: users.name,
+        userEmail: users.email,
         benefitTypeId: benefitRequests.benefitTypeId,
         startDate: benefitRequests.startDate,
         endDate: benefitRequests.endDate,
@@ -138,11 +137,6 @@ export class LeaveRequestsService {
         approvedAt: benefitRequests.approvedAt,
         note: benefitRequests.note,
         createdAt: benefitRequests.createdAt,
-        user: {
-          id: users.id,
-          email: users.email,
-          name: users.name,
-        },
         benefitType: {
           id: benefitTypes.id,
           key: benefitTypes.key,
@@ -203,7 +197,8 @@ export class LeaveRequestsService {
       })
       .returning();
 
-    return transformKeysToCamel(results[0]);
+    // Fetch the complete record with user and benefit type info
+    return this.findOne(tenantId, results[0].id);
   }
 
   /**
