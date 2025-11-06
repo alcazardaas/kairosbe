@@ -11,6 +11,7 @@ import {
 } from '../db/schema';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import { ReviewLeaveRequestDto } from './dto/review-leave-request.dto';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 @Injectable()
 export class LeaveRequestsService {
@@ -113,7 +114,7 @@ export class LeaveRequestsService {
       .offset(offset);
 
     return {
-      data: results,
+      data: results.map(transformKeysToCamel),
       total: count,
       page,
       pageSize,
@@ -159,7 +160,7 @@ export class LeaveRequestsService {
       throw new NotFoundException(`Leave request with ID ${id} not found`);
     }
 
-    return results[0];
+    return transformKeysToCamel(results[0]);
   }
 
   /**
@@ -202,7 +203,7 @@ export class LeaveRequestsService {
       })
       .returning();
 
-    return results[0];
+    return transformKeysToCamel(results[0]);
   }
 
   /**
@@ -260,7 +261,7 @@ export class LeaveRequestsService {
         );
     }
 
-    return updated[0];
+    return transformKeysToCamel(updated[0]);
   }
 
   /**
@@ -287,7 +288,7 @@ export class LeaveRequestsService {
       .where(and(eq(benefitRequests.tenantId, tenantId), eq(benefitRequests.id, id)))
       .returning();
 
-    return updated[0];
+    return transformKeysToCamel(updated[0]);
   }
 
   /**
@@ -316,7 +317,7 @@ export class LeaveRequestsService {
       .where(and(eq(benefitRequests.tenantId, tenantId), eq(benefitRequests.id, id)))
       .returning();
 
-    return updated[0];
+    return transformKeysToCamel(updated[0]);
   }
 
   /**
@@ -352,20 +353,22 @@ export class LeaveRequestsService {
       .where(and(eq(benefitBalances.tenantId, tenantId), eq(benefitBalances.userId, userId)));
 
     // Calculate usedAmount = totalAmount - currentBalance
-    return results.map((row) => ({
-      id: row.id,
-      benefitTypeId: row.benefitTypeId,
-      benefitTypeKey: row.benefitTypeKey,
-      benefitTypeName: row.benefitTypeName,
-      currentBalance: row.currentBalance,
-      totalAmount: row.totalAmount || '0',
-      usedAmount:
-        row.totalAmount && row.currentBalance
-          ? (parseFloat(row.totalAmount) - parseFloat(row.currentBalance)).toFixed(2)
-          : '0',
-      unit: row.unit,
-      requiresApproval: row.requiresApproval,
-    }));
+    return results.map((row) =>
+      transformKeysToCamel({
+        id: row.id,
+        benefitTypeId: row.benefitTypeId,
+        benefitTypeKey: row.benefitTypeKey,
+        benefitTypeName: row.benefitTypeName,
+        currentBalance: row.currentBalance,
+        totalAmount: row.totalAmount || '0',
+        usedAmount:
+          row.totalAmount && row.currentBalance
+            ? (parseFloat(row.totalAmount) - parseFloat(row.currentBalance)).toFixed(2)
+            : '0',
+        unit: row.unit,
+        requiresApproval: row.requiresApproval,
+      }),
+    );
   }
 
   /**

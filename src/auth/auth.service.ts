@@ -5,6 +5,7 @@ import { SessionsService, SessionData } from './sessions.service';
 import { users, memberships } from '../db/schema';
 import { verifyPassword } from './password.util';
 import { LoginDto } from './dto/login.dto';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 export interface AuthResponse {
   token: string;

@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { tenants } from '../db/schema';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 /**
  * Service for managing organization (tenant) settings
@@ -39,10 +40,10 @@ export class OrganizationService {
     }
 
     return {
-      data: {
+      data: transformKeysToCamel({
         ...organization,
         createdAt: organization.createdAt.toISOString(),
-      },
+      }),
     };
   }
 
@@ -90,10 +91,10 @@ export class OrganizationService {
       });
 
     return {
-      data: {
+      data: transformKeysToCamel({
         ...updatedOrganization,
         createdAt: updatedOrganization.createdAt.toISOString(),
-      },
+      }),
     };
   }
 }

@@ -9,6 +9,7 @@ import { DbService } from '../db/db.service';
 import { timesheets, timeEntries, users, profiles, timesheetPolicies } from '../db/schema';
 import { CreateTimesheetDto } from './dto/create-timesheet.dto';
 import { ReviewTimesheetDto } from './dto/review-timesheet.dto';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 @Injectable()
 export class TimesheetsService {
@@ -120,8 +121,9 @@ export class TimesheetsService {
       };
     });
 
+    // Transform to camelCase for API response
     return {
-      data: enrichedResults,
+      data: enrichedResults.map(transformKeysToCamel),
       total: count,
       page,
       pageSize,
@@ -154,10 +156,11 @@ export class TimesheetsService {
         ),
       );
 
-    return {
+    // Transform to camelCase for API response
+    return transformKeysToCamel({
       ...timesheet,
       timeEntries: entries,
-    };
+    });
   }
 
   /**
@@ -193,7 +196,7 @@ export class TimesheetsService {
       })
       .returning();
 
-    return timesheet;
+    return transformKeysToCamel(timesheet);
   }
 
   /**
@@ -232,7 +235,7 @@ export class TimesheetsService {
       .where(eq(timesheets.id, id))
       .returning();
 
-    return updated;
+    return transformKeysToCamel(updated);
   }
 
   /**
@@ -267,7 +270,7 @@ export class TimesheetsService {
       .where(eq(timesheets.id, id))
       .returning();
 
-    return updated;
+    return transformKeysToCamel(updated);
   }
 
   /**
@@ -306,7 +309,7 @@ export class TimesheetsService {
       .where(eq(timesheets.id, id))
       .returning();
 
-    return updated;
+    return transformKeysToCamel(updated);
   }
 
   /**
@@ -470,7 +473,7 @@ export class TimesheetsService {
       });
     }
 
-    return {
+    const response = {
       valid: errors.length === 0,
       errors,
       warnings,
@@ -482,6 +485,9 @@ export class TimesheetsService {
         status: timesheet.status,
       },
     };
+
+    // Transform to camelCase for API response
+    return transformKeysToCamel(response);
   }
 
   /**
@@ -527,13 +533,16 @@ export class TimesheetsService {
       .where(eq(timesheets.id, timesheetId))
       .returning();
 
-    return {
+    const response = {
       id: updated.id,
       status: updated.status,
       previous_status: previousStatus,
       recalled_at: new Date(),
       recalled_by_user_id: currentUserId,
     };
+
+    // Transform to camelCase for API response
+    return transformKeysToCamel(response);
   }
 
   /**
@@ -570,10 +579,10 @@ export class TimesheetsService {
       .limit(1);
 
     if (existing) {
-      return {
+      return transformKeysToCamel({
         ...existing,
         auto_created: false,
-      };
+      });
     }
 
     // Create new draft timesheet
@@ -587,9 +596,9 @@ export class TimesheetsService {
       })
       .returning();
 
-    return {
+    return transformKeysToCamel({
       ...newTimesheet,
       auto_created: true,
-    };
+    });
   }
 }

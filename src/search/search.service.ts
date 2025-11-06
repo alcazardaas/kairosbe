@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ilike, and, eq } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { projects, tasks } from '../db/schema';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 @Injectable()
 export class SearchService {
@@ -36,7 +37,7 @@ export class SearchService {
       )
       .limit(limit);
 
-    return results;
+    return results.map(transformKeysToCamel);
   }
 
   /**
@@ -66,6 +67,6 @@ export class SearchService {
       .where(and(...conditions))
       .limit(limit);
 
-    return results;
+    return results.map(transformKeysToCamel);
   }
 }

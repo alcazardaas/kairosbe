@@ -12,6 +12,7 @@ import { QueryProjectsDto } from './dto/query-projects.dto';
 import { eq, and, ilike, sql, desc, asc } from 'drizzle-orm';
 import { PaginatedResponse } from '../common/types/pagination.types';
 import { createPaginatedResponse, calculateOffset } from '../common/helpers/pagination.helper';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 @Injectable()
 export class ProjectsService {
@@ -66,7 +67,7 @@ export class ProjectsService {
       .limit(limit)
       .offset(offset);
 
-    return createPaginatedResponse(data, total, page, limit);
+    return createPaginatedResponse(data.map(transformKeysToCamel), total, page, limit);
   }
 
   async findOne(tenantId: string, id: string): Promise<typeof projects.$inferSelect> {
@@ -81,7 +82,7 @@ export class ProjectsService {
       throw new NotFoundException(`Project with ID ${id} not found`);
     }
 
-    return result[0];
+    return transformKeysToCamel(result[0]);
   }
 
   async create(tenantId: string, createProjectDto: CreateProjectDto): Promise<typeof projects.$inferSelect> {
@@ -103,7 +104,7 @@ export class ProjectsService {
         })
         .returning();
 
-      return result[0];
+      return transformKeysToCamel(result[0]);
     } catch (error) {
       // Handle unique constraint violation (tenant_id + name must be unique)
       if (error.code === '23505') {
@@ -145,7 +146,7 @@ export class ProjectsService {
         .where(and(eq(projects.id, id), eq(projects.tenantId, tenantId)))
         .returning();
 
-      return result[0];
+      return transformKeysToCamel(result[0]);
     } catch (error) {
       // Handle unique constraint violation
       if (error.code === '23505') {
@@ -193,7 +194,7 @@ export class ProjectsService {
       .leftJoin(users, eq(projectMembers.userId, users.id))
       .where(and(eq(projectMembers.tenantId, tenantId), eq(projectMembers.projectId, projectId)));
 
-    return members;
+    return members.map(transformKeysToCamel);
   }
 
   /**
@@ -239,7 +240,7 @@ export class ProjectsService {
       })
       .returning();
 
-    return member;
+    return transformKeysToCamel(member);
   }
 
   /**
@@ -342,7 +343,7 @@ export class ProjectsService {
       }
     }
 
-    return results;
+    return transformKeysToCamel(results);
   }
 
   /**
@@ -366,6 +367,6 @@ export class ProjectsService {
       .where(and(eq(projectMembers.tenantId, tenantId), eq(projectMembers.userId, userId)))
       .orderBy(desc(projects.name));
 
-    return myProjects;
+    return myProjects.map(transformKeysToCamel);
   }
 }
