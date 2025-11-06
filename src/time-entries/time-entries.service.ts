@@ -15,6 +15,7 @@ import { CopyWeekDto } from './dto/copy-week.dto';
 import { eq, and, sql, desc, asc, isNull, gte, lte } from 'drizzle-orm';
 import { PaginatedResponse } from '../common/types/pagination.types';
 import { createPaginatedResponse, calculateOffset } from '../common/helpers/pagination.helper';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 @Injectable()
 export class TimeEntriesService {
@@ -109,7 +110,9 @@ export class TimeEntriesService {
       .limit(limit)
       .offset(offset);
 
-    return createPaginatedResponse(data, total, page, limit);
+    // Transform to camelCase for API response
+    const transformedData = data.map(transformKeysToCamel);
+    return createPaginatedResponse(transformedData, total, page, limit);
   }
 
   async findOne(id: string): Promise<typeof timeEntries.$inferSelect> {
@@ -120,7 +123,7 @@ export class TimeEntriesService {
       throw new NotFoundException(`Time entry with ID ${id} not found`);
     }
 
-    return result[0];
+    return transformKeysToCamel(result[0]);
   }
 
   async create(createTimeEntryDto: CreateTimeEntryDto): Promise<typeof timeEntries.$inferSelect> {
@@ -161,7 +164,7 @@ export class TimeEntriesService {
         })
         .returning();
 
-      return result[0];
+      return transformKeysToCamel(result[0]);
     } catch (error) {
       // Handle unique constraint violation
       if (error.code === '23505') {
@@ -230,7 +233,7 @@ export class TimeEntriesService {
         .where(eq(timeEntries.id, id))
         .returning();
 
-      return result[0];
+      return transformKeysToCamel(result[0]);
     } catch (error) {
       // Handle check constraint violations
       if (error.code === '23514') {
@@ -572,7 +575,7 @@ export class TimeEntriesService {
       totalHours: Math.round(info.hours * 100) / 100,
     }));
 
-    return {
+    const response = {
       week_start_date: weekStartDate,
       week_end_date: weekEnd.toISOString().split('T')[0],
       user_id: userId,
@@ -583,6 +586,9 @@ export class TimeEntriesService {
       projectBreakdown,
       timesheet: timesheet,
     };
+
+    // Transform all keys to camelCase for API response
+    return transformKeysToCamel(response);
   }
 
   /**
@@ -669,9 +675,10 @@ export class TimeEntriesService {
       }
     }
 
-    return {
-      created,
-      updated,
+    // Transform all entries to camelCase
+    const response = {
+      created: created.map(transformKeysToCamel),
+      updated: updated.map(transformKeysToCamel),
       errors,
       summary: {
         createdCount: created.length,
@@ -680,6 +687,8 @@ export class TimeEntriesService {
         totalRequested: bulkDto.entries.length,
       },
     };
+
+    return response;
   }
 
   /**
@@ -787,7 +796,7 @@ export class TimeEntriesService {
       copiedCount: copiedEntries.length - overwrittenCount,
       skippedCount: skipped.length,
       overwrittenCount: overwrittenCount,
-      entries: copiedEntries,
+      entries: copiedEntries.map(transformKeysToCamel),
       skipped,
     };
   }

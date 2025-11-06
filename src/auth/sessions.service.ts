@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import { eq, and, gt, lt } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { sessions } from '../db/schema';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 export interface CreateSessionInput {
   userId: string;
@@ -61,7 +62,7 @@ export class SessionsService {
       })
       .returning();
 
-    return session as SessionData;
+    return transformKeysToCamel(session) as SessionData;
   }
 
   /**
@@ -74,7 +75,7 @@ export class SessionsService {
       .where(and(eq(sessions.token, token), gt(sessions.expiresAt, new Date())))
       .limit(1);
 
-    return session ? (session as SessionData) : null;
+    return session ? (transformKeysToCamel(session) as SessionData) : null;
   }
 
   /**
@@ -89,7 +90,7 @@ export class SessionsService {
       )
       .limit(1);
 
-    return session ? (session as SessionData) : null;
+    return session ? (transformKeysToCamel(session) as SessionData) : null;
   }
 
   /**
@@ -120,7 +121,7 @@ export class SessionsService {
       .where(eq(sessions.id, session.id))
       .returning();
 
-    return updated as SessionData;
+    return transformKeysToCamel(updated) as SessionData;
   }
 
   /**

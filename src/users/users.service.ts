@@ -13,6 +13,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { eq, and, ilike, sql, desc, asc, or } from 'drizzle-orm';
 import { PaginatedResponse } from '../common/types/pagination.types';
 import { createPaginatedResponse, calculateOffset } from '../common/helpers/pagination.helper';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 import { randomBytes } from 'crypto';
 
 @Injectable()
@@ -112,7 +113,7 @@ export class UsersService {
       .limit(limit)
       .offset(offset);
 
-    return createPaginatedResponse(data, total, page, limit);
+    return createPaginatedResponse(data.map(transformKeysToCamel), total, page, limit);
   }
 
   /**
@@ -263,7 +264,7 @@ export class UsersService {
       throw new NotFoundException('User not found in this tenant');
     }
 
-    return { data: result };
+    return { data: transformKeysToCamel(result) };
   }
 
   /**

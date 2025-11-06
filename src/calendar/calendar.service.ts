@@ -2,6 +2,7 @@ import { Injectable, ForbiddenException } from '@nestjs/common';
 import { and, eq, gte, lte, or, sql } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { holidays, benefitRequests, timesheets, users, profiles, benefitTypes } from '../db/schema';
+import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 export interface CalendarItem {
   type: 'holiday' | 'leave' | 'timesheet_period';
