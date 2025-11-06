@@ -68,6 +68,19 @@ export class LeaveRequestDto {
   userId: string;
 
   @ApiProperty({
+    description: 'User name',
+    example: 'John Doe',
+    nullable: true,
+  })
+  userName: string | null;
+
+  @ApiProperty({
+    description: 'User email',
+    example: 'john.doe@company.com',
+  })
+  userEmail: string;
+
+  @ApiProperty({
     description: 'Benefit type ID',
     example: '123e4567-e89b-12d3-a456-426614174030',
   })
