@@ -31,6 +31,7 @@ import {
 } from './dto/benefit-type-response.dto';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ErrorResponseDto } from '../common/dto/response.dto';
+import { CurrentTenantId } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('Benefit Types')
 @ApiSecurity('session')
@@ -57,9 +58,10 @@ export class BenefitTypesController {
     type: ErrorResponseDto,
   })
   async findAll(
+    @CurrentTenantId() tenantId: string,
     @Query(new ZodValidationPipe(queryBenefitTypesSchema)) query: QueryBenefitTypesDto,
   ) {
-    return this.benefitTypesService.findAll(query);
+    return this.benefitTypesService.findAll(tenantId, query);
   }
 
   @Get(':id')
@@ -79,8 +81,11 @@ export class BenefitTypesController {
     description: 'Invalid or expired session token',
     type: ErrorResponseDto,
   })
-  async findOne(@Param('id') id: string) {
-    return this.benefitTypesService.findOne(id);
+  async findOne(
+    @CurrentTenantId() tenantId: string,
+    @Param('id') id: string,
+  ) {
+    return this.benefitTypesService.findOne(tenantId, id);
   }
 
   @Post()
@@ -101,10 +106,11 @@ export class BenefitTypesController {
     type: ErrorResponseDto,
   })
   async create(
+    @CurrentTenantId() tenantId: string,
     @Body(new ZodValidationPipe(createBenefitTypeSchema))
     createBenefitTypeDto: CreateBenefitTypeDto,
   ) {
-    return this.benefitTypesService.create(createBenefitTypeDto);
+    return this.benefitTypesService.create(tenantId, createBenefitTypeDto);
   }
 
   @Patch(':id')
@@ -129,11 +135,12 @@ export class BenefitTypesController {
     type: ErrorResponseDto,
   })
   async update(
+    @CurrentTenantId() tenantId: string,
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateBenefitTypeSchema))
     updateBenefitTypeDto: UpdateBenefitTypeDto,
   ) {
-    return this.benefitTypesService.update(id, updateBenefitTypeDto);
+    return this.benefitTypesService.update(tenantId, id, updateBenefitTypeDto);
   }
 
   @Delete(':id')
@@ -153,7 +160,10 @@ export class BenefitTypesController {
     description: 'Invalid or expired session token',
     type: ErrorResponseDto,
   })
-  async remove(@Param('id') id: string) {
-    return this.benefitTypesService.remove(id);
+  async remove(
+    @CurrentTenantId() tenantId: string,
+    @Param('id') id: string,
+  ) {
+    return this.benefitTypesService.remove(tenantId, id);
   }
 }

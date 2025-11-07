@@ -14,17 +14,15 @@ export class BenefitTypesService {
   constructor(private readonly dbService: DbService) {}
 
   async findAll(
+    tenantId: string,
     query: QueryBenefitTypesDto,
   ): Promise<PaginatedResponse<any>> {
     const db = this.dbService.getDb();
-    const { page, limit, sort, tenantId, unit, requiresApproval, search } = query;
+    const { page, limit, sort, unit, requiresApproval, search } = query;
     const offset = calculateOffset(page, limit);
 
-    // Build where conditions
-    const conditions = [];
-    if (tenantId) {
-      conditions.push(eq(benefitTypes.tenantId, tenantId));
-    }
+    // Build where conditions - always filter by tenant
+    const conditions = [eq(benefitTypes.tenantId, tenantId)];
     if (unit) {
       conditions.push(eq(benefitTypes.unit, unit));
     }
@@ -75,9 +73,13 @@ export class BenefitTypesService {
     return createPaginatedResponse(transformedData, total, page, limit);
   }
 
-  async findOne(id: string): Promise<any> {
+  async findOne(tenantId: string, id: string): Promise<any> {
     const db = this.dbService.getDb();
-    const result = await db.select().from(benefitTypes).where(eq(benefitTypes.id, id)).limit(1);
+    const result = await db
+      .select()
+      .from(benefitTypes)
+      .where(and(eq(benefitTypes.tenantId, tenantId), eq(benefitTypes.id, id)))
+      .limit(1);
 
     if (!result.length) {
       throw new NotFoundException(`Benefit type with ID ${id} not found`);
@@ -86,16 +88,14 @@ export class BenefitTypesService {
     return transformKeysToCamel(result[0]);
   }
 
-  async create(
-    createBenefitTypeDto: CreateBenefitTypeDto,
-  ): Promise<any> {
+  async create(tenantId: string, createBenefitTypeDto: CreateBenefitTypeDto): Promise<any> {
     const db = this.dbService.getDb();
 
     try {
       const result = await db
         .insert(benefitTypes)
         .values({
-          tenantId: createBenefitTypeDto.tenantId,
+          tenantId: tenantId,
           key: createBenefitTypeDto.key,
           name: createBenefitTypeDto.name,
           unit: createBenefitTypeDto.unit,
@@ -116,13 +116,14 @@ export class BenefitTypesService {
   }
 
   async update(
+    tenantId: string,
     id: string,
     updateBenefitTypeDto: UpdateBenefitTypeDto,
   ): Promise<any> {
     const db = this.dbService.getDb();
 
-    // Check if benefit type exists
-    await this.findOne(id);
+    // Check if benefit type exists and belongs to tenant
+    await this.findOne(tenantId, id);
 
     const result = await db
       .update(benefitTypes)
@@ -133,18 +134,20 @@ export class BenefitTypesService {
           requiresApproval: updateBenefitTypeDto.requiresApproval,
         }),
       })
-      .where(eq(benefitTypes.id, id))
+      .where(and(eq(benefitTypes.tenantId, tenantId), eq(benefitTypes.id, id)))
       .returning();
 
     return transformKeysToCamel(result[0]);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(tenantId: string, id: string): Promise<void> {
     const db = this.dbService.getDb();
 
-    // Check if benefit type exists
-    await this.findOne(id);
+    // Check if benefit type exists and belongs to tenant
+    await this.findOne(tenantId, id);
 
-    await db.delete(benefitTypes).where(eq(benefitTypes.id, id));
+    await db
+      .delete(benefitTypes)
+      .where(and(eq(benefitTypes.tenantId, tenantId), eq(benefitTypes.id, id)));
   }
 }

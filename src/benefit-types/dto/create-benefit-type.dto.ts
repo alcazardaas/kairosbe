@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 export const createBenefitTypeSchema = z.object({
-  tenantId: z.string().uuid('Invalid tenantId format'),
   key: z
     .string()
     .min(1, 'Key is required')
