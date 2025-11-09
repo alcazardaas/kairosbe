@@ -158,6 +158,9 @@ kairosbe/
       schema/                    # Schema definitions
       seed-*.ts                  # Seed scripts
     common/                      # Shared utilities, pipes
+      audit/                     # Audit logging service
+      config/                    # Configuration (multer, etc.)
+      helpers/                   # Transformation helpers
     auth/                        # Authentication & sessions
     timesheets/                  # Timesheet lifecycle
     time-entries/                # Time entry CRUD + stats
@@ -169,6 +172,7 @@ kairosbe/
     holidays/                    # Holiday calendar
     timesheet-policies/          # Timesheet policy config
     users/                       # User management (admin)
+      services/                  # User import service
     organization/                # Organization settings
     calendar/                    # Unified calendar feed
     search/                      # Search helpers
@@ -178,6 +182,8 @@ kairosbe/
     FRONTEND_API_REFERENCE.md    # Frontend integration guide
     DASHBOARD_API_SPEC.md        # Dashboard endpoints
     MANAGER_TEAM_VIEWS.md        # Manager features
+    BULK_USER_IMPORT_SPEC.md     # Bulk import specification
+    FRONTEND_BULK_IMPORT_GUIDE.md # Frontend bulk import guide
     API_*.md                     # Feature-specific docs
   postman/                       # Postman collections
   referenceDBTABLES/             # Database schema source
@@ -482,6 +488,8 @@ Add endpoint:
 #### Additional Features ✅
 - GET `/users` - User management (admin/manager)
 - POST `/users` - Create/invite user
+- **POST `/users/import`** - Bulk import users from CSV/Excel with dry-run (admin-only)
+- **GET `/users/import/template`** - Download CSV/Excel import template (admin-only)
 - PATCH `/users/:id` - Update user
 - DELETE `/users/:id` - Deactivate user
 - GET `/organization` - Organization settings (admin)

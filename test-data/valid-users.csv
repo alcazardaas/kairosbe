@@ -1,0 +1,11 @@
+email,name,role,jobTitle,startDate,managerEmail,location,phone
+alice.admin@example.com,Alice Admin,admin,Chief Technology Officer,2025-01-01,,Remote,+1-555-0001
+bob.manager@example.com,Bob Manager,manager,Engineering Manager,2025-01-05,alice.admin@example.com,San Francisco,+1-555-0002
+charlie.dev@example.com,Charlie Developer,employee,Senior Software Engineer,2025-01-10,bob.manager@example.com,San Francisco,+1-555-0003
+diana.dev@example.com,Diana Developer,employee,Software Engineer,2025-01-15,bob.manager@example.com,New York,+1-555-0004
+edward.qa@example.com,Edward QA,employee,QA Engineer,2025-01-20,bob.manager@example.com,New York,+1-555-0005
+fiona.designer@example.com,Fiona Designer,employee,UI/UX Designer,2025-01-25,bob.manager@example.com,Remote,+1-555-0006
+george.devops@example.com,George DevOps,employee,DevOps Engineer,2025-02-01,bob.manager@example.com,San Francisco,+1-555-0007
+helen.pm@example.com,Helen PM,manager,Product Manager,2025-02-05,alice.admin@example.com,New York,+1-555-0008
+ivan.analyst@example.com,Ivan Analyst,employee,Business Analyst,2025-02-10,helen.pm@example.com,New York,+1-555-0009
+julia.support@example.com,Julia Support,employee,Customer Support Specialist,2025-02-15,helen.pm@example.com,Remote,+1-555-0010

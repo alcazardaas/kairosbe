@@ -11,6 +11,10 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  Res,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,8 +29,14 @@ import {
   ApiConflictResponse,
   ApiSecurity,
   ApiQuery,
+  ApiConsumes,
+  ApiBody,
+  ApiResponse,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import { UsersService } from './users.service';
+import { UserImportService } from './services/user-import.service';
 import { QueryUsersDto, queryUsersSchema } from './dto/query-users.dto';
 import { CreateUserDto, createUserSchema } from './dto/create-user.dto';
 import { UpdateUserDto, updateUserSchema } from './dto/update-user.dto';
@@ -36,6 +46,13 @@ import {
   CreateUserRequestDto,
   UpdateUserRequestDto,
 } from './dto/user-response.dto';
+import {
+  ImportResultDto,
+  importRequestQuerySchema,
+  templateRequestQuerySchema,
+  ImportRequestQueryDto,
+  TemplateRequestQueryDto,
+} from './dto/import-user.dto';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   CurrentTenantId,
@@ -45,13 +62,17 @@ import {
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ErrorResponseDto } from '../common/dto/response.dto';
+import { multerConfig } from '../common/config/multer.config';
 
 @ApiTags('Users')
 @ApiSecurity('session')
 @Controller('users')
 @UseGuards(RolesGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly userImportService: UserImportService,
+  ) {}
 
   @Get()
   @Roles('admin', 'manager')
@@ -266,5 +287,118 @@ export class UsersController {
     @CurrentSession() session: any,
   ) {
     await this.usersService.reactivate(tenantId, userId, session.userId);
+  }
+
+  @Post('import')
+  @Roles('admin')
+  @UseInterceptors(FileInterceptor('file', multerConfig))
+  @ApiOperation({
+    summary: 'Bulk import users from CSV or Excel file',
+    description:
+      'Upload a CSV or Excel file to create multiple users at once. Supports dry-run mode for validation. Admin-only.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'CSV or Excel file (.csv, .xlsx) containing user data',
+        },
+      },
+      required: ['file'],
+    },
+  })
+  @ApiQuery({
+    name: 'dryRun',
+    required: false,
+    type: Boolean,
+    description: 'If true, validate only without creating users (default: false)',
+    example: false,
+  })
+  @ApiOkResponse({
+    description: 'Import result with validation errors or created users',
+    type: ImportResultDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid file type, size, or validation errors',
+    type: ErrorResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
+  @ApiForbiddenResponse({
+    description: 'Admin role required',
+    type: ErrorResponseDto,
+  })
+  async importUsers(
+    @CurrentTenantId() tenantId: string,
+    @CurrentSession() session: any,
+    @UploadedFile() file: Express.Multer.File,
+    @Query(new ZodValidationPipe(importRequestQuerySchema))
+    query: ImportRequestQueryDto,
+  ): Promise<ImportResultDto> {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    return this.userImportService.importUsers(file, tenantId, session.userId, query.dryRun);
+  }
+
+  @Get('import/template')
+  @Roles('admin')
+  @ApiOperation({
+    summary: 'Download user import template',
+    description:
+      'Download a sample CSV or Excel template file with example data. Admin-only.',
+  })
+  @ApiQuery({
+    name: 'format',
+    required: false,
+    enum: ['csv', 'xlsx'],
+    description: 'Template format (default: csv)',
+    example: 'csv',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Template file download',
+    content: {
+      'text/csv': {
+        schema: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
+        schema: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid or expired session token',
+    type: ErrorResponseDto,
+  })
+  @ApiForbiddenResponse({
+    description: 'Admin role required',
+    type: ErrorResponseDto,
+  })
+  async downloadTemplate(
+    @Query(new ZodValidationPipe(templateRequestQuerySchema))
+    query: TemplateRequestQueryDto,
+    @Res() res: Response,
+  ): Promise<void> {
+    const { buffer, filename, mimetype } = this.userImportService.generateTemplate(
+      query.format,
+    );
+
+    res.setHeader('Content-Type', mimetype);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(buffer);
   }
 }
