@@ -1,0 +1,558 @@
+SPDX-License-Identifier: LicenseRef-Kairos-Proprietary
+
+================================================================================
+                         KAIROS PROPRIETARY LICENSE
+================================================================================
+
+Copyright © 2025 Dylan Alcázar. All rights reserved.
+
+PERMISSIONS SUMMARY:
+All rights reserved. This license grants only a limited, revocable,
+non-transferable, non-sublicensable, non-exclusive license as expressly set
+forth below. No other rights are granted, whether by implication, estoppel,
+exhaustion, or otherwise.
+
+
+1. DEFINITIONS
+
+1.1 "Software" means the Kairos software application, including but not limited
+to source code, object code, binaries, APIs, databases, schemas, scripts,
+configuration files, documentation, user interfaces, visual designs, algorithms,
+data models, and any updates or modifications thereto.
+
+1.2 "Confidential Information" means the Software, any non-public technical
+data, specifications, architecture documents, API keys, security credentials,
+deployment procedures, business logic, and any other proprietary information
+disclosed by Licensor.
+
+1.3 "Licensor" means Dylan Alcázar, the sole copyright holder and owner of all
+intellectual property rights in the Software.
+
+1.4 "Licensee" or "You" means the individual or legal entity that has been
+granted express written authorization by Licensor to access or use the Software
+under the terms of this License.
+
+1.5 "Authorized User" means an employee, contractor, or agent of Licensee who
+has been specifically authorized in writing by Licensor to access the Software
+for the Permitted Use.
+
+1.6 "Permitted Use" means the specific, limited use case expressly described in
+a separate written agreement between Licensor and Licensee, such as internal
+evaluation, development collaboration, or authorized deployment.
+
+
+2. GRANT OF LICENSE
+
+2.1 Conditional Grant. Subject to strict compliance with all terms of this
+License and any separate written agreement, Licensor grants Licensee a limited,
+revocable, non-exclusive, non-transferable, non-sublicensable license to permit
+Authorized Users to access and use the Software solely for the Permitted Use.
+
+2.2 Revocability. This license may be revoked by Licensor at any time, with or
+without cause, upon written notice to Licensee. Revocation is automatic and
+immediate upon any breach of this License.
+
+2.3 No Implied Rights. No rights are granted except as expressly stated herein.
+All rights not expressly granted are reserved by Licensor.
+
+
+3. RESTRICTIONS AND PROHIBITED USES
+
+You shall NOT, and shall ensure that Authorized Users do NOT:
+
+3.1 Copying & Distribution
+    • Copy, reproduce, duplicate, or archive the Software or any portion
+      thereof, except for a single backup copy for disaster recovery purposes
+      only if expressly permitted in writing;
+    • Distribute, publish, disseminate, transmit, share, sell, lease, lend,
+      rent, or otherwise transfer the Software to any third party;
+    • Make the Software available over a network, cloud platform, or via any
+      service bureau arrangement;
+    • Sublicense, assign, or transfer this License or any rights granted herein.
+
+3.2 Modification & Derivative Works
+    • Modify, adapt, translate, port, merge, or create derivative works based
+      on the Software;
+    • Decompile, disassemble, reverse engineer, or attempt to extract,
+      reconstruct, or discover the source code, underlying algorithms, data
+      structures, or internal architecture of the Software, except and solely
+      to the limited extent that such restriction is expressly prohibited by
+      applicable non-waivable law (e.g., EU Software Directive Article 6
+      interoperability/debugging exceptions);
+    • Any reverse engineering permitted by non-waivable law must be preceded by
+      30 days' prior written notice to Licensor describing the purpose, scope,
+      and legal basis, and must be strictly limited to the minimum extent
+      necessary for the lawful purpose.
+
+3.3 Commercial & Competitive Use
+    • Use the Software to provide commercial services, software-as-a-service
+      (SaaS), platform-as-a-service (PaaS), or any hosted or managed services
+      to third parties;
+    • Monetize, resell, or commercialize the Software or any component thereof;
+    • Use the Software to develop, enhance, support, or operate a product or
+      service that competes with Kairos or that directly substitutes for the
+      Software's functionality (this restriction applies during the term of
+      this License and for 12 months following the last lawful access to the
+      Software, and is narrowly tailored to prevent direct competitive harm);
+    • Use the Software in any manner that could damage, disparage, or harm the
+      reputation or business interests of Licensor.
+
+3.4 AI/ML Training & Data Mining
+    • Use the Software, source code, documentation, or any content, data, or
+      outputs produced by the Software to train, fine-tune, evaluate, or
+      improve any artificial intelligence, machine learning, neural network,
+      large language model, or other algorithmic system;
+    • Extract, mine, scrape, or aggregate data from the Software for use in
+      machine learning pipelines, model training datasets, or similar purposes.
+
+3.5 Benchmarking & Security
+    • Conduct or publish performance benchmarks, comparative analyses, security
+      assessments, or penetration testing results relating to the Software
+      without prior written consent from Licensor;
+    • Remove, obscure, alter, or tamper with any copyright notices, license
+      text, watermarks, attribution statements, security controls, access
+      restrictions, or technical protection measures embedded in the Software;
+    • Circumvent, bypass, disable, or interfere with any security features,
+      authentication mechanisms, licensing controls, or usage monitoring
+      systems.
+
+3.6 Public Disclosure
+    • Publicly display, demonstrate, frame, embed, or link to the Software or
+      any portion thereof without express written authorization;
+    • Disclose, publish, or share API endpoints, credentials, security keys,
+      technical architecture details, or other non-public information.
+
+
+4. CONFIDENTIALITY
+
+4.1 Confidential Treatment. Licensee acknowledges that the Software and all
+Confidential Information constitute valuable trade secrets and proprietary
+information of Licensor. Licensee shall:
+    • Treat all Confidential Information with the same degree of care used to
+      protect its own confidential information of similar importance, but in no
+      event less than reasonable care;
+    • Restrict access to Confidential Information solely to Authorized Users who
+      have a legitimate need to know and who are bound by confidentiality
+      obligations at least as protective as those herein;
+    • Not disclose Confidential Information to any third party without prior
+      written consent from Licensor.
+
+4.2 Exceptions. Confidentiality obligations do not apply to information that:
+(a) is or becomes publicly available through no breach by Licensee; (b) was
+rightfully known to Licensee prior to disclosure; (c) is independently
+developed by Licensee without reference to Confidential Information; or (d) must
+be disclosed pursuant to law or court order, provided Licensee gives prompt
+notice to Licensor and cooperates in seeking protective measures.
+
+4.3 Data Protection. This License does not authorize or require the transfer of
+personal data to Licensor. If any personal data processing is required, the
+parties shall execute a separate Data Processing Agreement (DPA) in compliance
+with applicable data protection laws (GDPR, etc.).
+
+
+5. THIRD-PARTY COMPONENTS & OPEN SOURCE
+
+5.1 Third-Party Software. The Software may incorporate or depend upon
+third-party libraries, frameworks, and components that are subject to their own
+license terms ("Third-Party Components"). Such Third-Party Components are
+identified in the THIRD-PARTY-NOTICES.md file or other accompanying attribution
+documentation.
+
+5.2 Compliance Obligation. Licensee is solely responsible for complying with
+all applicable third-party license terms, including but not limited to
+attribution, notice, and copyleft requirements. Licensee shall include all
+required third-party notices in any permitted distribution or deployment.
+
+5.3 No Additional Rights. Nothing in this License grants Licensee any rights to
+Third-Party Components beyond what is expressly permitted by their respective
+licenses. Licensor makes no representations or warranties regarding third-party
+licenses or the compatibility of the Software with such licenses.
+
+
+6. TRADEMARKS AND BRANDING
+
+6.1 No Trademark Rights. This License does not grant any rights to use the
+trade names, trademarks, service marks, logos, domain names, or other brand
+features of Licensor or the "Kairos" brand (collectively, "Marks").
+
+6.2 No Endorsement. Licensee shall not represent or imply any affiliation with,
+sponsorship by, or endorsement from Licensor without express written permission.
+
+6.3 Goodwill. Any goodwill arising from authorized use of Marks shall inure
+solely to the benefit of Licensor.
+
+
+7. UPDATES, SUPPORT, AND MAINTENANCE
+
+7.1 No Obligation. Licensor has no obligation under this License to provide
+updates, bug fixes, patches, security updates, technical support, maintenance,
+training, or service level guarantees.
+
+7.2 Separate Agreements. Updates, support, and service level agreements (SLAs)
+require execution of a separate Master Service Agreement (MSA), Support
+Agreement, or other written contract.
+
+7.3 Update Application. If updates are provided, they are subject to this
+License unless accompanied by a different license agreement.
+
+
+8. TERM AND TERMINATION
+
+8.1 Term. This License is effective upon Licensee's first access to the
+Software and continues until terminated.
+
+8.2 Termination for Breach. This License terminates automatically and
+immediately, without notice, upon any breach of its terms by Licensee or any
+Authorized User.
+
+8.3 Termination for Convenience. Licensor may terminate this License at any
+time, for any reason or no reason, upon written notice to Licensee.
+
+8.4 Effect of Termination. Upon termination:
+    • All rights granted herein immediately cease;
+    • Licensee shall immediately cease all use of the Software;
+    • Licensee shall destroy or return all copies of the Software and
+      Confidential Information within 5 business days and certify such
+      destruction/return in writing;
+    • Provisions that by their nature should survive (Sections 3, 4, 9, 10, 11,
+      12, 13, 14, 15, 16, and 17) shall survive termination.
+
+
+9. INTELLECTUAL PROPERTY OWNERSHIP
+
+9.1 Reservation of Rights. Licensor retains all right, title, and interest in
+and to the Software, including all intellectual property rights (copyrights,
+patents, trade secrets, trademarks, moral rights, and any other proprietary
+rights), whether registered or unregistered, worldwide. Licensee acquires no
+ownership rights whatsoever.
+
+9.2 Feedback. If Licensee provides any suggestions, ideas, enhancement
+requests, bug reports, or other feedback concerning the Software ("Feedback"),
+Licensee hereby assigns and agrees to assign all rights in such Feedback to
+Licensor. Licensor may use, disclose, and exploit Feedback without restriction,
+obligation, or compensation to Licensee.
+
+
+10. WARRANTY DISCLAIMER
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS
+IS" AND "AS AVAILABLE," WITH ALL FAULTS AND WITHOUT WARRANTY OF ANY KIND.
+LICENSOR EXPRESSLY DISCLAIMS ALL WARRANTIES, WHETHER EXPRESS, IMPLIED,
+STATUTORY, OR OTHERWISE, INCLUDING BUT NOT LIMITED TO:
+  • IMPLIED WARRANTIES OF MERCHANTABILITY, SATISFACTORY QUALITY, FITNESS FOR A
+    PARTICULAR PURPOSE, AND NON-INFRINGEMENT;
+  • WARRANTIES THAT THE SOFTWARE WILL BE ERROR-FREE, UNINTERRUPTED, SECURE, OR
+    FREE FROM VIRUSES OR OTHER HARMFUL COMPONENTS;
+  • WARRANTIES REGARDING THE ACCURACY, RELIABILITY, COMPLETENESS, OR TIMELINESS
+    OF DATA, CONTENT, OR RESULTS;
+  • WARRANTIES ARISING FROM COURSE OF DEALING, COURSE OF PERFORMANCE, OR TRADE
+    USAGE.
+
+LICENSEE ASSUMES ALL RISK ASSOCIATED WITH THE USE, PERFORMANCE, AND RESULTS OF
+THE SOFTWARE. NO ORAL OR WRITTEN INFORMATION OR ADVICE GIVEN BY LICENSOR OR ITS
+REPRESENTATIVES SHALL CREATE ANY WARRANTY.
+
+
+11. LIMITATION OF LIABILITY
+
+11.1 Liability Cap. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW,
+LICENSOR'S TOTAL AGGREGATE LIABILITY ARISING OUT OF OR RELATING TO THIS LICENSE
+OR THE SOFTWARE, WHETHER IN CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT
+LIABILITY, OR ANY OTHER LEGAL THEORY, SHALL NOT EXCEED THE GREATER OF:
+  (a) THE TOTAL AMOUNT PAID BY LICENSEE TO LICENSOR FOR THE LICENSE TO USE THE
+      SOFTWARE IN THE 12 MONTHS PRECEDING THE EVENT GIVING RISE TO LIABILITY; OR
+  (b) ONE HUNDRED EUROS (EUR 100.00).
+
+11.2 Exclusion of Consequential Damages. TO THE MAXIMUM EXTENT PERMITTED BY
+APPLICABLE LAW, IN NO EVENT SHALL LICENSOR BE LIABLE FOR:
+  • LOSS OF PROFITS, REVENUE, BUSINESS, DATA, OR ANTICIPATED SAVINGS;
+  • LOSS OF USE, GOODWILL, OR REPUTATION;
+  • COST OF PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  • INDIRECT, INCIDENTAL, CONSEQUENTIAL, SPECIAL, EXEMPLARY, OR PUNITIVE
+    DAMAGES;
+EVEN IF LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+11.3 Exceptions. The limitations in Sections 11.1 and 11.2 do not apply to:
+  • Liability for willful misconduct or gross negligence by Licensor;
+  • Liability that cannot be excluded or limited under applicable law (e.g.,
+    personal injury, fraud, fraudulent misrepresentation);
+  • Licensee's indemnification obligations (if any under a separate agreement).
+
+11.4 Basis of the Bargain. The parties acknowledge that the limitations in this
+Section 11 are fundamental elements of the basis of the bargain and that
+Licensor would not provide the Software without such limitations.
+
+
+12. COMPLIANCE, AUDIT, AND REMEDIES
+
+12.1 Record Keeping. Licensee shall maintain accurate records of all access to
+and use of the Software by Authorized Users, including user identities, access
+logs, and deployment configurations.
+
+12.2 Audit Rights. Upon 15 days' prior written notice, Licensor (or its
+appointed auditor bound by confidentiality obligations) may audit Licensee's
+use of the Software to verify compliance with this License. Audits shall:
+  • Be conducted during normal business hours at Licensee's facilities or via
+    remote access;
+  • Occur no more than once per calendar year unless a prior audit revealed a
+    material breach;
+  • Be performed in a manner that minimizes disruption to Licensee's business
+    operations.
+
+12.3 Cooperation. Licensee shall provide reasonable cooperation and access to
+relevant personnel, systems, and records to facilitate the audit.
+
+12.4 Non-Compliance Fees. If an audit reveals any breach or non-compliance,
+Licensee shall:
+  • Immediately cease the non-compliant use;
+  • Pay all underpayment amounts (if applicable), plus interest at 1.5% per
+    month or the maximum rate permitted by law, whichever is less;
+  • Reimburse Licensor's reasonable audit costs if non-compliance exceeds 5% of
+    authorized use.
+
+12.5 Equitable Relief. Licensee acknowledges that breach of this License may
+cause irreparable harm for which monetary damages are an inadequate remedy.
+Licensor is entitled to seek injunctive relief, specific performance, or other
+equitable remedies without the need to post bond, in addition to all other
+remedies available at law or in equity.
+
+
+13. EXPORT CONTROL, SANCTIONS, AND ANTI-CORRUPTION
+
+13.1 Export Compliance. Licensee represents and warrants that it will comply
+with all applicable export control laws and regulations, including but not
+limited to those of the European Union, Portugal, and the United States,
+including the Export Administration Regulations (EAR) and International Traffic
+in Arms Regulations (ITAR), where applicable.
+
+13.2 Prohibited Destinations & Parties. Licensee shall not export, re-export,
+transfer, or make the Software available, directly or indirectly, to:
+  • Any country, region, or territory subject to comprehensive sanctions or
+    embargoes;
+  • Any person or entity listed on government restricted party lists (e.g., EU
+    Consolidated List, U.S. SDN List, Entity List);
+  • Any end-user engaged in activities related to weapons of mass destruction,
+    terrorism, or human rights abuses.
+
+13.3 Anti-Corruption. Licensee represents and warrants that it has not and will
+not, in connection with this License, directly or indirectly offer, promise,
+give, or authorize any payment or thing of value to any government official or
+other person for the purpose of improperly influencing any act or decision or
+securing any improper advantage, in violation of anti-corruption laws such as
+the U.S. Foreign Corrupt Practices Act (FCPA) or similar laws.
+
+
+14. GOVERNING LAW AND DISPUTE RESOLUTION
+
+14.1 Governing Law. This License shall be governed by and construed in
+accordance with the laws of Portugal, without regard to its conflict of laws
+principles.
+
+14.2 Exclusive Jurisdiction. The parties irrevocably submit to the exclusive
+jurisdiction of the courts located in Lisbon, Portugal, for any disputes arising
+out of or relating to this License. Each party irrevocably waives any objection
+to venue or inconvenient forum.
+
+14.3 Alternative: Arbitration. [OPTIONAL – If arbitration is preferred, this
+clause may be activated by mutual written agreement] Any dispute arising out of
+or relating to this License that cannot be resolved through good-faith
+negotiation shall be finally resolved by binding arbitration administered by the
+International Chamber of Commerce (ICC) in accordance with its Arbitration
+Rules. The seat of arbitration shall be Lisbon, Portugal. The arbitration shall
+be conducted by one (1) arbitrator mutually agreed upon by the parties, or
+failing agreement within 30 days, appointed by the ICC. The language of the
+arbitration shall be English. The arbitrator's award shall be final and binding
+and may be entered as a judgment in any court of competent jurisdiction.
+
+
+15. ENTIRE AGREEMENT AND AMENDMENTS
+
+15.1 Entire Agreement. This License, together with any separate written
+agreement expressly executed by both parties (e.g., Master Service Agreement,
+Order Form, Statement of Work), constitutes the entire agreement between the
+parties regarding the subject matter hereof and supersedes all prior or
+contemporaneous understandings, representations, and agreements, whether oral or
+written.
+
+15.2 Order of Precedence. In the event of any conflict between this License and
+a mutually executed Order Form or MSA, the following order of precedence shall
+apply: (1) Mutually executed Order Form or MSA; (2) This License; (3) Purchase
+orders or similar documents (which are deemed rejected unless expressly accepted
+in writing by Licensor).
+
+15.3 Amendments. No amendment, modification, or waiver of any provision of this
+License shall be effective unless in writing and signed by an authorized
+representative of Licensor. Any waiver of a breach shall not constitute a waiver
+of any other or subsequent breach.
+
+15.4 Severability. If any provision of this License is held by a court of
+competent jurisdiction to be invalid, illegal, or unenforceable, the remaining
+provisions shall remain in full force and effect, and the invalid provision
+shall be modified to the minimum extent necessary to make it valid and
+enforceable while preserving the parties' original intent.
+
+
+16. NOTICES
+
+16.1 Method of Notice. All notices, requests, consents, and other communications
+required or permitted under this License shall be in writing and shall be deemed
+given when:
+  • Delivered personally or by courier with proof of delivery;
+  • Sent by registered or certified mail, return receipt requested;
+  • Sent by email to the addresses specified below, with confirmation of
+    receipt.
+
+16.2 Contact Information. Notices to Licensor shall be sent to:
+
+    Legal Department
+    Kairos / Dylan Alcázar
+    Email: legal@kairos.example  [PLACEHOLDER – Replace with actual domain]
+
+Licensee's contact information shall be as specified in any executed Order Form
+or as otherwise communicated in writing to Licensor.
+
+
+17. GENERAL PROVISIONS
+
+17.1 Assignment. Licensee may not assign, transfer, delegate, or sublicense this
+License or any rights hereunder, whether voluntarily, involuntarily, by
+operation of law, or otherwise, without the prior written consent of Licensor.
+Any attempted assignment in violation of this provision is void. Licensor may
+freely assign this License without consent.
+
+17.2 No Third-Party Beneficiaries. This License is solely for the benefit of the
+parties hereto and is not intended to confer any rights or remedies upon any
+third party.
+
+17.3 Force Majeure. Neither party shall be liable for any failure or delay in
+performance due to causes beyond its reasonable control, including but not
+limited to acts of God, war, terrorism, civil unrest, pandemics, government
+actions, or infrastructure failures, provided that the affected party promptly
+notifies the other party and uses reasonable efforts to mitigate the impact.
+
+17.4 Independent Contractors. The parties are independent contractors. Nothing
+in this License creates any partnership, joint venture, agency, employment, or
+fiduciary relationship.
+
+17.5 Interpretation. Section headings are for convenience only and do not affect
+interpretation. The words "include," "includes," and "including" are deemed to
+be followed by "without limitation." References to "writing" include email.
+
+17.6 Language. This License is executed in English. Any translation is provided
+for convenience only; the English version shall control in case of discrepancy.
+
+
+================================================================================
+                             END OF LICENSE TERMS
+================================================================================
+
+© 2025 Dylan Alcázar. All rights reserved.
+
+For licensing inquiries, contact: legal@kairos.example [PLACEHOLDER]
+
+
+--------------------------------------------------------------------------------
+                  COMPLIANCE CHECKLIST FOR MAINTAINERS
+                        (Informational, Non-Binding)
+--------------------------------------------------------------------------------
+
+1. FILE PLACEMENT
+   ✓ Place this LICENSE file in the root directory of the repository.
+   ✓ Ensure the LICENSE file is included in all distributions and deployments.
+
+2. SOURCE FILE HEADERS
+   ✓ Add SPDX license identifier headers to all source files where feasible:
+
+     For TypeScript/JavaScript files:
+     /**
+      * SPDX-License-Identifier: LicenseRef-Kairos-Proprietary
+      * Copyright © 2025 Dylan Alcázar. All rights reserved.
+      */
+
+     For SQL/shell scripts:
+     # SPDX-License-Identifier: LicenseRef-Kairos-Proprietary
+     # Copyright © 2025 Dylan Alcázar. All rights reserved.
+
+3. THIRD-PARTY ATTRIBUTIONS
+   ✓ Maintain a THIRD-PARTY-NOTICES.md file in the repository root.
+   ✓ List all open source and third-party components with their licenses.
+   ✓ Include required copyright notices and attribution text.
+   ✓ Update this file whenever dependencies are added or upgraded.
+
+4. COPYRIGHT NOTICES
+   ✓ Standard copyright line for all materials:
+     © 2025 Dylan Alcázar. All rights reserved.
+
+5. CONFIDENTIAL INFORMATION HANDLING
+   ✓ Do NOT commit any national ID numbers, personal identification documents,
+     or sensitive personal data to the repository.
+   ✓ Keep personal IDs, government-issued identification, and similar sensitive
+     information solely in offline, private agreements (MSA, NDA, contracts).
+   ✓ Use .gitignore to exclude .env files, credentials, API keys, and secrets.
+
+6. PULL REQUESTS & CODE REVIEWS
+   ✓ Verify that all contributions from external parties are covered by a
+     signed Contributor License Agreement (CLA) or assignment of rights.
+   ✓ Reject any PR that includes unauthorized third-party code or violates this
+     License.
+
+7. DISTRIBUTION & DEPLOYMENT
+   ✓ Include the LICENSE file and THIRD-PARTY-NOTICES.md in all deployment
+     packages, Docker images, and distribution archives.
+   ✓ Do not remove or obscure copyright notices or license headers.
+
+8. CONTACT & ESCALATION
+   ✓ For licensing questions or suspected violations, contact:
+     legal@kairos.example [PLACEHOLDER – Update with actual email]
+   ✓ Report security vulnerabilities via your defined security policy
+     (e.g., SECURITY.md).
+
+9. PERIODIC REVIEW
+   ✓ Review and update third-party attributions at least quarterly.
+   ✓ Audit dependencies for license compliance using automated tools
+     (e.g., license-checker, FOSSA, Snyk).
+
+10. RECORDKEEPING
+    ✓ Maintain internal records of all licenses granted, Order Forms executed,
+      and authorized users.
+    ✓ Keep audit trail of access logs and usage for compliance verification.
+
+
+--------------------------------------------------------------------------------
+       BUSINESS STAKEHOLDER SUMMARY: KEY RESTRICTIONS (10-LINE)
+--------------------------------------------------------------------------------
+
+1. NO COPYING OR DISTRIBUTION: No one may copy, share, redistribute, or make
+   the Software publicly available without explicit written permission.
+
+2. NO MODIFICATION OR DERIVATIVES: No modifications, adaptations, translations,
+   or creation of derivative works are permitted.
+
+3. NO COMMERCIAL USE OR RESALE: The Software may not be monetized, resold, or
+   used to provide commercial services (SaaS, PaaS, hosting) to third parties.
+
+4. NO COMPETITIVE USE: The Software cannot be used to build, enhance, or
+   operate a competing product or service during the license term and for 12
+   months thereafter.
+
+5. NO AI/ML TRAINING: The code, documentation, and outputs may not be used to
+   train, fine-tune, or evaluate any AI, ML, or algorithmic models.
+
+6. NO REVERSE ENGINEERING: Disassembly, decompilation, and reverse engineering
+   are prohibited except to the minimum extent required by non-waivable law,
+   with prior written notice.
+
+7. NO BENCHMARKING PUBLICATION: Performance benchmarks, security assessments,
+   or comparative analyses may not be published without written consent.
+
+8. CONFIDENTIAL TREATMENT: All source code, technical data, and proprietary
+   information must be kept confidential and protected as trade secrets.
+
+9. IMMEDIATE TERMINATION ON BREACH: Any violation automatically and immediately
+   terminates all rights; use must cease and materials must be destroyed.
+
+10. NO WARRANTIES; LIMITED LIABILITY: Software is "AS IS" with no guarantees;
+    liability is capped at the greater of amounts paid or EUR 100, excluding
+    consequential damages.
+
+END OF FILE
