@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 /**
  * Mock factory for DbService
  * Provides a mocked database service for testing
@@ -20,7 +21,7 @@ import { createMockDrizzle, createMockDrizzleWithTransaction } from './drizzle.m
  */
 export function createMockDbService() {
   return {
-    drizzle: createMockDrizzle(),
+    db: createMockDrizzle(),
   };
 }
 
@@ -29,12 +30,12 @@ export function createMockDbService() {
  *
  * @example
  * const mockDbService = createMockDbServiceWithTransaction();
- * mockDbService.drizzle.transaction.mockImplementation(async (callback) => {
- *   return callback(mockDbService.drizzle);
+ * mockDbService.db.transaction.mockImplementation(async (callback) => {
+ *   return callback(mockDbService.db);
  * });
  */
 export function createMockDbServiceWithTransaction() {
   return {
-    drizzle: createMockDrizzleWithTransaction(),
+    db: createMockDrizzleWithTransaction(),
   };
 }

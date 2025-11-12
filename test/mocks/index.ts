@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 /**
  * Test mocks and factories
  * Central export for all mock utilities
