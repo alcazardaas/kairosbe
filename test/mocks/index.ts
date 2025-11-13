@@ -13,3 +13,5 @@ export {
   createMockDbService,
   createMockDbServiceWithTransaction,
 } from './db-service.mock';
+
+export { createMockConfigService } from './config-service.mock';

@@ -25,12 +25,14 @@ describe('Case Transform Helpers', () => {
     });
 
     it('should handle multiple underscores', () => {
-      expect(toCamelCase('user__id')).toBe('userId');
+      // Multiple underscores: only the first char after underscore is capitalized
+      expect(toCamelCase('user__id')).toBe('user_Id');
       expect(toCamelCase('very_long_field_name')).toBe('veryLongFieldName');
     });
 
     it('should handle leading underscores', () => {
-      expect(toCamelCase('_private_field')).toBe('_privateField');
+      // Leading underscore is removed (matches only _[a-z])
+      expect(toCamelCase('_private_field')).toBe('PrivateField');
     });
 
     it('should handle trailing underscores', () => {

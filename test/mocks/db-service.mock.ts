@@ -8,6 +8,7 @@ import { createMockDrizzle, createMockDrizzleWithTransaction } from './drizzle.m
 
 /**
  * Creates a mock DbService with mocked Drizzle instance
+ * Supports both direct `db` property access and `getDb()` method
  *
  * @example
  * const mockDbService = createMockDbService();
@@ -20,8 +21,11 @@ import { createMockDrizzle, createMockDrizzleWithTransaction } from './drizzle.m
  * }).compile();
  */
 export function createMockDbService() {
+  const mockDrizzle = createMockDrizzle();
+
   return {
-    db: createMockDrizzle(),
+    db: mockDrizzle,
+    getDb: vi.fn().mockReturnValue(mockDrizzle),
   };
 }
 
@@ -35,7 +39,10 @@ export function createMockDbService() {
  * });
  */
 export function createMockDbServiceWithTransaction() {
+  const mockDrizzle = createMockDrizzleWithTransaction();
+
   return {
-    db: createMockDrizzleWithTransaction(),
+    db: mockDrizzle,
+    getDb: vi.fn().mockReturnValue(mockDrizzle),
   };
 }
