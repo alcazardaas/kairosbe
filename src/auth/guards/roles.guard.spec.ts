@@ -115,7 +115,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['employee']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act
       const result = await guard.canActivate(context);
@@ -129,7 +132,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['admin']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'admin' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'admin' }]);
 
       // Act
       const result = await guard.canActivate(context);
@@ -143,7 +149,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['manager']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'manager' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'manager' }]);
 
       // Act
       const result = await guard.canActivate(context);
@@ -157,7 +166,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['admin', 'manager']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'manager' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'manager' }]);
 
       // Act
       const result = await guard.canActivate(context);
@@ -171,7 +183,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['employee']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act
       await guard.canActivate(context);
@@ -203,7 +218,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['admin']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act & Assert
       await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
@@ -217,7 +235,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['admin']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act & Assert
       await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
@@ -228,7 +249,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['manager']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act & Assert
       await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
@@ -239,7 +263,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['admin', 'manager']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act & Assert
       await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
@@ -297,7 +324,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['admin', 'manager', 'supervisor']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act & Assert
       await expect(guard.canActivate(context)).rejects.toThrow(
@@ -330,7 +360,10 @@ describe('RolesGuard', () => {
 
       const context = createMockContext(customSession);
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act
       await guard.canActivate(context);
@@ -350,7 +383,10 @@ describe('RolesGuard', () => {
 
       const context = createMockContext(customSession);
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act
       await guard.canActivate(context);
@@ -364,9 +400,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['employee']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockRejectedValue(
-        new Error('Database connection failed'),
-      );
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockRejectedValue(new Error('Database connection failed'));
 
       // Act & Assert
       await expect(guard.canActivate(context)).rejects.toThrow();
@@ -377,7 +414,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['Admin']); // Capital A
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'admin' }]); // Lowercase
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'admin' }]); // Lowercase
 
       // Act & Assert
       await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
@@ -388,7 +428,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['employee']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act
       await guard.canActivate(context);
@@ -402,7 +445,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['employee']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act
       const result = await guard.canActivate(context);
@@ -416,7 +462,10 @@ describe('RolesGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(['admin', 'manager', 'employee']);
       const context = createMockContext();
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act
       const result = await guard.canActivate(context);
@@ -446,7 +495,10 @@ describe('RolesGuard', () => {
         getClass: vi.fn(),
       } as any;
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ role: 'employee' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ role: 'employee' }]);
 
       // Act
       const result = await guard.canActivate(context);

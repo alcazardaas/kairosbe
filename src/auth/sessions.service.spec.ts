@@ -585,10 +585,7 @@ describe('SessionsService', () => {
   describe('deleteAllUserSessions', () => {
     it('should delete all sessions for a user', async () => {
       // Arrange
-      mockDbService.db.delete().where.mockResolvedValue([
-        { id: 'session-1' },
-        { id: 'session-2' },
-      ]);
+      mockDbService.db.delete().where.mockResolvedValue([{ id: 'session-1' }, { id: 'session-2' }]);
 
       // Act
       await service.deleteAllUserSessions(TEST_USER_ID);
@@ -610,11 +607,7 @@ describe('SessionsService', () => {
   describe('cleanupExpiredSessions', () => {
     it('should delete expired sessions and return count', async () => {
       // Arrange
-      const expiredSessions = [
-        { id: 'session-1' },
-        { id: 'session-2' },
-        { id: 'session-3' },
-      ];
+      const expiredSessions = [{ id: 'session-1' }, { id: 'session-2' }, { id: 'session-3' }];
 
       mockDbService.db.delete().where().returning.mockResolvedValue(expiredSessions);
 

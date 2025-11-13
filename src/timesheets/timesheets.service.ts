@@ -427,7 +427,15 @@ export class TimesheetsService {
           const entryDate = new Date(weekStart);
           entryDate.setDate(entryDate.getDate() + Number(day));
 
-          const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          const dayNames = [
+            'Sunday',
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+          ];
 
           errors.push({
             type: 'max_hours_exceeded',
@@ -449,7 +457,15 @@ export class TimesheetsService {
         const entryDate = new Date(weekStart);
         entryDate.setDate(entryDate.getDate() + day);
 
-        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayNames = [
+          'Sunday',
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+        ];
 
         warnings.push({
           type: 'no_entries',

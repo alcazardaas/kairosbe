@@ -338,9 +338,9 @@ describe('HolidaysService', () => {
 
       // Assert
       expect(result.page).toBe(2);
-      expect(mockDbService.getDb().select().from().where().orderBy().limit().offset).toHaveBeenCalledWith(
-        20,
-      );
+      expect(
+        mockDbService.getDb().select().from().where().orderBy().limit().offset,
+      ).toHaveBeenCalledWith(20);
     });
 
     it('should return empty array when no results', async () => {

@@ -101,7 +101,11 @@ describe('TimeEntriesService', () => {
 
     it('should filter by projectId', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTimeEntry]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTimeEntry]);
 
       // Act
       await service.findAll({ ...mockQuery, projectId: 'project-1' });
@@ -112,7 +116,11 @@ describe('TimeEntriesService', () => {
 
     it('should filter by taskId', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTimeEntry]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTimeEntry]);
 
       // Act
       await service.findAll({ ...mockQuery, taskId: 'task-1' });
@@ -123,7 +131,11 @@ describe('TimeEntriesService', () => {
 
     it('should filter by null taskId', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTimeEntry]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTimeEntry]);
 
       // Act
       await service.findAll({ ...mockQuery, taskId: null });
@@ -134,7 +146,11 @@ describe('TimeEntriesService', () => {
 
     it('should filter by date range', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTimeEntry]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTimeEntry]);
 
       // Act
       await service.findAll({
@@ -149,7 +165,11 @@ describe('TimeEntriesService', () => {
 
     it('should filter by dayOfWeek', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTimeEntry]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTimeEntry]);
 
       // Act
       await service.findAll({ ...mockQuery, dayOfWeek: 1 });
@@ -160,7 +180,11 @@ describe('TimeEntriesService', () => {
 
     it('should sort by field and order', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTimeEntry]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTimeEntry]);
 
       // Act
       await service.findAll({ ...mockQuery, sort: 'hours:desc' });
@@ -171,7 +195,11 @@ describe('TimeEntriesService', () => {
 
     it('should apply pagination', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 50 }]).mockResolvedValueOnce([mockTimeEntry]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 50 }])
+        .mockResolvedValueOnce([mockTimeEntry]);
 
       // Act
       const result = await service.findAll({ ...mockQuery, page: 2, limit: 10 });
@@ -200,7 +228,9 @@ describe('TimeEntriesService', () => {
 
       // Act & Assert
       await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
-      await expect(service.findOne('nonexistent')).rejects.toThrow('Time entry with ID nonexistent not found');
+      await expect(service.findOne('nonexistent')).rejects.toThrow(
+        'Time entry with ID nonexistent not found',
+      );
     });
   });
 
@@ -239,7 +269,9 @@ describe('TimeEntriesService', () => {
 
       // Act & Assert
       await expect(service.create(createDto)).rejects.toThrow(ForbiddenException);
-      await expect(service.create(createDto)).rejects.toThrow('User is not a member of project project-1');
+      await expect(service.create(createDto)).rejects.toThrow(
+        'User is not a member of project project-1',
+      );
     });
 
     it('should throw ForbiddenException if timesheet not editable', async () => {
@@ -253,7 +285,9 @@ describe('TimeEntriesService', () => {
 
       // Act & Assert
       await expect(service.create(createDto)).rejects.toThrow(ForbiddenException);
-      await expect(service.create(createDto)).rejects.toThrow('Cannot modify time entries. Timesheet status is submitted');
+      await expect(service.create(createDto)).rejects.toThrow(
+        'Cannot modify time entries. Timesheet status is submitted',
+      );
     });
 
     it('should throw ConflictException on duplicate entry', async () => {
@@ -287,7 +321,9 @@ describe('TimeEntriesService', () => {
 
       // Act & Assert
       await expect(service.create(createDto)).rejects.toThrow(BadRequestException);
-      await expect(service.create(createDto)).rejects.toThrow('Project with ID project-1 not found');
+      await expect(service.create(createDto)).rejects.toThrow(
+        'Project with ID project-1 not found',
+      );
     });
 
     it('should throw BadRequestException on check constraint violation (hours)', async () => {
@@ -443,11 +479,14 @@ describe('TimeEntriesService', () => {
   describe('getWeeklyHours', () => {
     it('should calculate weekly hours with daily breakdown', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValue([
-        { dayOfWeek: 1, hours: '8' },
-        { dayOfWeek: 2, hours: '8' },
-        { dayOfWeek: 3, hours: '8' },
-      ]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([
+          { dayOfWeek: 1, hours: '8' },
+          { dayOfWeek: 2, hours: '8' },
+          { dayOfWeek: 3, hours: '8' },
+        ]);
 
       // Act
       const result = await service.getWeeklyHours(TEST_USER_ID, '2025-01-06');
@@ -484,7 +523,10 @@ describe('TimeEntriesService', () => {
 
     it('should round hours to 2 decimal places', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValue([{ dayOfWeek: 1, hours: '8.333' }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ dayOfWeek: 1, hours: '8.333' }]);
 
       // Act
       const result = await service.getWeeklyHours(TEST_USER_ID, '2025-01-06');
@@ -497,7 +539,10 @@ describe('TimeEntriesService', () => {
   describe('getProjectHours', () => {
     it('should calculate total hours for project', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValue([{ total: 120 }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ total: 120 }]);
 
       // Act
       const result = await service.getProjectHours('project-1');
@@ -508,7 +553,10 @@ describe('TimeEntriesService', () => {
 
     it('should return 0 for project with no entries', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValue([{ total: 0 }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ total: 0 }]);
 
       // Act
       const result = await service.getProjectHours('project-1');
@@ -521,10 +569,13 @@ describe('TimeEntriesService', () => {
   describe('getUserProjectStats', () => {
     it('should return user project statistics', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValue([
-        { projectId: 'project-1', projectName: 'Project A', hours: '40' },
-        { projectId: 'project-2', projectName: 'Project B', hours: '20' },
-      ]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([
+          { projectId: 'project-1', projectName: 'Project A', hours: '40' },
+          { projectId: 'project-2', projectName: 'Project B', hours: '20' },
+        ]);
 
       // Act
       const result = await service.getUserProjectStats(TEST_USER_ID, {
@@ -539,9 +590,12 @@ describe('TimeEntriesService', () => {
 
     it('should filter by weekStartDate', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValue([
-        { projectId: 'project-1', projectName: 'Project A', hours: '40' },
-      ]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([
+          { projectId: 'project-1', projectName: 'Project A', hours: '40' },
+        ]);
 
       // Act
       await service.getUserProjectStats(TEST_USER_ID, {
@@ -568,10 +622,13 @@ describe('TimeEntriesService', () => {
 
     it('should sort projects by hours descending', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValue([
-        { projectId: 'project-1', projectName: 'Project A', hours: '20' },
-        { projectId: 'project-2', projectName: 'Project B', hours: '40' },
-      ]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([
+          { projectId: 'project-1', projectName: 'Project A', hours: '20' },
+          { projectId: 'project-2', projectName: 'Project B', hours: '40' },
+        ]);
 
       // Act
       const result = await service.getUserProjectStats(TEST_USER_ID, {});
@@ -889,7 +946,11 @@ describe('TimeEntriesService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([mockProjectMember]);
 
       // Act
-      const result = await service.validateProjectMembership(TEST_TENANT_ID, TEST_USER_ID, 'project-1');
+      const result = await service.validateProjectMembership(
+        TEST_TENANT_ID,
+        TEST_USER_ID,
+        'project-1',
+      );
 
       // Assert
       expect(result).toBe(true);
@@ -900,7 +961,11 @@ describe('TimeEntriesService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act
-      const result = await service.validateProjectMembership(TEST_TENANT_ID, TEST_USER_ID, 'project-1');
+      const result = await service.validateProjectMembership(
+        TEST_TENANT_ID,
+        TEST_USER_ID,
+        'project-1',
+      );
 
       // Assert
       expect(result).toBe(false);
@@ -935,13 +1000,13 @@ describe('TimeEntriesService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([submittedTimesheet]);
 
       // Act & Assert
-      await expect(service.validateTimesheetEditable(TEST_TENANT_ID, TEST_USER_ID, '2025-01-06')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.validateTimesheetEditable(TEST_TENANT_ID, TEST_USER_ID, '2025-01-06'),
+      ).rejects.toThrow(ForbiddenException);
 
-      await expect(service.validateTimesheetEditable(TEST_TENANT_ID, TEST_USER_ID, '2025-01-06')).rejects.toThrow(
-        'Cannot modify time entries. Timesheet status is submitted',
-      );
+      await expect(
+        service.validateTimesheetEditable(TEST_TENANT_ID, TEST_USER_ID, '2025-01-06'),
+      ).rejects.toThrow('Cannot modify time entries. Timesheet status is submitted');
     });
 
     it('should throw ForbiddenException for approved timesheet', async () => {
@@ -950,9 +1015,9 @@ describe('TimeEntriesService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([approvedTimesheet]);
 
       // Act & Assert
-      await expect(service.validateTimesheetEditable(TEST_TENANT_ID, TEST_USER_ID, '2025-01-06')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.validateTimesheetEditable(TEST_TENANT_ID, TEST_USER_ID, '2025-01-06'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should allow editing when no timesheet exists', async () => {

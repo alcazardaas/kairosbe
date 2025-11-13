@@ -434,7 +434,10 @@ describe('ZodValidationPipe', () => {
     it('should handle transform', () => {
       // Arrange
       const schema = z.object({
-        email: z.string().email().transform((val) => val.toLowerCase()),
+        email: z
+          .string()
+          .email()
+          .transform((val) => val.toLowerCase()),
       });
 
       const pipe = new ZodValidationPipe(schema);

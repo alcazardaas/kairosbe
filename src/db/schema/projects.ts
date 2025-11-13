@@ -1,4 +1,13 @@
-import { pgTable, uuid, text, boolean, unique, date, decimal, timestamp } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  boolean,
+  unique,
+  date,
+  decimal,
+  timestamp,
+} from 'drizzle-orm/pg-core';
 import { tenants } from './tenants';
 
 export const projects = pgTable(

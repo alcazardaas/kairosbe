@@ -40,6 +40,7 @@ describe('AuthController', () => {
   beforeEach(async () => {
     authService = {
       login: vi.fn(),
+      signup: vi.fn(),
       refresh: vi.fn(),
       logout: vi.fn(),
       validateSession: vi.fn(),
@@ -472,12 +473,10 @@ describe('AuthController', () => {
 
     it('should limit user query to 1 result', async () => {
       // Arrange
-      mockDbService.db
-        .select()
-        .from()
-        .where.mockReturnThis();
+      mockDbService.db.select().from().where.mockReturnThis();
 
-      mockDbService.db.limit = vi.fn()
+      mockDbService.db.limit = vi
+        .fn()
         .mockResolvedValueOnce([mockUser])
         .mockResolvedValueOnce([mockMembership])
         .mockResolvedValueOnce([mockPolicy]);
@@ -541,6 +540,152 @@ describe('AuthController', () => {
 
       // Assert
       expect(result.data.user.locale).toBeNull();
+    });
+  });
+
+  describe('POST /auth/signup', () => {
+    const signupDto = {
+      email: 'newuser@newcompany.com',
+      password: 'password123',
+      firstName: 'John',
+      lastName: 'Doe',
+      companyName: 'New Company Inc',
+      timezone: 'America/New_York',
+      acceptedTerms: true,
+    };
+
+    const mockSignupResponse = {
+      token: 'new-session-token',
+      refreshToken: 'new-refresh-token',
+      expiresAt: new Date(Date.now() + 2592000000),
+      user: {
+        id: 'new-user-id',
+        email: 'newuser@newcompany.com',
+        name: 'John Doe',
+      },
+      tenant: {
+        id: 'new-tenant-id',
+        name: 'New Company Inc',
+        slug: 'new-company-inc',
+      },
+      membership: {
+        role: 'admin',
+        status: 'active',
+      },
+    };
+
+    it('should create new account and organization', async () => {
+      // Arrange
+      authService.signup.mockResolvedValue(mockSignupResponse);
+
+      // Act
+      const result = await controller.signup(signupDto, '127.0.0.1', 'test-agent');
+
+      // Assert
+      expect(result).toEqual({
+        data: mockSignupResponse,
+      });
+      expect(authService.signup).toHaveBeenCalledWith(signupDto, '127.0.0.1', 'test-agent');
+    });
+
+    it('should pass IP address from request', async () => {
+      // Arrange
+      authService.signup.mockResolvedValue(mockSignupResponse);
+      const ipAddress = '192.168.1.1';
+
+      // Act
+      await controller.signup(signupDto, ipAddress, 'agent');
+
+      // Assert
+      expect(authService.signup).toHaveBeenCalledWith(signupDto, ipAddress, 'agent');
+    });
+
+    it('should pass user agent from headers', async () => {
+      // Arrange
+      authService.signup.mockResolvedValue(mockSignupResponse);
+      const userAgent = 'Mozilla/5.0';
+
+      // Act
+      await controller.signup(signupDto, '127.0.0.1', userAgent);
+
+      // Assert
+      expect(authService.signup).toHaveBeenCalledWith(signupDto, '127.0.0.1', userAgent);
+    });
+
+    it('should handle missing user agent', async () => {
+      // Arrange
+      authService.signup.mockResolvedValue(mockSignupResponse);
+
+      // Act
+      await controller.signup(signupDto, '127.0.0.1', undefined);
+
+      // Assert
+      expect(authService.signup).toHaveBeenCalledWith(signupDto, '127.0.0.1', undefined);
+    });
+
+    it('should return response with data wrapper', async () => {
+      // Arrange
+      authService.signup.mockResolvedValue(mockSignupResponse);
+
+      // Act
+      const result = await controller.signup(signupDto, '127.0.0.1');
+
+      // Assert
+      expect(result).toHaveProperty('data');
+      expect(result.data).toEqual(mockSignupResponse);
+    });
+
+    it('should include all signup response fields', async () => {
+      // Arrange
+      authService.signup.mockResolvedValue(mockSignupResponse);
+
+      // Act
+      const result = await controller.signup(signupDto, '127.0.0.1');
+
+      // Assert
+      expect(result.data).toHaveProperty('token');
+      expect(result.data).toHaveProperty('refreshToken');
+      expect(result.data).toHaveProperty('expiresAt');
+      expect(result.data).toHaveProperty('user');
+      expect(result.data).toHaveProperty('tenant');
+      expect(result.data).toHaveProperty('membership');
+    });
+
+    it('should include tenant information with slug', async () => {
+      // Arrange
+      authService.signup.mockResolvedValue(mockSignupResponse);
+
+      // Act
+      const result = await controller.signup(signupDto, '127.0.0.1');
+
+      // Assert
+      expect(result.data.tenant.name).toBe('New Company Inc');
+      expect(result.data.tenant.slug).toBe('new-company-inc');
+    });
+
+    it('should include admin membership', async () => {
+      // Arrange
+      authService.signup.mockResolvedValue(mockSignupResponse);
+
+      // Act
+      const result = await controller.signup(signupDto, '127.0.0.1');
+
+      // Assert
+      expect(result.data.membership.role).toBe('admin');
+      expect(result.data.membership.status).toBe('active');
+    });
+
+    it('should include session tokens for auto-login', async () => {
+      // Arrange
+      authService.signup.mockResolvedValue(mockSignupResponse);
+
+      // Act
+      const result = await controller.signup(signupDto, '127.0.0.1');
+
+      // Assert
+      expect(result.data.token).toBe('new-session-token');
+      expect(result.data.refreshToken).toBe('new-refresh-token');
+      expect(result.data.expiresAt).toEqual(mockSignupResponse.expiresAt);
     });
   });
 });

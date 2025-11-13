@@ -8,6 +8,7 @@ import {
   HttpCode,
   HttpStatus,
   UsePipes,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,19 +17,26 @@ import {
   ApiNoContentResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiTooManyRequestsResponse,
   ApiSecurity,
   ApiBody,
 } from '@nestjs/swagger';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { eq, and } from 'drizzle-orm';
 import { AuthService } from './auth.service';
 import { LoginDto, loginSchema } from './dto/login.dto';
 import { RefreshTokenDto, refreshTokenSchema } from './dto/refresh.dto';
+import { SignupDto, signupSchema } from './dto/signup.dto';
 import {
   LoginRequestDto,
   LoginResponseDto,
   RefreshRequestDto,
   RefreshResponseDto,
   MeResponseDto,
+  SignupRequestDto,
+  SignupResponseDto,
 } from './dto/auth-response.dto';
 import { Public } from './decorators/public.decorator';
 import { CurrentSession, CurrentTenantId } from './decorators/current-user.decorator';
@@ -72,6 +80,48 @@ export class AuthController {
   })
   async login(@Body() dto: LoginDto, @Ip() ip: string, @Headers('user-agent') userAgent?: string) {
     const result = await this.authService.login(dto, ip, userAgent);
+    return {
+      data: result,
+    };
+  }
+
+  @Public()
+  @Post('signup')
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 4, ttl: 3600000 } }) // 4 requests per hour
+  @UsePipes(new ZodValidationPipe(signupSchema))
+  @ApiOperation({
+    summary: 'Create new account and organization',
+    description:
+      'Self-service signup. Creates new tenant (organization), user account with admin role, and returns session token for immediate login.',
+  })
+  @ApiBody({
+    type: SignupRequestDto,
+    description: 'Signup information',
+  })
+  @ApiCreatedResponse({
+    description: 'Account created successfully. User is automatically logged in.',
+    type: SignupResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid input data or validation failed',
+    type: ErrorResponseDto,
+  })
+  @ApiConflictResponse({
+    description: 'Email address already registered',
+    type: ErrorResponseDto,
+  })
+  @ApiTooManyRequestsResponse({
+    description: 'Too many signup attempts. Maximum 4 signups per hour per IP address.',
+    type: ErrorResponseDto,
+  })
+  async signup(
+    @Body() dto: SignupDto,
+    @Ip() ip: string,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    const result = await this.authService.signup(dto, ip, userAgent);
     return {
       data: result,
     };

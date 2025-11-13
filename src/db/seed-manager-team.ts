@@ -391,7 +391,9 @@ async function seed() {
     console.log('Employee 1: bob@demo.com / password123 (assigned to 2 projects)');
     console.log('Employee 2: carol@demo.com / password123 (assigned to 2 projects)');
     console.log('\n📊 Demo Data Created:');
-    console.log(`- ${createdProjects.length} projects (Website Redesign, Mobile App, API Integration, Internal Tools)`);
+    console.log(
+      `- ${createdProjects.length} projects (Website Redesign, Mobile App, API Integration, Internal Tools)`,
+    );
     console.log('- Project memberships for all users');
     console.log('- Submitted timesheets for employees');
     console.log('- Pending leave requests');

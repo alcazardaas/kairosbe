@@ -164,7 +164,8 @@ export class ProjectsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Delete a project',
-    description: 'Delete a project by its ID. This will cascade delete related data. Requires admin role.',
+    description:
+      'Delete a project by its ID. This will cascade delete related data. Requires admin role.',
   })
   @ApiNoContentResponse({
     description: 'Project deleted successfully',
@@ -215,7 +216,8 @@ export class ProjectsController {
   @Roles('admin', 'manager')
   @ApiOperation({
     summary: 'Add a member to a project',
-    description: 'Assign a user to a project with an optional role. Requires admin or manager role.',
+    description:
+      'Assign a user to a project with an optional role. Requires admin or manager role.',
   })
   @ApiCreatedResponse({
     description: 'Member added to project successfully',

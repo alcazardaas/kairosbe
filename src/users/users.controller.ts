@@ -352,8 +352,7 @@ export class UsersController {
   @Roles('admin')
   @ApiOperation({
     summary: 'Download user import template',
-    description:
-      'Download a sample CSV or Excel template file with example data. Admin-only.',
+    description: 'Download a sample CSV or Excel template file with example data. Admin-only.',
   })
   @ApiQuery({
     name: 'format',
@@ -393,9 +392,7 @@ export class UsersController {
     query: TemplateRequestQueryDto,
     @Res() res: Response,
   ): Promise<void> {
-    const { buffer, filename, mimetype } = this.userImportService.generateTemplate(
-      query.format,
-    );
+    const { buffer, filename, mimetype } = this.userImportService.generateTemplate(query.format);
 
     res.setHeader('Content-Type', mimetype);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

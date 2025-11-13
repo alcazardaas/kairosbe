@@ -81,10 +81,7 @@ export class BenefitTypesController {
     description: 'Invalid or expired session token',
     type: ErrorResponseDto,
   })
-  async findOne(
-    @CurrentTenantId() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async findOne(@CurrentTenantId() tenantId: string, @Param('id') id: string) {
     return this.benefitTypesService.findOne(tenantId, id);
   }
 
@@ -160,10 +157,7 @@ export class BenefitTypesController {
     description: 'Invalid or expired session token',
     type: ErrorResponseDto,
   })
-  async remove(
-    @CurrentTenantId() tenantId: string,
-    @Param('id') id: string,
-  ) {
+  async remove(@CurrentTenantId() tenantId: string, @Param('id') id: string) {
     return this.benefitTypesService.remove(tenantId, id);
   }
 }

@@ -169,13 +169,7 @@ describe('LeaveRequestsController', () => {
       service.findAll.mockResolvedValue(mockResponse);
 
       // Act
-      await controller.findAll(
-        TEST_TENANT_ID,
-        mockSession,
-        undefined,
-        undefined,
-        'pending',
-      );
+      await controller.findAll(TEST_TENANT_ID, mockSession, undefined, undefined, 'pending');
 
       // Assert
       expect(service.findAll).toHaveBeenCalledWith(TEST_TENANT_ID, TEST_USER_ID, {

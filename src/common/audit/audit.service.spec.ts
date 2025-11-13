@@ -86,9 +86,7 @@ describe('AuditService', () => {
     });
 
     it('should not throw error if database insert fails', async () => {
-      mockDrizzle.insert().values.mockRejectedValueOnce(
-        new Error('Database error'),
-      );
+      mockDrizzle.insert().values.mockRejectedValueOnce(new Error('Database error'));
 
       const auditData = {
         tenantId: 'tenant-123',

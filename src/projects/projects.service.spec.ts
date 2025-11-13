@@ -1,10 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  NotFoundException,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
+import { NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { DbService } from '../db/db.service';
 import { createMockDbService } from '../../test/mocks';
@@ -75,7 +71,12 @@ describe('ProjectsService', () => {
 
     it('should return paginated projects', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockProject]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockProject]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, mockQuery);
@@ -89,7 +90,12 @@ describe('ProjectsService', () => {
 
     it('should filter by active status', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockProject]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockProject]);
 
       // Act
       await service.findAll(TEST_TENANT_ID, { ...mockQuery, active: true });
@@ -100,7 +106,12 @@ describe('ProjectsService', () => {
 
     it('should search by project name', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockProject]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockProject]);
 
       // Act
       await service.findAll(TEST_TENANT_ID, { ...mockQuery, search: 'Alpha' });
@@ -111,7 +122,12 @@ describe('ProjectsService', () => {
 
     it('should sort by field', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockProject]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockProject]);
 
       // Act
       await service.findAll(TEST_TENANT_ID, { ...mockQuery, sort: 'name:asc' });
@@ -122,7 +138,12 @@ describe('ProjectsService', () => {
 
     it('should apply pagination', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 50 }]).mockResolvedValueOnce([mockProject]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 50 }])
+        .mockResolvedValueOnce([mockProject]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, { page: 2, limit: 10 });
@@ -134,7 +155,12 @@ describe('ProjectsService', () => {
 
     it('should filter by tenant ID', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockProject]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockProject]);
 
       // Act
       await service.findAll(TEST_TENANT_ID, mockQuery);
@@ -162,7 +188,9 @@ describe('ProjectsService', () => {
       mockDbService.getDb().select().from().where.mockResolvedValue([]);
 
       // Act & Assert
-      await expect(service.findOne(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
       await expect(service.findOne(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(
         'Project with ID nonexistent not found',
       );
@@ -194,9 +222,10 @@ describe('ProjectsService', () => {
 
     it('should create new project', async () => {
       // Arrange
-      mockDbService.getDb().insert().values.mockResolvedValue([
-        { ...mockProject, ...createDto },
-      ]);
+      mockDbService
+        .getDb()
+        .insert()
+        .values.mockResolvedValue([{ ...mockProject, ...createDto }]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, createDto);
@@ -221,9 +250,10 @@ describe('ProjectsService', () => {
 
     it('should create project with all optional fields', async () => {
       // Arrange
-      mockDbService.getDb().insert().values.mockResolvedValue([
-        { ...mockProject, ...createDto },
-      ]);
+      mockDbService
+        .getDb()
+        .insert()
+        .values.mockResolvedValue([{ ...mockProject, ...createDto }]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, createDto);
@@ -241,9 +271,10 @@ describe('ProjectsService', () => {
         code: 'MP',
         active: true,
       };
-      mockDbService.getDb().insert().values.mockResolvedValue([
-        { ...mockProject, ...minimalDto },
-      ]);
+      mockDbService
+        .getDb()
+        .insert()
+        .values.mockResolvedValue([{ ...mockProject, ...minimalDto }]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, minimalDto as any);
@@ -254,9 +285,10 @@ describe('ProjectsService', () => {
 
     it('should associate project with tenant', async () => {
       // Arrange
-      mockDbService.getDb().insert().values.mockResolvedValue([
-        { ...mockProject, tenantId: TEST_TENANT_ID },
-      ]);
+      mockDbService
+        .getDb()
+        .insert()
+        .values.mockResolvedValue([{ ...mockProject, tenantId: TEST_TENANT_ID }]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, createDto);
@@ -367,7 +399,9 @@ describe('ProjectsService', () => {
       mockDbService.getDb().select().from().where.mockResolvedValue([]);
 
       // Act & Assert
-      await expect(service.remove(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.remove(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should filter by tenant ID when deleting', async () => {
@@ -393,9 +427,7 @@ describe('ProjectsService', () => {
         .select()
         .from()
         .where.mockResolvedValueOnce([mockProject]) // findOne check
-        .mockResolvedValueOnce([
-          { ...mockProjectMember, user: mockUser },
-        ]); // members query
+        .mockResolvedValueOnce([{ ...mockProjectMember, user: mockUser }]); // members query
 
       // Act
       const result = await service.getMembers(TEST_TENANT_ID, 'project-1');
@@ -547,9 +579,9 @@ describe('ProjectsService', () => {
       mockDbService.getDb().select().from().where.mockResolvedValue([]);
 
       // Act & Assert
-      await expect(service.removeMember(TEST_TENANT_ID, 'nonexistent', TEST_USER_ID)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.removeMember(TEST_TENANT_ID, 'nonexistent', TEST_USER_ID),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException when user not a member', async () => {
@@ -647,10 +679,18 @@ describe('ProjectsService', () => {
         .mockResolvedValueOnce([{ id: 'user-1' }])
         .mockResolvedValueOnce([]);
 
-      mockDbService.getDb().insert().values.mockResolvedValue([{ ...mockProjectMember, role: 'contributor' }]);
+      mockDbService
+        .getDb()
+        .insert()
+        .values.mockResolvedValue([{ ...mockProjectMember, role: 'contributor' }]);
 
       // Act
-      const result = await service.bulkAddMembers(TEST_TENANT_ID, 'project-1', userIds, 'contributor');
+      const result = await service.bulkAddMembers(
+        TEST_TENANT_ID,
+        'project-1',
+        userIds,
+        'contributor',
+      );
 
       // Assert
       expect(result.success).toHaveLength(1);

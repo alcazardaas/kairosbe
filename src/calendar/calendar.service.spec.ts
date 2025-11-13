@@ -374,9 +374,10 @@ describe('CalendarService', () => {
       // Arrange
       mockDbService.db.select().from().where.mockResolvedValueOnce([]);
       mockDbService.db.select().from().where.mockResolvedValueOnce([]);
-      mockDbService.db.select().from().where.mockResolvedValueOnce([
-        { ...mockTimesheet, status: 'pending' },
-      ]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ ...mockTimesheet, status: 'pending' }]);
 
       // Act
       const result = await service.getCalendarFeed(

@@ -199,7 +199,14 @@ describe('TimesheetsController', () => {
       service.findAll.mockResolvedValue(mockListResponse);
 
       // Act
-      await controller.findAll(TEST_TENANT_ID, mockSession, undefined, undefined, undefined, 'true');
+      await controller.findAll(
+        TEST_TENANT_ID,
+        mockSession,
+        undefined,
+        undefined,
+        undefined,
+        'true',
+      );
 
       // Assert
       expect(service.findAll).toHaveBeenCalledWith(TEST_TENANT_ID, TEST_USER_ID, {
@@ -444,11 +451,21 @@ describe('TimesheetsController', () => {
       service.approve.mockResolvedValue(approvedTimesheet);
 
       // Act
-      const result = await controller.approve(TEST_TENANT_ID, 'timesheet-1', mockSession, reviewDto);
+      const result = await controller.approve(
+        TEST_TENANT_ID,
+        'timesheet-1',
+        mockSession,
+        reviewDto,
+      );
 
       // Assert
       expect(result).toEqual({ data: approvedTimesheet });
-      expect(service.approve).toHaveBeenCalledWith(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID, reviewDto);
+      expect(service.approve).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        'timesheet-1',
+        TEST_USER_ID,
+        reviewDto,
+      );
     });
 
     it('should approve without review note', async () => {
@@ -467,7 +484,12 @@ describe('TimesheetsController', () => {
       service.approve.mockResolvedValue(mockTimesheet);
 
       // Act
-      const result = await controller.approve(TEST_TENANT_ID, 'timesheet-1', mockSession, reviewDto);
+      const result = await controller.approve(
+        TEST_TENANT_ID,
+        'timesheet-1',
+        mockSession,
+        reviewDto,
+      );
 
       // Assert
       expect(result.data).toEqual(mockTimesheet);
@@ -482,7 +504,12 @@ describe('TimesheetsController', () => {
       await controller.approve(TEST_TENANT_ID, 'timesheet-1', managerSession, reviewDto);
 
       // Assert
-      expect(service.approve).toHaveBeenCalledWith(TEST_TENANT_ID, 'timesheet-1', 'manager-1', reviewDto);
+      expect(service.approve).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        'timesheet-1',
+        'manager-1',
+        reviewDto,
+      );
     });
 
     it('should return data wrapper', async () => {
@@ -490,7 +517,12 @@ describe('TimesheetsController', () => {
       service.approve.mockResolvedValue(mockTimesheet);
 
       // Act
-      const result = await controller.approve(TEST_TENANT_ID, 'timesheet-1', mockSession, reviewDto);
+      const result = await controller.approve(
+        TEST_TENANT_ID,
+        'timesheet-1',
+        mockSession,
+        reviewDto,
+      );
 
       // Assert
       expect(result).toHaveProperty('data');
@@ -517,7 +549,12 @@ describe('TimesheetsController', () => {
 
       // Assert
       expect(result).toEqual({ data: rejectedTimesheet });
-      expect(service.reject).toHaveBeenCalledWith(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID, rejectDto);
+      expect(service.reject).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        'timesheet-1',
+        TEST_USER_ID,
+        rejectDto,
+      );
     });
 
     it('should validate DTO with zod schema', async () => {
@@ -540,7 +577,12 @@ describe('TimesheetsController', () => {
       await controller.reject(TEST_TENANT_ID, 'timesheet-1', managerSession, rejectDto);
 
       // Assert
-      expect(service.reject).toHaveBeenCalledWith(TEST_TENANT_ID, 'timesheet-1', 'manager-1', rejectDto);
+      expect(service.reject).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        'timesheet-1',
+        'manager-1',
+        rejectDto,
+      );
     });
 
     it('should return data wrapper', async () => {

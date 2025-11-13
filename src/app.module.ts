@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { DbModule } from './db/db.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
@@ -40,6 +41,12 @@ import { OrganizationModule } from './organization/organization.module';
             : undefined,
       },
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 3600000, // 1 hour in milliseconds
+        limit: 4, // max 4 requests per hour
+      },
+    ]),
     DbModule,
     AuthModule,
     HealthModule,
