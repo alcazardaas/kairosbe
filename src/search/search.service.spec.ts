@@ -135,10 +135,7 @@ describe('SearchService', () => {
 
     it('should return multiple results', async () => {
       // Arrange
-      const projects = [
-        mockProject,
-        { ...mockProject, id: 'project-2', name: 'Alpha Project 2' },
-      ];
+      const projects = [mockProject, { ...mockProject, id: 'project-2', name: 'Alpha Project 2' }];
       mockDbService.db.select().from().where.mockResolvedValue(projects);
 
       // Act

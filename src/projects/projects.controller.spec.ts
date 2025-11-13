@@ -349,7 +349,12 @@ describe('ProjectsController', () => {
 
       // Assert
       expect(result.data.role).toBe('member');
-      expect(service.addMember).toHaveBeenCalledWith(TEST_TENANT_ID, 'project-1', TEST_USER_ID, undefined);
+      expect(service.addMember).toHaveBeenCalledWith(
+        TEST_TENANT_ID,
+        'project-1',
+        TEST_USER_ID,
+        undefined,
+      );
     });
 
     it('should validate DTO with zod schema', async () => {

@@ -178,9 +178,7 @@ describe('AuthGuard', () => {
 
       // Act & Assert
       await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-      await expect(guard.canActivate(context)).rejects.toThrow(
-        'No authentication token provided',
-      );
+      await expect(guard.canActivate(context)).rejects.toThrow('No authentication token provided');
     });
 
     it('should throw UnauthorizedException when authorization header is empty', async () => {
@@ -189,9 +187,7 @@ describe('AuthGuard', () => {
 
       // Act & Assert
       await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-      await expect(guard.canActivate(context)).rejects.toThrow(
-        'No authentication token provided',
-      );
+      await expect(guard.canActivate(context)).rejects.toThrow('No authentication token provided');
     });
 
     it('should throw UnauthorizedException when token type is not Bearer', async () => {
@@ -200,9 +196,7 @@ describe('AuthGuard', () => {
 
       // Act & Assert
       await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-      await expect(guard.canActivate(context)).rejects.toThrow(
-        'No authentication token provided',
-      );
+      await expect(guard.canActivate(context)).rejects.toThrow('No authentication token provided');
     });
 
     it('should throw UnauthorizedException when session is invalid', async () => {
@@ -285,9 +279,7 @@ describe('AuthGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(false);
 
       // Act & Assert
-      await expect(guard.canActivate(context)).rejects.toThrow(
-        'No authentication token provided',
-      );
+      await expect(guard.canActivate(context)).rejects.toThrow('No authentication token provided');
     });
 
     it('should return undefined for malformed authorization header', async () => {
@@ -296,9 +288,7 @@ describe('AuthGuard', () => {
       reflector.getAllAndOverride.mockReturnValue(false);
 
       // Act & Assert
-      await expect(guard.canActivate(context)).rejects.toThrow(
-        'No authentication token provided',
-      );
+      await expect(guard.canActivate(context)).rejects.toThrow('No authentication token provided');
     });
 
     it('should return token for valid Bearer format', async () => {

@@ -31,10 +31,7 @@ export class TimesheetPoliciesService {
     return transformKeysToCamel(result[0]);
   }
 
-  async create(
-    tenantId: string,
-    createTimesheetPolicyDto: CreateTimesheetPolicyDto,
-  ): Promise<any> {
+  async create(tenantId: string, createTimesheetPolicyDto: CreateTimesheetPolicyDto): Promise<any> {
     const db = this.dbService.getDb();
 
     try {
@@ -53,18 +50,13 @@ export class TimesheetPoliciesService {
     } catch (error) {
       // Handle unique constraint violation (tenant_id is primary key)
       if (error.code === '23505') {
-        throw new ConflictException(
-          `Timesheet policy for tenant ${tenantId} already exists`,
-        );
+        throw new ConflictException(`Timesheet policy for tenant ${tenantId} already exists`);
       }
       throw error;
     }
   }
 
-  async update(
-    tenantId: string,
-    updateTimesheetPolicyDto: UpdateTimesheetPolicyDto,
-  ): Promise<any> {
+  async update(tenantId: string, updateTimesheetPolicyDto: UpdateTimesheetPolicyDto): Promise<any> {
     const db = this.dbService.getDb();
 
     // Check if policy exists

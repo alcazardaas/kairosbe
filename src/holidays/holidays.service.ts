@@ -15,8 +15,19 @@ export class HolidaysService {
 
   async findAll(query: QueryHolidaysDto): Promise<PaginatedResponse<any>> {
     const db = this.dbService.getDb();
-    const { page, limit, sort, tenantId, countryCode, year, search, type, startDate, endDate, upcoming } =
-      query;
+    const {
+      page,
+      limit,
+      sort,
+      tenantId,
+      countryCode,
+      year,
+      search,
+      type,
+      startDate,
+      endDate,
+      upcoming,
+    } = query;
     const offset = calculateOffset(page, limit);
 
     // Build where conditions
@@ -134,10 +145,7 @@ export class HolidaysService {
     return transformKeysToCamel(result[0]);
   }
 
-  async update(
-    id: string,
-    updateHolidayDto: UpdateHolidayDto,
-  ): Promise<any> {
+  async update(id: string, updateHolidayDto: UpdateHolidayDto): Promise<any> {
     const db = this.dbService.getDb();
 
     // Check if holiday exists
@@ -152,8 +160,12 @@ export class HolidaysService {
         ...(updateHolidayDto.date !== undefined && { date: new Date(updateHolidayDto.date) }),
         ...(updateHolidayDto.name !== undefined && { name: updateHolidayDto.name }),
         ...(updateHolidayDto.type !== undefined && { type: updateHolidayDto.type }),
-        ...(updateHolidayDto.isRecurring !== undefined && { isRecurring: updateHolidayDto.isRecurring }),
-        ...(updateHolidayDto.description !== undefined && { description: updateHolidayDto.description }),
+        ...(updateHolidayDto.isRecurring !== undefined && {
+          isRecurring: updateHolidayDto.isRecurring,
+        }),
+        ...(updateHolidayDto.description !== undefined && {
+          description: updateHolidayDto.description,
+        }),
       })
       .where(eq(holidays.id, id))
       .returning();

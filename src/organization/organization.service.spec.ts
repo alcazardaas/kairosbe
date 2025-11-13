@@ -173,7 +173,10 @@ describe('OrganizationService', () => {
     it('should update only provided fields', async () => {
       // Arrange
       const partialDto = { name: 'New Name' };
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
       mockDbService.db.update().set.mockResolvedValue([
         {
           ...mockOrganization,
@@ -190,7 +193,10 @@ describe('OrganizationService', () => {
 
     it('should update name only', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
       mockDbService.db.update().set.mockResolvedValue([
         {
           ...mockOrganization,
@@ -207,7 +213,10 @@ describe('OrganizationService', () => {
 
     it('should update phone only', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
       mockDbService.db.update().set.mockResolvedValue([
         {
           ...mockOrganization,
@@ -226,7 +235,10 @@ describe('OrganizationService', () => {
 
     it('should update address only', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
       mockDbService.db.update().set.mockResolvedValue([
         {
           ...mockOrganization,
@@ -243,7 +255,10 @@ describe('OrganizationService', () => {
 
     it('should update logoUrl only', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
       mockDbService.db.update().set.mockResolvedValue([
         {
           ...mockOrganization,
@@ -262,7 +277,10 @@ describe('OrganizationService', () => {
 
     it('should update timezone only', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
       mockDbService.db.update().set.mockResolvedValue([
         {
           ...mockOrganization,
@@ -281,7 +299,10 @@ describe('OrganizationService', () => {
 
     it('should update country only', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
       mockDbService.db.update().set.mockResolvedValue([
         {
           ...mockOrganization,
@@ -304,7 +325,10 @@ describe('OrganizationService', () => {
         logoUrl: null,
         country: null,
       };
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
       mockDbService.db.update().set.mockResolvedValue([
         {
           ...mockOrganization,
@@ -327,7 +351,10 @@ describe('OrganizationService', () => {
 
     it('should transform keys to camelCase', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
       mockDbService.db.update().set.mockResolvedValue([mockOrganization]);
 
       // Act
@@ -340,7 +367,10 @@ describe('OrganizationService', () => {
 
     it('should wrap result in data property', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
       mockDbService.db.update().set.mockResolvedValue([mockOrganization]);
 
       // Act
@@ -353,7 +383,10 @@ describe('OrganizationService', () => {
 
     it('should convert createdAt to ISO string', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ id: TEST_TENANT_ID }]);
       mockDbService.db.update().set.mockResolvedValue([mockOrganization]);
 
       // Act

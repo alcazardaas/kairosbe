@@ -281,7 +281,8 @@ export class TimeEntriesController {
   @Post('copy-week')
   @ApiOperation({
     summary: 'Copy time entries from one week to another',
-    description: 'Copy all time entries from a source week to a target week with optional overwrite.',
+    description:
+      'Copy all time entries from a source week to a target week with optional overwrite.',
   })
   @ApiOkResponse({
     description: 'Week copied successfully',

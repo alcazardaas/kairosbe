@@ -40,9 +40,7 @@ export const templateRequestQuerySchema = z.object({
   format: z.enum(['csv', 'xlsx']).optional().default('csv'),
 });
 
-export type TemplateRequestQueryDto = z.infer<
-  typeof templateRequestQuerySchema
->;
+export type TemplateRequestQueryDto = z.infer<typeof templateRequestQuerySchema>;
 
 /**
  * Error detail for a single row in the import file
@@ -103,18 +101,29 @@ export class ImportResultDto {
   @ApiProperty({ required: false, description: 'Number of users created (if not dry-run)' })
   createdCount?: number;
 
-  @ApiProperty({ required: false, description: 'Number of existing users added to tenant (if not dry-run)' })
+  @ApiProperty({
+    required: false,
+    description: 'Number of existing users added to tenant (if not dry-run)',
+  })
   existingCount?: number;
 
   @ApiProperty({ required: false, description: 'Success or error message' })
   message?: string;
 
-  @ApiProperty({ required: false, type: [ImportRowErrorDto], description: 'List of validation errors' })
+  @ApiProperty({
+    required: false,
+    type: [ImportRowErrorDto],
+    description: 'List of validation errors',
+  })
   errors?: ImportRowErrorDto[];
 
   @ApiProperty({ required: false, type: [UserSummaryDto], description: 'List of created users' })
   createdUsers?: UserSummaryDto[];
 
-  @ApiProperty({ required: false, type: [UserSummaryDto], description: 'List of existing users added to tenant' })
+  @ApiProperty({
+    required: false,
+    type: [UserSummaryDto],
+    description: 'List of existing users added to tenant',
+  })
   existingUsers?: UserSummaryDto[];
 }

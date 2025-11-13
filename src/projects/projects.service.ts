@@ -18,7 +18,10 @@ import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 export class ProjectsService {
   constructor(private readonly dbService: DbService) {}
 
-  async findAll(tenantId: string, query: QueryProjectsDto): Promise<PaginatedResponse<typeof projects.$inferSelect>> {
+  async findAll(
+    tenantId: string,
+    query: QueryProjectsDto,
+  ): Promise<PaginatedResponse<typeof projects.$inferSelect>> {
     const db = this.dbService.getDb();
     const { page, limit, sort, active, search } = query;
     const offset = calculateOffset(page, limit);
@@ -85,7 +88,10 @@ export class ProjectsService {
     return transformKeysToCamel(result[0]);
   }
 
-  async create(tenantId: string, createProjectDto: CreateProjectDto): Promise<typeof projects.$inferSelect> {
+  async create(
+    tenantId: string,
+    createProjectDto: CreateProjectDto,
+  ): Promise<typeof projects.$inferSelect> {
     const db = this.dbService.getDb();
 
     try {
@@ -134,11 +140,15 @@ export class ProjectsService {
       if (updateProjectDto.name !== undefined) updateData.name = updateProjectDto.name;
       if (updateProjectDto.code !== undefined) updateData.code = updateProjectDto.code;
       if (updateProjectDto.active !== undefined) updateData.active = updateProjectDto.active;
-      if (updateProjectDto.description !== undefined) updateData.description = updateProjectDto.description;
-      if (updateProjectDto.startDate !== undefined) updateData.startDate = updateProjectDto.startDate;
+      if (updateProjectDto.description !== undefined)
+        updateData.description = updateProjectDto.description;
+      if (updateProjectDto.startDate !== undefined)
+        updateData.startDate = updateProjectDto.startDate;
       if (updateProjectDto.endDate !== undefined) updateData.endDate = updateProjectDto.endDate;
-      if (updateProjectDto.clientName !== undefined) updateData.clientName = updateProjectDto.clientName;
-      if (updateProjectDto.budgetHours !== undefined) updateData.budgetHours = updateProjectDto.budgetHours?.toString();
+      if (updateProjectDto.clientName !== undefined)
+        updateData.clientName = updateProjectDto.clientName;
+      if (updateProjectDto.budgetHours !== undefined)
+        updateData.budgetHours = updateProjectDto.budgetHours?.toString();
 
       const result = await db
         .update(projects)

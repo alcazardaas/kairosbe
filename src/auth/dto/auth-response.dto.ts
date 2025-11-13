@@ -195,3 +195,98 @@ export class MeResponseDto {
   })
   data: MeResponseDataDto;
 }
+
+export class SignupRequestDto {
+  @ApiProperty({
+    description: 'User email address',
+    example: 'john.doe@newcompany.com',
+  })
+  email: string;
+
+  @ApiProperty({
+    description: 'User password (minimum 8 characters)',
+    example: 'SecurePassword123!',
+    minLength: 8,
+  })
+  password: string;
+
+  @ApiProperty({
+    description: 'User first name',
+    example: 'John',
+  })
+  firstName: string;
+
+  @ApiProperty({
+    description: 'User last name',
+    example: 'Doe',
+  })
+  lastName: string;
+
+  @ApiProperty({
+    description: 'Company/organization name',
+    example: 'Acme Corporation',
+  })
+  companyName: string;
+
+  @ApiProperty({
+    description: 'Timezone for the organization',
+    example: 'America/New_York',
+    default: 'UTC',
+  })
+  timezone: string;
+
+  @ApiProperty({
+    description: 'Terms and conditions acceptance',
+    example: true,
+  })
+  acceptedTerms: boolean;
+}
+
+export class SignupResponseDataDto {
+  @ApiProperty({
+    description: 'Session token for authenticated requests',
+    example: '987fcdeb-51a2-43f7-b8c3-9abc12345678',
+  })
+  token: string;
+
+  @ApiProperty({
+    description: 'Refresh token to obtain new session tokens',
+    example: 'abc12345-6789-def0-1234-56789abcdef0',
+  })
+  refreshToken: string;
+
+  @ApiProperty({
+    description: 'Session expiration timestamp',
+    example: '2025-11-20T12:00:00.000Z',
+  })
+  expiresAt: string;
+
+  @ApiProperty({
+    description: 'Created user information',
+    type: UserDto,
+  })
+  user: UserDto;
+
+  @ApiProperty({
+    description: 'Created tenant information',
+  })
+  tenant: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+
+  @ApiProperty({
+    description: 'User membership details',
+    type: MembershipDto,
+  })
+  membership: MembershipDto;
+}
+
+export class SignupResponseDto {
+  @ApiProperty({
+    description: 'Signup result data',
+    type: SignupResponseDataDto,
+  })
+  data: SignupResponseDataDto;
+}

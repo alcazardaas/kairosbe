@@ -13,10 +13,7 @@ import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 export class BenefitTypesService {
   constructor(private readonly dbService: DbService) {}
 
-  async findAll(
-    tenantId: string,
-    query: QueryBenefitTypesDto,
-  ): Promise<PaginatedResponse<any>> {
+  async findAll(tenantId: string, query: QueryBenefitTypesDto): Promise<PaginatedResponse<any>> {
     const db = this.dbService.getDb();
     const { page, limit, sort, unit, requiresApproval, search } = query;
     const offset = calculateOffset(page, limit);

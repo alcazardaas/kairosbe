@@ -290,7 +290,9 @@ export class TimeEntriesService {
         hours: timeEntries.hours,
       })
       .from(timeEntries)
-      .where(and(eq(timeEntries.userId, userId), eq(timeEntries.weekStartDate, new Date(weekStartDate))));
+      .where(
+        and(eq(timeEntries.userId, userId), eq(timeEntries.weekStartDate, new Date(weekStartDate))),
+      );
 
     // Initialize hoursPerDay with all 7 days set to 0
     const hoursPerDay: Record<string, number> = {};
@@ -627,9 +629,7 @@ export class TimeEntriesService {
               eq(timeEntries.tenantId, tenantId),
               eq(timeEntries.userId, bulkDto.userId),
               eq(timeEntries.projectId, entry.projectId),
-              entry.taskId
-                ? eq(timeEntries.taskId, entry.taskId)
-                : isNull(timeEntries.taskId),
+              entry.taskId ? eq(timeEntries.taskId, entry.taskId) : isNull(timeEntries.taskId),
               eq(timeEntries.weekStartDate, new Date(bulkDto.weekStartDate)),
               eq(timeEntries.dayOfWeek, entry.dayOfWeek),
             ),

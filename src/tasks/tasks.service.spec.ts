@@ -1,10 +1,6 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  NotFoundException,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
+import { NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { DbService } from '../db/db.service';
 import { createMockDbService } from '../../test/mocks';
@@ -66,7 +62,12 @@ describe('TasksService', () => {
 
     it('should return paginated tasks', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTask]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTask]);
 
       // Act
       const result = await service.findAll(mockQuery);
@@ -80,7 +81,12 @@ describe('TasksService', () => {
 
     it('should filter by tenantId', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTask]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTask]);
 
       // Act
       await service.findAll(mockQuery);
@@ -91,7 +97,12 @@ describe('TasksService', () => {
 
     it('should filter by projectId', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTask]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTask]);
 
       // Act
       await service.findAll({ ...mockQuery, projectId: 'project-1' });
@@ -102,7 +113,12 @@ describe('TasksService', () => {
 
     it('should filter by parentTaskId', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockChildTask]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockChildTask]);
 
       // Act
       await service.findAll({ ...mockQuery, parentTaskId: 'task-1' });
@@ -113,7 +129,12 @@ describe('TasksService', () => {
 
     it('should filter root tasks when parentTaskId is null', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTask]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTask]);
 
       // Act
       await service.findAll({ ...mockQuery, parentTaskId: null });
@@ -124,7 +145,12 @@ describe('TasksService', () => {
 
     it('should search by task name', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTask]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTask]);
 
       // Act
       await service.findAll({ ...mockQuery, search: 'Alpha' });
@@ -135,7 +161,12 @@ describe('TasksService', () => {
 
     it('should sort by field', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockTask]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockTask]);
 
       // Act
       await service.findAll({ ...mockQuery, sort: 'name:asc' });
@@ -146,7 +177,12 @@ describe('TasksService', () => {
 
     it('should apply pagination', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ count: 50 }]).mockResolvedValueOnce([mockTask]);
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 50 }])
+        .mockResolvedValueOnce([mockTask]);
 
       // Act
       const result = await service.findAll({ ...mockQuery, page: 2, limit: 10 });
@@ -176,7 +212,9 @@ describe('TasksService', () => {
 
       // Act & Assert
       await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
-      await expect(service.findOne('nonexistent')).rejects.toThrow('Task with ID nonexistent not found');
+      await expect(service.findOne('nonexistent')).rejects.toThrow(
+        'Task with ID nonexistent not found',
+      );
     });
   });
 
@@ -190,9 +228,10 @@ describe('TasksService', () => {
 
     it('should create new task', async () => {
       // Arrange
-      mockDbService.getDb().insert().values.mockResolvedValue([
-        { ...mockTask, ...createDto },
-      ]);
+      mockDbService
+        .getDb()
+        .insert()
+        .values.mockResolvedValue([{ ...mockTask, ...createDto }]);
 
       // Act
       const result = await service.create(createDto);
@@ -207,9 +246,10 @@ describe('TasksService', () => {
       const dtoWithParent = { ...createDto, parentTaskId: 'task-1' };
       mockDbService.getDb().select().from().where.mockResolvedValue([mockTask]); // parent exists
 
-      mockDbService.getDb().insert().values.mockResolvedValue([
-        { ...mockTask, ...dtoWithParent },
-      ]);
+      mockDbService
+        .getDb()
+        .insert()
+        .values.mockResolvedValue([{ ...mockTask, ...dtoWithParent }]);
 
       // Act
       const result = await service.create(dtoWithParent);
@@ -249,7 +289,9 @@ describe('TasksService', () => {
 
       // Act & Assert
       await expect(service.create(createDto)).rejects.toThrow(BadRequestException);
-      await expect(service.create(createDto)).rejects.toThrow('Project with ID project-1 not found');
+      await expect(service.create(createDto)).rejects.toThrow(
+        'Project with ID project-1 not found',
+      );
     });
 
     it('should throw BadRequestException on invalid tenant', async () => {
@@ -261,7 +303,9 @@ describe('TasksService', () => {
 
       // Act & Assert
       await expect(service.create(createDto)).rejects.toThrow(BadRequestException);
-      await expect(service.create(createDto)).rejects.toThrow(`Tenant with ID ${TEST_TENANT_ID} not found`);
+      await expect(service.create(createDto)).rejects.toThrow(
+        `Tenant with ID ${TEST_TENANT_ID} not found`,
+      );
     });
 
     it('should create root task (parentTaskId null)', async () => {
@@ -381,7 +425,9 @@ describe('TasksService', () => {
       mockDbService.getDb().update().set().where.mockRejectedValue(duplicateError);
 
       // Act & Assert
-      await expect(service.update('task-1', { name: 'Duplicate Name' })).rejects.toThrow(ConflictException);
+      await expect(service.update('task-1', { name: 'Duplicate Name' })).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should allow removing parent (set to null)', async () => {
@@ -481,7 +527,9 @@ describe('TasksService', () => {
         .mockResolvedValue([{ ...mockTask, parentTaskId: 'task-parent' }]);
 
       // Act & Assert: Should not throw
-      await expect(service.update('task-1', { parentTaskId: 'task-parent' })).resolves.toBeDefined();
+      await expect(
+        service.update('task-1', { parentTaskId: 'task-parent' }),
+      ).resolves.toBeDefined();
     });
 
     it('should detect circular reference in chain', async () => {

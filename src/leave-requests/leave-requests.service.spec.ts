@@ -109,7 +109,11 @@ describe('LeaveRequestsService', () => {
 
     it('should filter own requests with mine=true', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockCompleteRequest]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockCompleteRequest]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, TEST_USER_ID, { mine: true });
@@ -150,7 +154,11 @@ describe('LeaveRequestsService', () => {
 
     it('should filter by status', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockCompleteRequest]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockCompleteRequest]);
 
       // Act
       await service.findAll(TEST_TENANT_ID, TEST_USER_ID, { status: 'approved' });
@@ -161,7 +169,11 @@ describe('LeaveRequestsService', () => {
 
     it('should filter by date range', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([mockCompleteRequest]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockCompleteRequest]);
 
       // Act
       await service.findAll(TEST_TENANT_ID, TEST_USER_ID, {
@@ -175,7 +187,11 @@ describe('LeaveRequestsService', () => {
 
     it('should apply pagination', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 50 }]).mockResolvedValueOnce([mockCompleteRequest]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 50 }])
+        .mockResolvedValueOnce([mockCompleteRequest]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, TEST_USER_ID, {
@@ -219,7 +235,9 @@ describe('LeaveRequestsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
-      await expect(service.findOne(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
       await expect(service.findOne(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(
         'Leave request with ID nonexistent not found',
       );
@@ -315,7 +333,9 @@ describe('LeaveRequestsService', () => {
         .mockResolvedValueOnce([]) // balance not found
         .mockResolvedValueOnce([{ ...mockLeaveRequest, benefitType: mockBenefitType }]); // findOne result
 
-      mockDbService.db.insert().values.mockResolvedValueOnce([{ ...mockBenefitBalance, currentBalance: '0' }]) // auto-create balance
+      mockDbService.db
+        .insert()
+        .values.mockResolvedValueOnce([{ ...mockBenefitBalance, currentBalance: '0' }]) // auto-create balance
         .mockResolvedValueOnce([mockLeaveRequest]); // create request
 
       // Act & Assert: Should throw insufficient balance
@@ -347,9 +367,10 @@ describe('LeaveRequestsService', () => {
         .mockResolvedValueOnce([mockBenefitType]) // get benefit type
         .mockResolvedValueOnce([mockBenefitBalance]); // get balance
 
-      mockDbService.db.update().set().where.mockResolvedValueOnce([
-        { ...mockLeaveRequest, status: 'approved' },
-      ]) // update request
+      mockDbService.db
+        .update()
+        .set()
+        .where.mockResolvedValueOnce([{ ...mockLeaveRequest, status: 'approved' }]) // update request
         .mockResolvedValueOnce([{ ...mockBenefitBalance, currentBalance: '7' }]); // update balance
 
       // Act
@@ -383,7 +404,11 @@ describe('LeaveRequestsService', () => {
         .mockResolvedValueOnce([mockBenefitType])
         .mockResolvedValueOnce([mockBenefitBalance]);
 
-      mockDbService.db.update().set().where.mockResolvedValueOnce([mockLeaveRequest]).mockResolvedValueOnce([mockBenefitBalance]);
+      mockDbService.db
+        .update()
+        .set()
+        .where.mockResolvedValueOnce([mockLeaveRequest])
+        .mockResolvedValueOnce([mockBenefitBalance]);
 
       // Act
       await service.approve(TEST_TENANT_ID, 'request-1', 'manager-1');
@@ -424,9 +449,10 @@ describe('LeaveRequestsService', () => {
     it('should reject pending request', async () => {
       // Arrange
       mockDbService.db.select().from().where.mockResolvedValue([mockCompleteRequest]);
-      mockDbService.db.update().set().where.mockResolvedValue([
-        { ...mockLeaveRequest, status: 'rejected' },
-      ]);
+      mockDbService.db
+        .update()
+        .set()
+        .where.mockResolvedValue([{ ...mockLeaveRequest, status: 'rejected' }]);
 
       // Act
       const result = await service.reject(TEST_TENANT_ID, 'request-1', 'manager-1');
@@ -474,9 +500,10 @@ describe('LeaveRequestsService', () => {
     it('should cancel own pending request', async () => {
       // Arrange
       mockDbService.db.select().from().where.mockResolvedValue([mockCompleteRequest]);
-      mockDbService.db.update().set().where.mockResolvedValue([
-        { ...mockLeaveRequest, status: 'cancelled' },
-      ]);
+      mockDbService.db
+        .update()
+        .set()
+        .where.mockResolvedValue([{ ...mockLeaveRequest, status: 'cancelled' }]);
 
       // Act
       const result = await service.cancel(TEST_TENANT_ID, 'request-1', TEST_USER_ID);

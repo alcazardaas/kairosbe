@@ -119,10 +119,7 @@ export class UserImportService {
   /**
    * Parse CSV or Excel file into array of row objects
    */
-  private async parseFile(
-    buffer: Buffer,
-    mimetype: string,
-  ): Promise<Record<string, any>[]> {
+  private async parseFile(buffer: Buffer, mimetype: string): Promise<Record<string, any>[]> {
     this.logger.log(`Parsing file with mimetype: ${mimetype}`);
 
     try {
@@ -134,7 +131,9 @@ export class UserImportService {
       }
     } catch (error) {
       this.logger.error('File parsing failed', error);
-      throw new BadRequestException('Failed to parse file. Please ensure the file is valid CSV or Excel format.');
+      throw new BadRequestException(
+        'Failed to parse file. Please ensure the file is valid CSV or Excel format.',
+      );
     }
   }
 
@@ -385,10 +384,7 @@ export class UserImportService {
    * Check which emails already have memberships in this tenant
    * Returns Set of emails that exist
    */
-  private async checkExistingMemberships(
-    emails: string[],
-    tenantId: string,
-  ): Promise<Set<string>> {
+  private async checkExistingMemberships(emails: string[], tenantId: string): Promise<Set<string>> {
     const db = this.dbService.getDb();
 
     const existing = await db

@@ -5,8 +5,16 @@ export const createProjectSchema = z.object({
   code: z.string().max(50, 'Code too long').optional().nullable(),
   active: z.boolean().default(true),
   description: z.string().max(2000, 'Description too long').optional().nullable(),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (use YYYY-MM-DD)').optional().nullable(),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (use YYYY-MM-DD)').optional().nullable(),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (use YYYY-MM-DD)')
+    .optional()
+    .nullable(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (use YYYY-MM-DD)')
+    .optional()
+    .nullable(),
   clientName: z.string().max(255, 'Client name too long').optional().nullable(),
   budgetHours: z.coerce.number().positive('Budget hours must be positive').optional().nullable(),
 });

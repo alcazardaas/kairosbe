@@ -43,9 +43,7 @@ export const multerConfig: MulterOptions = {
 
     if (!allowedExtensions.includes(fileExtension)) {
       return callback(
-        new BadRequestException(
-          'Invalid file extension. Only .csv and .xlsx files are supported.',
-        ),
+        new BadRequestException('Invalid file extension. Only .csv and .xlsx files are supported.'),
         false,
       );
     }

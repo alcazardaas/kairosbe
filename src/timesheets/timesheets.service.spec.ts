@@ -93,7 +93,10 @@ describe('TimesheetsService', () => {
           { ...mockTimesheet, id: 'timesheet-2', user: mockUser },
         ]); // timesheets query
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ total: 40 }]); // hours query
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ total: 40 }]); // hours query
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, TEST_USER_ID);
@@ -107,11 +110,16 @@ describe('TimesheetsService', () => {
 
     it('should filter timesheets by userId', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([
-        { ...mockTimesheet, user: mockUser },
-      ]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([{ ...mockTimesheet, user: mockUser }]);
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ total: 40 }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ total: 40 }]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, TEST_USER_ID, {
@@ -125,11 +133,16 @@ describe('TimesheetsService', () => {
 
     it('should filter timesheets by weekStartDate', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([
-        { ...mockTimesheet, user: mockUser },
-      ]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([{ ...mockTimesheet, user: mockUser }]);
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ total: 40 }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ total: 40 }]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, TEST_USER_ID, {
@@ -144,9 +157,16 @@ describe('TimesheetsService', () => {
     it('should filter timesheets by status', async () => {
       // Arrange
       const submittedTimesheet = { ...mockTimesheet, status: 'submitted', user: mockUser };
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([submittedTimesheet]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([submittedTimesheet]);
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ total: 40 }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ total: 40 }]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, TEST_USER_ID, {
@@ -172,7 +192,10 @@ describe('TimesheetsService', () => {
           { ...mockTimesheet, id: 'timesheet-2', userId: 'employee-2', user: mockUser },
         ]); // timesheets query
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ total: 40 }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ total: 40 }]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, 'manager-1', { team: true });
@@ -197,11 +220,16 @@ describe('TimesheetsService', () => {
 
     it('should filter by date range (from)', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([
-        { ...mockTimesheet, user: mockUser },
-      ]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([{ ...mockTimesheet, user: mockUser }]);
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ total: 40 }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ total: 40 }]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, TEST_USER_ID, {
@@ -214,11 +242,16 @@ describe('TimesheetsService', () => {
 
     it('should filter by date range (to)', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([
-        { ...mockTimesheet, user: mockUser },
-      ]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([{ ...mockTimesheet, user: mockUser }]);
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ total: 40 }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ total: 40 }]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, TEST_USER_ID, {
@@ -231,11 +264,16 @@ describe('TimesheetsService', () => {
 
     it('should apply pagination', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 50 }]).mockResolvedValueOnce([
-        { ...mockTimesheet, user: mockUser },
-      ]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 50 }])
+        .mockResolvedValueOnce([{ ...mockTimesheet, user: mockUser }]);
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ total: 40 }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ total: 40 }]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, TEST_USER_ID, {
@@ -251,11 +289,16 @@ describe('TimesheetsService', () => {
 
     it('should include total hours for each timesheet', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([{ count: 1 }]).mockResolvedValueOnce([
-        { ...mockTimesheet, user: mockUser },
-      ]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([{ ...mockTimesheet, user: mockUser }]);
 
-      mockDbService.db.select().from().where.mockResolvedValue([{ total: 42 }]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([{ total: 42 }]);
 
       // Act
       const result = await service.findAll(TEST_TENANT_ID, TEST_USER_ID);
@@ -289,7 +332,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
-      await expect(service.findOne(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
 
       await expect(service.findOne(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(
         'Timesheet with ID nonexistent not found',
@@ -298,7 +343,11 @@ describe('TimesheetsService', () => {
 
     it('should filter time entries by tenant and user', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValueOnce([mockTimesheet]).mockResolvedValueOnce([mockTimeEntry]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([mockTimesheet])
+        .mockResolvedValueOnce([mockTimeEntry]);
 
       // Act
       const result = await service.findOne(TEST_TENANT_ID, 'timesheet-1');
@@ -372,7 +421,11 @@ describe('TimesheetsService', () => {
         weekStartDate: '2025-01-06',
       };
 
-      mockDbService.db.select().from().where.mockResolvedValue([]).mockResolvedValue([mockTimesheet]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([])
+        .mockResolvedValue([mockTimesheet]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, createDto);
@@ -412,7 +465,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
-      await expect(service.submit(TEST_TENANT_ID, 'nonexistent', TEST_USER_ID)).rejects.toThrow(NotFoundException);
+      await expect(service.submit(TEST_TENANT_ID, 'nonexistent', TEST_USER_ID)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException if timesheet not in draft status', async () => {
@@ -421,7 +476,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([submittedTimesheet]);
 
       // Act & Assert
-      await expect(service.submit(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(BadRequestException);
+      await expect(service.submit(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
+        BadRequestException,
+      );
 
       await expect(service.submit(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
         'Timesheet cannot be submitted. Current status: submitted',
@@ -434,7 +491,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([otherUserTimesheet]);
 
       // Act & Assert
-      await expect(service.submit(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(ForbiddenException);
+      await expect(service.submit(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
+        ForbiddenException,
+      );
 
       await expect(service.submit(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
         'You can only submit your own timesheets',
@@ -449,7 +508,11 @@ describe('TimesheetsService', () => {
         updatedAt: new Date(),
       };
 
-      mockDbService.db.select().from().where.mockResolvedValue([mockTimesheet]).mockResolvedValue([submittedTimesheet]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([mockTimesheet])
+        .mockResolvedValue([submittedTimesheet]);
 
       // Act
       const result = await service.submit(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID);
@@ -494,7 +557,11 @@ describe('TimesheetsService', () => {
         reviewNote: 'Looks good',
       };
 
-      mockDbService.db.select().from().where.mockResolvedValue([submittedTimesheet]).mockResolvedValue([approvedTimesheet]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([submittedTimesheet])
+        .mockResolvedValue([approvedTimesheet]);
 
       // Act
       const result = await service.approve(TEST_TENANT_ID, 'timesheet-1', 'manager-1', {
@@ -510,7 +577,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
-      await expect(service.approve(TEST_TENANT_ID, 'nonexistent', 'manager-1')).rejects.toThrow(NotFoundException);
+      await expect(service.approve(TEST_TENANT_ID, 'nonexistent', 'manager-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException if timesheet not in submitted status', async () => {
@@ -518,7 +587,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([mockTimesheet]); // draft status
 
       // Act & Assert
-      await expect(service.approve(TEST_TENANT_ID, 'timesheet-1', 'manager-1')).rejects.toThrow(BadRequestException);
+      await expect(service.approve(TEST_TENANT_ID, 'timesheet-1', 'manager-1')).rejects.toThrow(
+        BadRequestException,
+      );
 
       await expect(service.approve(TEST_TENANT_ID, 'timesheet-1', 'manager-1')).rejects.toThrow(
         'Timesheet cannot be approved. Current status: draft',
@@ -622,7 +693,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
-      await expect(service.remove(TEST_TENANT_ID, 'nonexistent', TEST_USER_ID)).rejects.toThrow(NotFoundException);
+      await expect(service.remove(TEST_TENANT_ID, 'nonexistent', TEST_USER_ID)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException if timesheet not in draft status', async () => {
@@ -631,7 +704,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([submittedTimesheet]);
 
       // Act & Assert
-      await expect(service.remove(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(BadRequestException);
+      await expect(service.remove(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
+        BadRequestException,
+      );
 
       await expect(service.remove(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
         'Only draft timesheets can be deleted',
@@ -644,7 +719,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([otherUserTimesheet]);
 
       // Act & Assert
-      await expect(service.remove(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(ForbiddenException);
+      await expect(service.remove(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
+        ForbiddenException,
+      );
 
       await expect(service.remove(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
         'You can only delete your own draft timesheets',
@@ -677,7 +754,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
-      await expect(service.validateTimesheet(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.validateTimesheet(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should detect max hours per day violation', async () => {
@@ -812,7 +891,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
-      await expect(service.recall(TEST_TENANT_ID, 'nonexistent', TEST_USER_ID)).rejects.toThrow(NotFoundException);
+      await expect(service.recall(TEST_TENANT_ID, 'nonexistent', TEST_USER_ID)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException if timesheet not in submitted status', async () => {
@@ -820,7 +901,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([mockTimesheet]); // draft status
 
       // Act & Assert
-      await expect(service.recall(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(BadRequestException);
+      await expect(service.recall(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
+        BadRequestException,
+      );
 
       await expect(service.recall(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
         'Cannot recall timesheet. Current status: draft. Only submitted timesheets can be recalled.',
@@ -837,7 +920,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([otherUserTimesheet]);
 
       // Act & Assert
-      await expect(service.recall(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(ForbiddenException);
+      await expect(service.recall(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
+        ForbiddenException,
+      );
 
       await expect(service.recall(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
         'You can only recall your own timesheets',
@@ -854,7 +939,9 @@ describe('TimesheetsService', () => {
       mockDbService.db.select().from().where.mockResolvedValue([reviewedTimesheet]);
 
       // Act & Assert
-      await expect(service.recall(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(BadRequestException);
+      await expect(service.recall(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
+        BadRequestException,
+      );
 
       await expect(service.recall(TEST_TENANT_ID, 'timesheet-1', TEST_USER_ID)).rejects.toThrow(
         'Cannot recall timesheet that has already been reviewed',
@@ -893,7 +980,11 @@ describe('TimesheetsService', () => {
 
     it('should calculate week start based on policy (Monday=1)', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValue([]).mockResolvedValue([mockTimesheet]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([])
+        .mockResolvedValue([mockTimesheet]);
 
       // Act
       const result = await service.getMyCurrent(TEST_TENANT_ID, TEST_USER_ID, 1);
@@ -904,7 +995,11 @@ describe('TimesheetsService', () => {
 
     it('should calculate week start based on policy (Sunday=0)', async () => {
       // Arrange
-      mockDbService.db.select().from().where.mockResolvedValue([]).mockResolvedValue([mockTimesheet]);
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValue([])
+        .mockResolvedValue([mockTimesheet]);
 
       // Act
       const result = await service.getMyCurrent(TEST_TENANT_ID, TEST_USER_ID, 0);

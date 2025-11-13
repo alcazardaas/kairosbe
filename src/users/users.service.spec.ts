@@ -298,7 +298,10 @@ describe('UsersService', () => {
     it('should create new user', async () => {
       // Arrange
       mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // no existing user
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
+      mockDbService
+        .getDb()
+        .insert()
+        .values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
       mockDbService.getDb().insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
       mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
 
@@ -355,13 +358,12 @@ describe('UsersService', () => {
         },
       };
       mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // no existing user
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
       mockDbService
         .getDb()
-        .select()
-        .from()
-        .where.mockResolvedValueOnce([mockMembership]); // validateManager: manager exists
+        .insert()
+        .values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
+      mockDbService.getDb().insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
+      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockMembership]); // validateManager: manager exists
       mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // validateManager: no circular ref
       mockDbService.getDb().insert().values.mockResolvedValueOnce([mockProfile]); // insert profile
       mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
@@ -380,7 +382,10 @@ describe('UsersService', () => {
         profile: { managerUserId: 'nonexistent' },
       };
       mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // no existing user
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
+      mockDbService
+        .getDb()
+        .insert()
+        .values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
       mockDbService.getDb().insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
       mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // validateManager: manager not found
 
@@ -394,9 +399,15 @@ describe('UsersService', () => {
       // Arrange
       const dtoWithInvite = { ...createDto, sendInvite: true };
       mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // no existing user
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
+      mockDbService
+        .getDb()
+        .insert()
+        .values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
       mockDbService.getDb().insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([{ token: 'abc123' }]); // insert invitation
+      mockDbService
+        .getDb()
+        .insert()
+        .values.mockResolvedValueOnce([{ token: 'abc123' }]); // insert invitation
       mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
 
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -418,11 +429,7 @@ describe('UsersService', () => {
 
     it('should update user', async () => {
       // Arrange
-      mockDbService
-        .getDb()
-        .select()
-        .from()
-        .where.mockResolvedValueOnce([mockMembership]); // verify exists
+      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockMembership]); // verify exists
       mockDbService.getDb().update().set.mockResolvedValueOnce([]); // update user
       mockDbService.getDb().update().set.mockResolvedValueOnce([]); // update membership
       mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
@@ -695,8 +702,16 @@ describe('UsersService', () => {
     it('should detect circular manager reference (indirect)', async () => {
       // Arrange: A -> B -> C, trying to set C's manager to A (creates cycle)
       mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockMembership]); // A exists
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ managerUserId: 'B' }]); // A's manager is B
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([{ managerUserId: 'C' }]); // B's manager is C
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ managerUserId: 'B' }]); // A's manager is B
+      mockDbService
+        .getDb()
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([{ managerUserId: 'C' }]); // B's manager is C
 
       // Act & Assert
       await expect((service as any).validateManager(TEST_TENANT_ID, 'A', 'C')).rejects.toThrow(

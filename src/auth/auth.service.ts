@@ -1,10 +1,16 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { eq, and } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { SessionsService, SessionData } from './sessions.service';
-import { users, memberships } from '../db/schema';
-import { verifyPassword } from './password.util';
+import { users, memberships, tenants } from '../db/schema';
+import { verifyPassword, hashPassword } from './password.util';
 import { LoginDto } from './dto/login.dto';
+import { SignupDto } from './dto/signup.dto';
 import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
 
 export interface AuthResponse {
@@ -18,6 +24,26 @@ export interface AuthResponse {
   };
   tenant: {
     id: string;
+  };
+}
+
+export interface SignupResponse {
+  token: string;
+  refreshToken: string;
+  expiresAt: Date;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  tenant: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  membership: {
+    role: string;
+    status: string;
   };
 }
 
@@ -147,5 +173,136 @@ export class AuthService {
       await this.sessionsService.touchSession(token);
     }
     return session;
+  }
+
+  /**
+   * Create new tenant and user account (self-service signup)
+   */
+  async signup(dto: SignupDto, ipAddress?: string, userAgent?: string): Promise<SignupResponse> {
+    // 1. Check if email already exists
+    const [existingUser] = await this.db.db
+      .select()
+      .from(users)
+      .where(eq(users.email, dto.email.toLowerCase()))
+      .limit(1);
+
+    if (existingUser) {
+      throw new ConflictException('Email address is already registered');
+    }
+
+    // 2. Generate unique slug from company name
+    const slug = await this.generateUniqueSlug(dto.companyName);
+
+    // 3. Hash password
+    const passwordHash = await hashPassword(dto.password);
+
+    // 4. Create tenant (company/organization)
+    const [tenant] = await this.db.db
+      .insert(tenants)
+      .values({
+        name: dto.companyName,
+        slug,
+        timezone: dto.timezone || 'UTC',
+      })
+      .returning();
+
+    // 5. Create user account
+    const fullName = `${dto.firstName} ${dto.lastName}`;
+    const [user] = await this.db.db
+      .insert(users)
+      .values({
+        email: dto.email.toLowerCase(),
+        passwordHash,
+        name: fullName,
+        locale: 'en',
+      })
+      .returning();
+
+    // 6. Create admin membership
+    const [membership] = await this.db.db
+      .insert(memberships)
+      .values({
+        userId: user.id,
+        tenantId: tenant.id,
+        role: 'admin',
+        status: 'active',
+      })
+      .returning();
+
+    // 7. Update tenant owner
+    await this.db.db.update(tenants).set({ ownerUserId: user.id }).where(eq(tenants.id, tenant.id));
+
+    // 8. Create session (auto-login)
+    const session = await this.sessionsService.createSession({
+      userId: user.id,
+      tenantId: tenant.id,
+      ipAddress,
+      userAgent,
+    });
+
+    // 9. Return response
+    return {
+      token: session.token,
+      refreshToken: session.refreshToken!,
+      expiresAt: session.expiresAt,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name!,
+      },
+      tenant: {
+        id: tenant.id,
+        name: tenant.name,
+        slug: tenant.slug,
+      },
+      membership: {
+        role: membership.role,
+        status: membership.status,
+      },
+    };
+  }
+
+  /**
+   * Generate unique slug from company name
+   * Converts to lowercase, replaces spaces with hyphens, removes special chars
+   * Adds random suffix if slug already exists
+   */
+  private async generateUniqueSlug(companyName: string): Promise<string> {
+    // Base slug: lowercase, spaces to hyphens, remove special chars
+    let baseSlug = companyName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+      .replace(/\s+/g, '-') // Spaces to hyphens
+      .replace(/-+/g, '-') // Multiple hyphens to single
+      .replace(/^-|-$/g, ''); // Trim hyphens from ends
+
+    // Ensure slug is not empty
+    if (!baseSlug) {
+      baseSlug = 'company';
+    }
+
+    // Check if slug exists
+    let slug = baseSlug;
+    let counter = 1;
+    let isUnique = false;
+
+    while (!isUnique) {
+      const [existing] = await this.db.db
+        .select()
+        .from(tenants)
+        .where(eq(tenants.slug, slug))
+        .limit(1);
+
+      if (!existing) {
+        isUnique = true;
+      } else {
+        // Slug exists, add counter
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+    }
+
+    return slug;
   }
 }

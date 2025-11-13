@@ -1,6 +1,6 @@
 import { vi, Mocked } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { UnauthorizedException, BadRequestException, ConflictException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SessionsService } from './sessions.service';
 import { DbService } from '../db/db.service';
@@ -186,9 +186,7 @@ describe('AuthService', () => {
 
       // Act & Assert
       await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
-      await expect(service.login(loginDto)).rejects.toThrow(
-        'No active tenant memberships found',
-      );
+      await expect(service.login(loginDto)).rejects.toThrow('No active tenant memberships found');
     });
 
     it('should use first active membership when tenantId not specified', async () => {
@@ -534,6 +532,377 @@ describe('AuthService', () => {
 
       // Assert
       expect(sessionsService.touchSession).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('signup', () => {
+    const signupDto = {
+      email: 'newuser@newcompany.com',
+      password: 'password123',
+      firstName: 'John',
+      lastName: 'Doe',
+      companyName: 'New Company Inc',
+      timezone: 'America/New_York',
+      acceptedTerms: true,
+    };
+
+    const mockTenant = {
+      id: 'new-tenant-id',
+      name: 'New Company Inc',
+      slug: 'new-company-inc',
+      timezone: 'America/New_York',
+      ownerUserId: null,
+      createdAt: new Date(),
+      phone: null,
+      address: null,
+      logoUrl: null,
+      country: null,
+    };
+
+    const mockUser = {
+      id: 'new-user-id',
+      email: 'newuser@newcompany.com',
+      passwordHash: '$2b$12$hashedpassword',
+      name: 'John Doe',
+      locale: 'en',
+      createdAt: new Date(),
+      lastLoginAt: null,
+    };
+
+    const mockMembership = {
+      id: 'new-membership-id',
+      userId: 'new-user-id',
+      tenantId: 'new-tenant-id',
+      role: 'admin',
+      status: 'active',
+      createdAt: new Date(),
+    };
+
+    const mockSession = {
+      id: 'new-session-id',
+      userId: 'new-user-id',
+      tenantId: 'new-tenant-id',
+      token: 'new-session-token',
+      refreshToken: 'new-refresh-token',
+      expiresAt: new Date(Date.now() + 86400000),
+      refreshExpiresAt: new Date(Date.now() + 7776000000),
+    };
+
+    beforeEach(() => {
+      vi.spyOn(passwordUtil, 'hashPassword').mockResolvedValue('$2b$12$hashedpassword');
+    });
+
+    it('should create new tenant, user, and membership on signup', async () => {
+      // Arrange: Mock all database operations
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([]) // No existing user
+        .mockResolvedValueOnce([]); // Slug is unique
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi.fn().mockResolvedValueOnce([mockTenant]), // Tenant insert
+      }));
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi
+          .fn()
+          .mockResolvedValueOnce([mockTenant]) // Tenant
+          .mockResolvedValueOnce([mockUser]) // User
+          .mockResolvedValueOnce([mockMembership]), // Membership
+      }));
+
+      mockDbService.db.update().set().where.mockResolvedValue([mockTenant]);
+
+      sessionsService.createSession.mockResolvedValue(mockSession);
+
+      // Act
+      const result = await service.signup(signupDto, '127.0.0.1', 'test-agent');
+
+      // Assert
+      expect(result).toHaveProperty('token');
+      expect(result).toHaveProperty('refreshToken');
+      expect(result).toHaveProperty('user');
+      expect(result).toHaveProperty('tenant');
+      expect(result).toHaveProperty('membership');
+      expect(result.user.email).toBe('newuser@newcompany.com');
+      expect(result.tenant.name).toBe('New Company Inc');
+      expect(result.membership.role).toBe('admin');
+    });
+
+    it('should throw ConflictException when email already exists', async () => {
+      // Arrange: Email already registered
+      mockDbService.db.select().from().where.mockResolvedValue([mockUser]);
+
+      // Act & Assert
+      await expect(service.signup(signupDto)).rejects.toThrow(ConflictException);
+      await expect(service.signup(signupDto)).rejects.toThrow(
+        'Email address is already registered',
+      );
+
+      // Verify tenant was not created
+      expect(mockDbService.db.insert).not.toHaveBeenCalled();
+      expect(sessionsService.createSession).not.toHaveBeenCalled();
+    });
+
+    it('should convert email to lowercase', async () => {
+      // Arrange
+      const dtoWithUppercaseEmail = {
+        ...signupDto,
+        email: 'NEWUSER@NEWCOMPANY.COM',
+      };
+
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([]) // Check existing user (lowercased)
+        .mockResolvedValueOnce([]); // Slug check
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi
+          .fn()
+          .mockResolvedValueOnce([mockTenant])
+          .mockResolvedValueOnce([{ ...mockUser, email: 'newuser@newcompany.com' }])
+          .mockResolvedValueOnce([mockMembership]),
+      }));
+
+      mockDbService.db.update().set().where.mockResolvedValue([mockTenant]);
+      sessionsService.createSession.mockResolvedValue(mockSession);
+
+      // Act
+      await service.signup(dtoWithUppercaseEmail);
+
+      // Assert: Email should be checked as lowercase
+      expect(mockDbService.db.where).toHaveBeenCalledWith(expect.anything());
+    });
+
+    it('should generate unique slug from company name', async () => {
+      // Arrange
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([]) // No existing user
+        .mockResolvedValueOnce([]); // Slug is unique
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi
+          .fn()
+          .mockResolvedValueOnce([mockTenant])
+          .mockResolvedValueOnce([mockUser])
+          .mockResolvedValueOnce([mockMembership]),
+      }));
+
+      mockDbService.db.update().set().where.mockResolvedValue([mockTenant]);
+      sessionsService.createSession.mockResolvedValue(mockSession);
+
+      // Act
+      const result = await service.signup(signupDto);
+
+      // Assert: Slug should be lowercase with hyphens
+      expect(result.tenant.slug).toBe('new-company-inc');
+    });
+
+    it('should create user with admin role', async () => {
+      // Arrange
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi
+          .fn()
+          .mockResolvedValueOnce([mockTenant])
+          .mockResolvedValueOnce([mockUser])
+          .mockResolvedValueOnce([mockMembership]),
+      }));
+
+      mockDbService.db.update().set().where.mockResolvedValue([mockTenant]);
+      sessionsService.createSession.mockResolvedValue(mockSession);
+
+      // Act
+      const result = await service.signup(signupDto);
+
+      // Assert
+      expect(result.membership.role).toBe('admin');
+      expect(result.membership.status).toBe('active');
+    });
+
+    it('should hash password before storing', async () => {
+      // Arrange
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi
+          .fn()
+          .mockResolvedValueOnce([mockTenant])
+          .mockResolvedValueOnce([mockUser])
+          .mockResolvedValueOnce([mockMembership]),
+      }));
+
+      mockDbService.db.update().set().where.mockResolvedValue([mockTenant]);
+      sessionsService.createSession.mockResolvedValue(mockSession);
+
+      // Act
+      await service.signup(signupDto);
+
+      // Assert
+      expect(passwordUtil.hashPassword).toHaveBeenCalledWith('password123');
+    });
+
+    it('should create session with IP address and user agent', async () => {
+      // Arrange
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi
+          .fn()
+          .mockResolvedValueOnce([mockTenant])
+          .mockResolvedValueOnce([mockUser])
+          .mockResolvedValueOnce([mockMembership]),
+      }));
+
+      mockDbService.db.update().set().where.mockResolvedValue([mockTenant]);
+      sessionsService.createSession.mockResolvedValue(mockSession);
+
+      const ipAddress = '192.168.1.1';
+      const userAgent = 'Mozilla/5.0';
+
+      // Act
+      await service.signup(signupDto, ipAddress, userAgent);
+
+      // Assert
+      expect(sessionsService.createSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'new-user-id',
+          tenantId: 'new-tenant-id',
+          ipAddress,
+          userAgent,
+        }),
+      );
+    });
+
+    it('should return session tokens for auto-login', async () => {
+      // Arrange
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi
+          .fn()
+          .mockResolvedValueOnce([mockTenant])
+          .mockResolvedValueOnce([mockUser])
+          .mockResolvedValueOnce([mockMembership]),
+      }));
+
+      mockDbService.db.update().set().where.mockResolvedValue([mockTenant]);
+      sessionsService.createSession.mockResolvedValue(mockSession);
+
+      // Act
+      const result = await service.signup(signupDto);
+
+      // Assert
+      expect(result.token).toBe('new-session-token');
+      expect(result.refreshToken).toBe('new-refresh-token');
+      expect(result.expiresAt).toEqual(mockSession.expiresAt);
+    });
+
+    it('should use default timezone UTC if not provided', async () => {
+      // Arrange
+      const dtoWithoutTimezone = { ...signupDto, timezone: undefined };
+
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi
+          .fn()
+          .mockResolvedValueOnce([{ ...mockTenant, timezone: 'UTC' }])
+          .mockResolvedValueOnce([mockUser])
+          .mockResolvedValueOnce([mockMembership]),
+      }));
+
+      mockDbService.db.update().set().where.mockResolvedValue([mockTenant]);
+      sessionsService.createSession.mockResolvedValue(mockSession);
+
+      // Act
+      await service.signup(dtoWithoutTimezone as any);
+
+      // Assert: UTC should be used
+      expect(mockDbService.db.insert).toHaveBeenCalled();
+    });
+
+    it('should combine first and last name into full name', async () => {
+      // Arrange
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi
+          .fn()
+          .mockResolvedValueOnce([mockTenant])
+          .mockResolvedValueOnce([mockUser])
+          .mockResolvedValueOnce([mockMembership]),
+      }));
+
+      mockDbService.db.update().set().where.mockResolvedValue([mockTenant]);
+      sessionsService.createSession.mockResolvedValue(mockSession);
+
+      // Act
+      const result = await service.signup(signupDto);
+
+      // Assert
+      expect(result.user.name).toBe('John Doe');
+    });
+
+    it('should handle slug collision by adding counter', async () => {
+      // Arrange: Slug already exists, needs counter
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([]) // No existing user
+        .mockResolvedValueOnce([{ slug: 'new-company-inc' }]) // Slug exists
+        .mockResolvedValueOnce([]); // new-company-inc-1 is unique
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi
+          .fn()
+          .mockResolvedValueOnce([{ ...mockTenant, slug: 'new-company-inc-1' }])
+          .mockResolvedValueOnce([mockUser])
+          .mockResolvedValueOnce([mockMembership]),
+      }));
+
+      mockDbService.db.update().set().where.mockResolvedValue([mockTenant]);
+      sessionsService.createSession.mockResolvedValue(mockSession);
+
+      // Act
+      const result = await service.signup(signupDto);
+
+      // Assert: Slug should have counter appended
+      expect(result.tenant.slug).toBe('new-company-inc-1');
+    });
+
+    it('should update tenant with owner user ID', async () => {
+      // Arrange
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi
+          .fn()
+          .mockResolvedValueOnce([mockTenant])
+          .mockResolvedValueOnce([mockUser])
+          .mockResolvedValueOnce([mockMembership]),
+      }));
+
+      const mockUpdate = mockDbService.db.update().set().where;
+      mockUpdate.mockResolvedValue([mockTenant]);
+
+      sessionsService.createSession.mockResolvedValue(mockSession);
+
+      // Act
+      await service.signup(signupDto);
+
+      // Assert
+      expect(mockDbService.db.update).toHaveBeenCalled();
+      expect(mockDbService.db.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ownerUserId: 'new-user-id',
+        }),
+      );
     });
   });
 });

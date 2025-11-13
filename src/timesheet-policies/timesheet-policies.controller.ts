@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -45,7 +36,7 @@ export class TimesheetPoliciesController {
   @Get()
   @ApiOperation({
     summary: 'Get timesheet policy for current tenant',
-    description: 'Retrieve the timesheet policy configuration for the authenticated user\'s tenant.',
+    description: "Retrieve the timesheet policy configuration for the authenticated user's tenant.",
   })
   @ApiOkResponse({
     description: 'Timesheet policy retrieved successfully',

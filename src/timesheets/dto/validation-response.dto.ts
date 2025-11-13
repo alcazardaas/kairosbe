@@ -19,7 +19,7 @@ class ValidationError {
   @ApiProperty({ required: false })
   hours?: number;
 
-  @ApiProperty({ required: false})
+  @ApiProperty({ required: false })
   maxAllowed?: number;
 }
 
