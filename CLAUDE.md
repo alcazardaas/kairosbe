@@ -556,6 +556,317 @@ pnpm test:cov
 
 ---
 
+## Writing Tests
+
+### Overview
+
+**All modules must have comprehensive unit tests with 95%+ coverage.**
+
+The project uses **Vitest** (Jest-compatible) with **@nestjs/testing** for dependency injection and module testing. A complete testing guide is available in **[TESTING.md](TESTING.md)**.
+
+### Testing Standards
+
+| Aspect | Requirement |
+|--------|-------------|
+| Framework | Vitest v2.1.9 (Jest-compatible, faster) |
+| Coverage Target | 95%+ lines/functions/statements, 90%+ branches |
+| Test Location | Colocated with source files (`.spec.ts`) |
+| Test Pattern | Arrange-Act-Assert (AAA) |
+| Mocking | Mock all external dependencies (DbService, ConfigService) |
+
+### Test Structure
+
+Every module should have tests for:
+1. **Service Layer** (`*.service.spec.ts`)
+   - CRUD operations with tenant isolation
+   - Business logic validation
+   - Permission checks
+   - Error scenarios (NotFoundException, BadRequestException, etc.)
+   - Data transformation (snake_case ↔ camelCase)
+
+2. **Controller Layer** (`*.controller.spec.ts`)
+   - HTTP request/response handling
+   - DTO validation
+   - Session/tenant extraction
+   - Decorator usage (@CurrentTenantId, @CurrentUserId, @Session)
+
+### Quick Start: Adding Tests to New Module
+
+When creating a new module, follow these steps:
+
+#### 1. Create Test Files
+```bash
+# In your module directory
+touch my-module.service.spec.ts
+touch my-module.controller.spec.ts
+```
+
+#### 2. Use Standard Test Template
+
+**Service Test Template:**
+```typescript
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { Test, TestingModule } from '@nestjs/testing';
+import { MyModuleService } from './my-module.service';
+import { DbService } from '../db/db.service';
+import { createMockDbService } from '../../test/mocks';
+import { TEST_TENANT_ID } from '../../test/constants';
+
+describe('MyModuleService', () => {
+  let service: MyModuleService;
+  let mockDbService: ReturnType<typeof createMockDbService>;
+
+  beforeEach(async () => {
+    mockDbService = createMockDbService();
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        MyModuleService,
+        { provide: DbService, useValue: mockDbService },
+      ],
+    }).compile();
+
+    service = module.get<MyModuleService>(MyModuleService);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  describe('findAll', () => {
+    it('should return paginated results', async () => {
+      // Arrange
+      mockDbService.db.select().from().where
+        .mockResolvedValueOnce([{ count: 1 }])
+        .mockResolvedValueOnce([mockEntity]);
+
+      // Act
+      const result = await service.findAll(TEST_TENANT_ID, { page: 1, limit: 20 });
+
+      // Assert
+      expect(result.data).toHaveLength(1);
+      expect(result.meta.total).toBe(1);
+    });
+  });
+});
+```
+
+**Controller Test Template:**
+```typescript
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { Test, TestingModule } from '@nestjs/testing';
+import { MyModuleController } from './my-module.controller';
+import { MyModuleService } from './my-module.service';
+import { TEST_TENANT_ID } from '../../test/constants';
+
+describe('MyModuleController', () => {
+  let controller: MyModuleController;
+  let service: vi.Mocked<MyModuleService>;
+
+  beforeEach(async () => {
+    service = {
+      findAll: vi.fn(),
+      create: vi.fn(),
+      // ... mock all service methods
+    } as any;
+
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [MyModuleController],
+      providers: [{ provide: MyModuleService, useValue: service }],
+    }).compile();
+
+    controller = module.get<MyModuleController>(MyModuleController);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+
+  describe('GET /', () => {
+    it('should return paginated results', async () => {
+      // Arrange
+      service.findAll.mockResolvedValue({ data: [mockEntity], meta: { total: 1 } });
+
+      // Act
+      const result = await controller.findAll(TEST_TENANT_ID);
+
+      // Assert
+      expect(result.data).toHaveLength(1);
+      expect(service.findAll).toHaveBeenCalledWith(TEST_TENANT_ID, expect.any(Object));
+    });
+  });
+});
+```
+
+#### 3. Test Key Scenarios
+
+**For ALL modules, test these scenarios:**
+
+- ✅ Happy path (successful operations)
+- ✅ Validation errors (invalid inputs)
+- ✅ Not found errors (entity doesn't exist)
+- ✅ Permission errors (unauthorized access)
+- ✅ Tenant isolation (users can't access other tenants' data)
+- ✅ Edge cases (empty data, nulls, boundaries)
+- ✅ Business logic rules (domain-specific validation)
+
+#### 4. Verify Coverage
+
+```bash
+# Run tests with coverage report
+pnpm test:cov
+
+# Check coverage in terminal output
+# Target: 95%+ lines/functions/statements, 90%+ branches
+
+# Open HTML coverage report
+open coverage/index.html
+```
+
+### Mock Infrastructure
+
+The project provides standard mocks in `test/mocks/`:
+
+- **`createMockDbService()`** - Full Drizzle ORM chain mocking
+- **`createMockConfigService()`** - Environment variable mocking
+- **Constants**: `TEST_TENANT_ID`, `TEST_USER_ID`
+
+**Mock Chain Pattern:**
+```typescript
+// Mock Drizzle query chain
+mockDbService.db.select().from().where.mockResolvedValue([mockData]);
+
+// For multiple sequential queries in one method
+mockDbService.db.select().from().where
+  .mockResolvedValueOnce([result1])  // First query
+  .mockResolvedValueOnce([result2]); // Second query
+```
+
+### Common Test Patterns
+
+#### Pattern 1: Testing CRUD Operations
+```typescript
+describe('create', () => {
+  it('should create entity', async () => {
+    mockDbService.db.insert().values.mockResolvedValue([mockEntity]);
+
+    const result = await service.create(TEST_TENANT_ID, createDto);
+
+    expect(result.id).toBeDefined();
+    expect(mockDbService.db.insert).toHaveBeenCalled();
+  });
+
+  it('should throw ConflictException on duplicate', async () => {
+    const error: any = new Error('Duplicate');
+    error.code = '23505'; // PostgreSQL unique violation
+    mockDbService.db.insert().values.mockRejectedValue(error);
+
+    await expect(service.create(TEST_TENANT_ID, createDto))
+      .rejects.toThrow(ConflictException);
+  });
+});
+```
+
+#### Pattern 2: Testing Permissions
+```typescript
+it('should throw ForbiddenException for non-manager', async () => {
+  mockDbService.db.select().from().where
+    .mockResolvedValueOnce([{ role: 'employee' }]); // User is not manager
+
+  await expect(service.approveTimesheet(userId, timesheetId))
+    .rejects.toThrow(ForbiddenException);
+});
+```
+
+#### Pattern 3: Testing Business Logic
+```typescript
+it('should throw BadRequestException on circular reference', async () => {
+  // Setup: A -> B -> C, trying to set C's parent to A
+  mockDbService.db.select().from().where
+    .mockResolvedValueOnce([{ id: 'A' }])
+    .mockResolvedValueOnce([{ id: 'C', parentTaskId: 'B' }])
+    .mockResolvedValueOnce([{ id: 'B', parentTaskId: 'A' }]);
+
+  await expect(service.update('A', { parentTaskId: 'C' }))
+    .rejects.toThrow('circular reference');
+});
+```
+
+### Coverage Requirements
+
+**Minimum Coverage Targets:**
+- Lines: 95%
+- Functions: 95%
+- Statements: 95%
+- Branches: 90%
+
+**Coverage Enforcement:**
+- Pull requests must not decrease overall coverage
+- New code must have 95%+ coverage
+- Critical paths (auth, permissions) must have 100% coverage
+
+### Testing Best Practices
+
+**DO:**
+- ✅ Test behavior, not implementation details
+- ✅ Use Arrange-Act-Assert pattern consistently
+- ✅ Mock all external dependencies
+- ✅ Test one thing per test case
+- ✅ Use descriptive test names (what/when/expected)
+- ✅ Test both success and error paths
+- ✅ Verify tenant isolation in multi-tenant operations
+- ✅ Test data transformation (camelCase ↔ snake_case)
+
+**DON'T:**
+- ❌ Test internal implementation details
+- ❌ Skip error scenarios
+- ❌ Use real database connections
+- ❌ Write tests that depend on execution order
+- ❌ Mock things you're testing
+- ❌ Use magic numbers without explanation
+- ❌ Forget to clear mocks in afterEach
+
+### Complete Testing Guide
+
+For comprehensive testing documentation, see **[TESTING.md](TESTING.md)**:
+- Detailed testing philosophy
+- Step-by-step guide for writing tests
+- Mock infrastructure documentation
+- Complete test pattern examples
+- Troubleshooting common issues
+- Full working examples for all patterns
+
+### Integration with Development Workflow
+
+**When adding a new endpoint:**
+1. Create/update controller with new endpoint
+2. Create/update service with business logic
+3. Add DTOs with zod validation
+4. **Write tests (service + controller)**
+5. **Run `pnpm test:cov` and verify 95%+ coverage**
+6. Add authorization checks (guards/decorators)
+7. Test with cURL or Postman
+8. Update documentation
+9. Run `pnpm build` to verify
+
+**Before committing code:**
+- [ ] Lint and build pass: `pnpm lint && pnpm build`
+- [ ] **Tests pass with 95%+ coverage: `pnpm test:cov`**
+- [ ] DTOs validate inputs with zod
+- [ ] SQL queries are parameterized
+- [ ] Authorization checks in place
+- [ ] Documentation updated
+
+---
+
 ## Common Operations
 
 ### Adding a New Endpoint
