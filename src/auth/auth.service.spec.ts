@@ -1,11 +1,17 @@
 import { vi, Mocked } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  UnauthorizedException,
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { SessionsService } from './sessions.service';
 import { DbService } from '../db/db.service';
 import * as passwordUtil from './password.util';
-import { createMockDbService } from '../../test/mocks';
+import { createMockDbService, createMockConfigService } from '../../test/mocks';
 import { TEST_TENANT_ID, TEST_USER_ID } from '../../test/constants';
 
 /**
@@ -16,6 +22,7 @@ import { TEST_TENANT_ID, TEST_USER_ID } from '../../test/constants';
 describe('AuthService', () => {
   let service: AuthService;
   let sessionsService: vi.Mocked<SessionsService>;
+  let configService: ReturnType<typeof createMockConfigService>;
   let mockDbService: ReturnType<typeof createMockDbService>;
 
   // Test data
@@ -55,6 +62,11 @@ describe('AuthService', () => {
       touchSession: vi.fn(),
     } as any;
 
+    // Mock ConfigService
+    configService = createMockConfigService({
+      FRONTEND_URL: 'http://localhost:3000',
+    });
+
     // Mock DbService
     mockDbService = createMockDbService();
 
@@ -62,6 +74,7 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         { provide: SessionsService, useValue: sessionsService },
+        { provide: ConfigService, useValue: configService },
         { provide: DbService, useValue: mockDbService },
       ],
     }).compile();
@@ -903,6 +916,539 @@ describe('AuthService', () => {
           ownerUserId: 'new-user-id',
         }),
       );
+    });
+  });
+
+  describe('changePassword', () => {
+    const userId = TEST_USER_ID;
+    const changePasswordDto = {
+      currentPassword: 'oldPassword123',
+      newPassword: 'newPassword456',
+    };
+
+    beforeEach(() => {
+      vi.spyOn(passwordUtil, 'hashPassword').mockResolvedValue('$2b$12$newhash');
+    });
+
+    it('should change password successfully', async () => {
+      // Arrange
+      const userWithHash = { ...validUser, passwordHash: '$2b$12$oldhash' };
+      mockDbService.db.select().from().where.mockResolvedValue([userWithHash]);
+
+      vi.spyOn(passwordUtil, 'verifyPassword')
+        .mockResolvedValueOnce(true) // Current password correct
+        .mockResolvedValueOnce(false); // New password different
+
+      mockDbService.db.update().set().where.mockResolvedValue([userWithHash]);
+      mockDbService.db.delete().where.mockResolvedValue([]);
+
+      // Act
+      await service.changePassword(userId, changePasswordDto);
+
+      // Assert
+      expect(passwordUtil.verifyPassword).toHaveBeenCalledWith(
+        changePasswordDto.currentPassword,
+        '$2b$12$oldhash',
+      );
+      expect(passwordUtil.hashPassword).toHaveBeenCalledWith(changePasswordDto.newPassword);
+      expect(mockDbService.db.update).toHaveBeenCalled();
+      expect(mockDbService.db.delete).toHaveBeenCalled(); // Sessions deleted
+    });
+
+    it('should throw UnauthorizedException if user not found', async () => {
+      // Arrange: User not found
+      mockDbService.db.select().from().where.mockResolvedValue([]);
+
+      // Act & Assert
+      await expect(service.changePassword(userId, changePasswordDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      await expect(service.changePassword(userId, changePasswordDto)).rejects.toThrow(
+        'User not found or has no password set',
+      );
+    });
+
+    it('should throw UnauthorizedException if user has no password hash', async () => {
+      // Arrange: User without password
+      const userWithoutHash = { ...validUser, passwordHash: null };
+      mockDbService.db.select().from().where.mockResolvedValue([userWithoutHash]);
+
+      // Act & Assert
+      await expect(service.changePassword(userId, changePasswordDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should throw UnauthorizedException if current password is incorrect', async () => {
+      // Arrange
+      const userWithHash = { ...validUser, passwordHash: '$2b$12$oldhash' };
+      mockDbService.db.select().from().where.mockResolvedValue([userWithHash]);
+
+      vi.spyOn(passwordUtil, 'verifyPassword').mockResolvedValue(false);
+
+      // Act & Assert
+      await expect(service.changePassword(userId, changePasswordDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      await expect(service.changePassword(userId, changePasswordDto)).rejects.toThrow(
+        'Current password is incorrect',
+      );
+
+      // Password should not be updated
+      expect(mockDbService.db.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException if new password same as current', async () => {
+      // Arrange
+      const userWithHash = { ...validUser, passwordHash: '$2b$12$oldhash' };
+      mockDbService.db.select().from().where.mockResolvedValue([userWithHash]);
+
+      // Both current and new password verify as true (same password)
+      vi.spyOn(passwordUtil, 'verifyPassword').mockResolvedValue(true);
+
+      // Act & Assert
+      await expect(service.changePassword(userId, changePasswordDto)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.changePassword(userId, changePasswordDto)).rejects.toThrow(
+        'New password must be different from current password',
+      );
+    });
+
+    it('should invalidate all user sessions after password change', async () => {
+      // Arrange
+      const userWithHash = { ...validUser, passwordHash: '$2b$12$oldhash' };
+      mockDbService.db.select().from().where.mockResolvedValue([userWithHash]);
+
+      vi.spyOn(passwordUtil, 'verifyPassword')
+        .mockResolvedValueOnce(true) // Current password correct
+        .mockResolvedValueOnce(false); // New password different
+
+      mockDbService.db.update().set().where.mockResolvedValue([userWithHash]);
+      const mockDelete = mockDbService.db.delete().where;
+      mockDelete.mockResolvedValue([]);
+
+      // Act
+      await service.changePassword(userId, changePasswordDto);
+
+      // Assert: All sessions deleted for security
+      expect(mockDbService.db.delete).toHaveBeenCalled();
+      expect(mockDelete).toHaveBeenCalled();
+    });
+  });
+
+  describe('forgotPassword', () => {
+    const forgotPasswordDto = {
+      email: 'test@example.com',
+    };
+    const ipAddress = '192.168.1.1';
+
+    it('should generate reset token for valid email', async () => {
+      // Arrange
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([validUser]) // User found
+        .mockResolvedValueOnce([validMembership]); // Membership found
+
+      mockDbService.db.delete().where.mockResolvedValue([]); // Delete old tokens
+
+      const mockResetToken = {
+        id: 'token-id',
+        userId: TEST_USER_ID,
+        tenantId: TEST_TENANT_ID,
+        token: 'reset-token-uuid',
+        expiresAt: new Date(Date.now() + 900000), // 15 minutes
+        createdAt: new Date(),
+        usedAt: null,
+      };
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi.fn().mockResolvedValue([mockResetToken]),
+      }));
+
+      // Act
+      await service.forgotPassword(forgotPasswordDto, ipAddress);
+
+      // Assert
+      expect(mockDbService.db.insert).toHaveBeenCalled();
+      expect(mockDbService.db.delete).toHaveBeenCalled(); // Old tokens deleted
+    });
+
+    it('should silently succeed if email does not exist (security)', async () => {
+      // Arrange: User not found
+      mockDbService.db.select().from().where.mockResolvedValue([]);
+
+      // Act & Assert: Should not throw, just return (prevent email enumeration)
+      await expect(service.forgotPassword(forgotPasswordDto, ipAddress)).resolves.toBeUndefined();
+
+      // No token should be created
+      expect(mockDbService.db.insert).not.toHaveBeenCalled();
+    });
+
+    it('should silently succeed if user has no active membership', async () => {
+      // Arrange
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([validUser]) // User found
+        .mockResolvedValueOnce([]); // No memberships
+
+      // Act & Assert: Should not throw
+      await expect(service.forgotPassword(forgotPasswordDto, ipAddress)).resolves.toBeUndefined();
+
+      // No token should be created
+      expect(mockDbService.db.insert).not.toHaveBeenCalled();
+    });
+
+    it('should invalidate existing unused tokens before creating new one', async () => {
+      // Arrange
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([validUser])
+        .mockResolvedValueOnce([validMembership]);
+
+      const mockDelete = mockDbService.db.delete().where;
+      mockDelete.mockResolvedValue([]);
+
+      const mockResetToken = {
+        id: 'token-id',
+        userId: TEST_USER_ID,
+        tenantId: TEST_TENANT_ID,
+        token: 'reset-token-uuid',
+        expiresAt: new Date(Date.now() + 900000),
+        createdAt: new Date(),
+        usedAt: null,
+      };
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi.fn().mockResolvedValue([mockResetToken]),
+      }));
+
+      // Act
+      await service.forgotPassword(forgotPasswordDto, ipAddress);
+
+      // Assert: Old tokens deleted before creating new one
+      expect(mockDbService.db.delete).toHaveBeenCalled();
+      expect(mockDelete).toHaveBeenCalled();
+    });
+
+    it('should set token expiry to 15 minutes from now', async () => {
+      // Arrange
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([validUser])
+        .mockResolvedValueOnce([validMembership]);
+
+      mockDbService.db.delete().where.mockResolvedValue([]);
+
+      const now = new Date();
+      const mockResetToken = {
+        id: 'token-id',
+        userId: TEST_USER_ID,
+        tenantId: TEST_TENANT_ID,
+        token: 'reset-token-uuid',
+        expiresAt: new Date(now.getTime() + 15 * 60 * 1000), // 15 minutes
+        createdAt: now,
+        usedAt: null,
+      };
+      mockDbService.db.insert().values.mockImplementation(() => ({
+        returning: vi.fn().mockResolvedValue([mockResetToken]),
+      }));
+
+      // Act
+      await service.forgotPassword(forgotPasswordDto, ipAddress);
+
+      // Assert: Token created with expiry
+      expect(mockDbService.db.insert).toHaveBeenCalled();
+    });
+  });
+
+  describe('resetPassword', () => {
+    const resetPasswordDto = {
+      token: 'valid-reset-token-uuid',
+      newPassword: 'newSecurePassword123',
+    };
+
+    const mockTokenRecord = {
+      id: 'token-id',
+      userId: TEST_USER_ID,
+      tenantId: TEST_TENANT_ID,
+      token: 'valid-reset-token-uuid',
+      expiresAt: new Date(Date.now() + 900000), // Future date (not expired)
+      usedAt: null,
+      createdAt: new Date(),
+    };
+
+    beforeEach(() => {
+      vi.spyOn(passwordUtil, 'hashPassword').mockResolvedValue('$2b$12$newhash');
+    });
+
+    it('should reset password with valid token', async () => {
+      // Arrange
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([mockTokenRecord]) // Token found
+        .mockResolvedValueOnce([validUser]); // User found
+
+      vi.spyOn(passwordUtil, 'verifyPassword').mockResolvedValue(false); // New password different
+
+      mockDbService.db.update().set().where.mockResolvedValue([validUser]);
+      mockDbService.db.delete().where.mockResolvedValue([]);
+
+      // Act
+      await service.resetPassword(resetPasswordDto);
+
+      // Assert
+      expect(passwordUtil.hashPassword).toHaveBeenCalledWith(resetPasswordDto.newPassword);
+      expect(mockDbService.db.update).toHaveBeenCalled(); // Password updated
+      expect(mockDbService.db.delete).toHaveBeenCalled(); // Sessions invalidated
+    });
+
+    it('should throw BadRequestException if token not found', async () => {
+      // Arrange: Token not found
+      mockDbService.db.select().from().where.mockResolvedValue([]);
+
+      // Act & Assert
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(
+        'Invalid or expired reset token',
+      );
+    });
+
+    it('should throw BadRequestException if token already used', async () => {
+      // Arrange: Token already used
+      const usedToken = {
+        ...mockTokenRecord,
+        usedAt: new Date(Date.now() - 60000), // Used 1 minute ago
+      };
+      mockDbService.db.select().from().where.mockResolvedValue([usedToken]);
+
+      // Act & Assert
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(
+        'Reset token has already been used',
+      );
+    });
+
+    it('should throw BadRequestException if token expired', async () => {
+      // Arrange: Expired token
+      const expiredToken = {
+        ...mockTokenRecord,
+        expiresAt: new Date(Date.now() - 60000), // Expired 1 minute ago
+      };
+      mockDbService.db.select().from().where.mockResolvedValue([expiredToken]);
+
+      // Act & Assert
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(
+        'Reset token has expired',
+      );
+    });
+
+    it('should throw NotFoundException if user not found', async () => {
+      // Arrange
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([mockTokenRecord]) // Token found
+        .mockResolvedValueOnce([]); // User not found
+
+      // Act & Assert
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(NotFoundException);
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow('User not found');
+    });
+
+    it('should throw BadRequestException if new password same as current', async () => {
+      // Arrange
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([mockTokenRecord])
+        .mockResolvedValueOnce([validUser]);
+
+      // New password same as current
+      vi.spyOn(passwordUtil, 'verifyPassword').mockResolvedValue(true);
+
+      // Act & Assert
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword(resetPasswordDto)).rejects.toThrow(
+        'New password must be different from current password',
+      );
+    });
+
+    it('should mark token as used after successful reset', async () => {
+      // Arrange
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([mockTokenRecord])
+        .mockResolvedValueOnce([validUser]);
+
+      vi.spyOn(passwordUtil, 'verifyPassword').mockResolvedValue(false);
+
+      const mockUpdate = mockDbService.db.update().set().where;
+      mockUpdate.mockResolvedValue([mockTokenRecord]);
+
+      mockDbService.db.delete().where.mockResolvedValue([]);
+
+      // Act
+      await service.resetPassword(resetPasswordDto);
+
+      // Assert: Token marked as used
+      expect(mockDbService.db.update).toHaveBeenCalled();
+      // Should update both password and token
+      expect(mockUpdate).toHaveBeenCalled();
+    });
+
+    it('should invalidate all user sessions after reset', async () => {
+      // Arrange
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([mockTokenRecord])
+        .mockResolvedValueOnce([validUser]);
+
+      vi.spyOn(passwordUtil, 'verifyPassword').mockResolvedValue(false);
+
+      mockDbService.db.update().set().where.mockResolvedValue([validUser]);
+
+      const mockDelete = mockDbService.db.delete().where;
+      mockDelete.mockResolvedValue([]);
+
+      // Act
+      await service.resetPassword(resetPasswordDto);
+
+      // Assert: All sessions deleted for security
+      expect(mockDbService.db.delete).toHaveBeenCalled();
+      expect(mockDelete).toHaveBeenCalled();
+    });
+  });
+
+  describe('getActiveResetTokens', () => {
+    const tenantId = TEST_TENANT_ID;
+
+    it('should return active reset tokens for tenant', async () => {
+      // Arrange
+      const activeTokens = [
+        {
+          token: 'token-1',
+          userId: 'user-1',
+          expiresAt: new Date(Date.now() + 900000),
+          createdAt: new Date(),
+        },
+        {
+          token: 'token-2',
+          userId: 'user-2',
+          expiresAt: new Date(Date.now() + 600000),
+          createdAt: new Date(),
+        },
+      ];
+
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce(activeTokens) // Tokens query
+        .mockResolvedValueOnce([{ email: 'user1@example.com' }]) // User 1 email
+        .mockResolvedValueOnce([{ email: 'user2@example.com' }]); // User 2 email
+
+      // Act
+      const result = await service.getActiveResetTokens(tenantId);
+
+      // Assert
+      expect(result).toHaveLength(2);
+      expect(result[0]).toHaveProperty('email', 'user1@example.com');
+      expect(result[0]).toHaveProperty('resetLink');
+      expect(result[0].resetLink).toContain('token-1');
+      expect(result[1]).toHaveProperty('email', 'user2@example.com');
+    });
+
+    it('should return empty array if no active tokens', async () => {
+      // Arrange: No tokens found
+      mockDbService.db.select().from().where.mockResolvedValue([]);
+
+      // Act
+      const result = await service.getActiveResetTokens(tenantId);
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('should include reset link with correct format', async () => {
+      // Arrange
+      const activeToken = {
+        token: 'abc-123-xyz',
+        userId: 'user-1',
+        expiresAt: new Date(Date.now() + 900000),
+        createdAt: new Date(),
+      };
+
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([activeToken])
+        .mockResolvedValueOnce([{ email: 'test@example.com' }]);
+
+      // Act
+      const result = await service.getActiveResetTokens(tenantId);
+
+      // Assert
+      expect(result[0].resetLink).toBe(
+        'http://localhost:3000/reset-password?token=abc-123-xyz',
+      );
+    });
+
+    it('should use FRONTEND_URL from config', async () => {
+      // Arrange
+      configService.get = vi.fn((key: string, defaultValue?: any) => {
+        if (key === 'FRONTEND_URL') return 'https://app.example.com';
+        return defaultValue;
+      });
+
+      const activeToken = {
+        token: 'abc-123-xyz',
+        userId: 'user-1',
+        expiresAt: new Date(Date.now() + 900000),
+        createdAt: new Date(),
+      };
+
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([activeToken])
+        .mockResolvedValueOnce([{ email: 'test@example.com' }]);
+
+      // Act
+      const result = await service.getActiveResetTokens(tenantId);
+
+      // Assert
+      expect(result[0].resetLink).toBe(
+        'https://app.example.com/reset-password?token=abc-123-xyz',
+      );
+      expect(configService.get).toHaveBeenCalledWith('FRONTEND_URL', 'http://localhost:3000');
+    });
+
+    it('should handle user not found gracefully', async () => {
+      // Arrange
+      const activeToken = {
+        token: 'abc-123-xyz',
+        userId: 'user-1',
+        expiresAt: new Date(Date.now() + 900000),
+        createdAt: new Date(),
+      };
+
+      mockDbService.db
+        .select()
+        .from()
+        .where.mockResolvedValueOnce([activeToken])
+        .mockResolvedValueOnce([]); // User not found
+
+      // Act
+      const result = await service.getActiveResetTokens(tenantId);
+
+      // Assert: Should return 'unknown' for missing email
+      expect(result[0].email).toBe('unknown');
     });
   });
 });
