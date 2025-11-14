@@ -11,3 +11,4 @@ export * from './timesheets';
 export * from './holidays';
 export * from './timesheet-policies';
 export * from './audit';
+export * from './password-reset-tokens';
