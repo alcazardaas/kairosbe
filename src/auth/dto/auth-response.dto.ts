@@ -290,3 +290,101 @@ export class SignupResponseDto {
   })
   data: SignupResponseDataDto;
 }
+
+// Password Management DTOs
+
+export class ChangePasswordRequestDto {
+  @ApiProperty({
+    description: 'Current password for verification',
+    example: 'OldPassword123!',
+  })
+  currentPassword: string;
+
+  @ApiProperty({
+    description: 'New password (minimum 8 characters)',
+    example: 'NewSecurePassword456!',
+    minLength: 8,
+  })
+  newPassword: string;
+}
+
+export class ChangePasswordResponseDto {
+  @ApiProperty({
+    description: 'Success message',
+    example: 'Password changed successfully',
+  })
+  message: string;
+}
+
+export class ForgotPasswordRequestDto {
+  @ApiProperty({
+    description: 'User email address',
+    example: 'john.doe@example.com',
+  })
+  email: string;
+}
+
+export class ForgotPasswordResponseDto {
+  @ApiProperty({
+    description: 'Success message',
+    example: 'If an account exists with this email, a password reset link will be sent',
+  })
+  message: string;
+}
+
+export class ResetPasswordRequestDto {
+  @ApiProperty({
+    description: 'Reset token from forgot password email/link',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  token: string;
+
+  @ApiProperty({
+    description: 'New password (minimum 8 characters)',
+    example: 'NewSecurePassword456!',
+    minLength: 8,
+  })
+  newPassword: string;
+}
+
+export class ResetPasswordResponseDto {
+  @ApiProperty({
+    description: 'Success message',
+    example: 'Password has been reset successfully',
+  })
+  message: string;
+}
+
+export class PasswordResetTokenDto {
+  @ApiProperty({
+    description: 'User email address',
+    example: 'john.doe@example.com',
+  })
+  email: string;
+
+  @ApiProperty({
+    description: 'Full reset URL for user',
+    example: 'http://localhost:3000/reset-password?token=123e4567-e89b-12d3-a456-426614174000',
+  })
+  resetLink: string;
+
+  @ApiProperty({
+    description: 'Token expiration timestamp',
+    example: '2025-11-14T15:45:00Z',
+  })
+  expiresAt: string;
+
+  @ApiProperty({
+    description: 'Token creation timestamp',
+    example: '2025-11-14T15:30:00Z',
+  })
+  createdAt: string;
+}
+
+export class AdminPasswordResetTokensResponseDto {
+  @ApiProperty({
+    description: 'List of active password reset tokens',
+    type: [PasswordResetTokenDto],
+  })
+  data: PasswordResetTokenDto[];
+}

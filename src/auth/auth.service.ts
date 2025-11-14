@@ -3,15 +3,21 @@ import {
   UnauthorizedException,
   BadRequestException,
   ConflictException,
+  NotFoundException,
+  Logger,
 } from '@nestjs/common';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, gt, isNull } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { SessionsService, SessionData } from './sessions.service';
-import { users, memberships, tenants } from '../db/schema';
+import { users, memberships, tenants, passwordResetTokens, sessions } from '../db/schema';
 import { verifyPassword, hashPassword } from './password.util';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { transformKeysToCamel } from '../common/helpers/case-transform.helper';
+import { ConfigService } from '@nestjs/config';
 
 export interface AuthResponse {
   token: string;
@@ -49,9 +55,13 @@ export interface SignupResponse {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+  private readonly resetTokenExpiryMinutes = 15; // Token valid for 15 minutes
+
   constructor(
     private readonly db: DbService,
     private readonly sessionsService: SessionsService,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -304,5 +314,238 @@ export class AuthService {
     }
 
     return slug;
+  }
+
+  /**
+   * Change password for authenticated user
+   * Requires current password verification
+   */
+  async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
+    // Get user with password hash
+    const [user] = await this.db.db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user || !user.passwordHash) {
+      throw new UnauthorizedException('User not found or has no password set');
+    }
+
+    // Verify current password
+    const isValid = await verifyPassword(dto.currentPassword, user.passwordHash);
+    if (!isValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Check if new password is same as current
+    const isSamePassword = await verifyPassword(dto.newPassword, user.passwordHash);
+    if (isSamePassword) {
+      throw new BadRequestException('New password must be different from current password');
+    }
+
+    // Hash new password
+    const newPasswordHash = await hashPassword(dto.newPassword);
+
+    // Update password
+    await this.db.db
+      .update(users)
+      .set({ passwordHash: newPasswordHash })
+      .where(eq(users.id, userId));
+
+    // Invalidate all user sessions (force re-login for security)
+    await this.db.db
+      .delete(sessions)
+      .where(eq(sessions.userId, userId));
+
+    this.logger.log(`Password changed successfully for user ${userId}`);
+  }
+
+  /**
+   * Generate password reset token
+   * Public endpoint - always returns success message (security: don't reveal if email exists)
+   */
+  async forgotPassword(dto: ForgotPasswordDto, ipAddress?: string): Promise<void> {
+    // Find user by email
+    const [user] = await this.db.db
+      .select()
+      .from(users)
+      .where(eq(users.email, dto.email))
+      .limit(1);
+
+    // Security: Always return success message even if user doesn't exist
+    // This prevents email enumeration attacks
+    if (!user) {
+      this.logger.warn(`Password reset requested for non-existent email: ${dto.email}`);
+      return;
+    }
+
+    // Get user's tenant (use first active membership)
+    const [membership] = await this.db.db
+      .select()
+      .from(memberships)
+      .where(and(eq(memberships.userId, user.id), eq(memberships.status, 'active')))
+      .limit(1);
+
+    if (!membership) {
+      this.logger.warn(`Password reset requested for user with no active tenant: ${user.id}`);
+      return;
+    }
+
+    // Invalidate any existing unused tokens for this user
+    await this.db.db
+      .delete(passwordResetTokens)
+      .where(and(eq(passwordResetTokens.userId, user.id), isNull(passwordResetTokens.usedAt)));
+
+    // Generate new reset token
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + this.resetTokenExpiryMinutes);
+
+    const [resetToken] = await this.db.db
+      .insert(passwordResetTokens)
+      .values({
+        userId: user.id,
+        tenantId: membership.tenantId,
+        expiresAt,
+        ipAddress,
+      })
+      .returning();
+
+    // Get frontend URL from config (default to localhost for POC)
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken.token}`;
+
+    // POC MODE: Log token to console for manual distribution
+    this.logger.log('======================================');
+    this.logger.log('PASSWORD RESET TOKEN GENERATED (POC MODE)');
+    this.logger.log('======================================');
+    this.logger.log(`User: ${user.email}`);
+    this.logger.log(`Reset Link: ${resetLink}`);
+    this.logger.log(`Expires: ${expiresAt.toISOString()}`);
+    this.logger.log('======================================');
+
+    // TODO: Replace with email service when available
+    // await this.emailService.sendPasswordResetEmail(user.email, resetLink);
+  }
+
+  /**
+   * Reset password using token
+   */
+  async resetPassword(dto: ResetPasswordDto): Promise<void> {
+    // Find valid token
+    const [tokenRecord] = await this.db.db
+      .select()
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, dto.token))
+      .limit(1);
+
+    // Validate token exists
+    if (!tokenRecord) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Validate token not used
+    if (tokenRecord.usedAt) {
+      throw new BadRequestException('Reset token has already been used');
+    }
+
+    // Validate token not expired
+    if (new Date() > tokenRecord.expiresAt) {
+      throw new BadRequestException('Reset token has expired');
+    }
+
+    // Get user
+    const [user] = await this.db.db
+      .select()
+      .from(users)
+      .where(eq(users.id, tokenRecord.userId))
+      .limit(1);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if new password is same as current (optional security check)
+    if (user.passwordHash) {
+      const isSamePassword = await verifyPassword(dto.newPassword, user.passwordHash);
+      if (isSamePassword) {
+        throw new BadRequestException('New password must be different from current password');
+      }
+    }
+
+    // Hash new password
+    const newPasswordHash = await hashPassword(dto.newPassword);
+
+    // Update password
+    await this.db.db
+      .update(users)
+      .set({ passwordHash: newPasswordHash })
+      .where(eq(users.id, user.id));
+
+    // Mark token as used
+    await this.db.db
+      .update(passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(passwordResetTokens.id, tokenRecord.id));
+
+    // Invalidate all user sessions (force re-login for security)
+    await this.db.db
+      .delete(sessions)
+      .where(eq(sessions.userId, user.id));
+
+    this.logger.log(`Password reset successfully for user ${user.id}`);
+  }
+
+  /**
+   * Get active password reset tokens (Admin only - POC mode)
+   * Allows admins to retrieve reset links for manual distribution
+   */
+  async getActiveResetTokens(tenantId: string): Promise<
+    Array<{
+      email: string;
+      resetLink: string;
+      expiresAt: Date;
+      createdAt: Date;
+    }>
+  > {
+    // Get all active (unused, non-expired) tokens for tenant
+    const tokens = await this.db.db
+      .select({
+        token: passwordResetTokens.token,
+        userId: passwordResetTokens.userId,
+        expiresAt: passwordResetTokens.expiresAt,
+        createdAt: passwordResetTokens.createdAt,
+      })
+      .from(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.tenantId, tenantId),
+          isNull(passwordResetTokens.usedAt),
+          gt(passwordResetTokens.expiresAt, new Date()),
+        ),
+      );
+
+    // Get user emails for each token
+    const result = await Promise.all(
+      tokens.map(async (tokenRecord) => {
+        const [user] = await this.db.db
+          .select({ email: users.email })
+          .from(users)
+          .where(eq(users.id, tokenRecord.userId))
+          .limit(1);
+
+        const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
+        const resetLink = `${frontendUrl}/reset-password?token=${tokenRecord.token}`;
+
+        return {
+          email: user?.email || 'unknown',
+          resetLink,
+          expiresAt: tokenRecord.expiresAt,
+          createdAt: tokenRecord.createdAt!,
+        };
+      }),
+    );
+
+    return result;
   }
 }

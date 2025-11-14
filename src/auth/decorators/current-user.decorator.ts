@@ -24,3 +24,11 @@ export const CurrentTenantId = createParamDecorator((data: unknown, ctx: Executi
   const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
   return request.tenantId;
 });
+
+/**
+ * Decorator to get the current user ID from the request
+ */
+export const CurrentUserId = createParamDecorator((data: unknown, ctx: ExecutionContext) => {
+  const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
+  return request.session?.userId;
+});
