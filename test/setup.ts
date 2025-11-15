@@ -3,6 +3,7 @@
  * Loaded before all tests via vitest.config.ts
  */
 
+import 'reflect-metadata'; // Required for NestJS dependency injection
 import { vi } from 'vitest';
 
 // Mock environment variables for testing
