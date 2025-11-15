@@ -53,7 +53,7 @@ describe('TimesheetPoliciesService', () => {
     it('should return all timesheet policies', async () => {
       // Arrange
       const policies = [mockPolicy, { ...mockPolicy, tenant_id: 'tenant-2' }];
-      mockDbService.getDb().select().from.mockResolvedValue(policies);
+      mockDbService.db.select().from.mockResolvedValue(policies);
 
       // Act
       const result = await service.findAll();
@@ -66,7 +66,7 @@ describe('TimesheetPoliciesService', () => {
 
     it('should return empty array when no policies', async () => {
       // Arrange
-      mockDbService.getDb().select().from.mockResolvedValue([]);
+      mockDbService.db.select().from.mockResolvedValue([]);
 
       // Act
       const result = await service.findAll();
@@ -77,7 +77,7 @@ describe('TimesheetPoliciesService', () => {
 
     it('should transform snake_case to camelCase', async () => {
       // Arrange
-      mockDbService.getDb().select().from.mockResolvedValue([mockPolicy]);
+      mockDbService.db.select().from.mockResolvedValue([mockPolicy]);
 
       // Act
       const result = await service.findAll();
@@ -95,7 +95,7 @@ describe('TimesheetPoliciesService', () => {
   describe('findOne', () => {
     it('should return policy by tenantId', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockPolicy]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockPolicy]);
 
       // Act
       const result = await service.findOne(TEST_TENANT_ID);
@@ -106,7 +106,7 @@ describe('TimesheetPoliciesService', () => {
 
     it('should throw NotFoundException when not found', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
@@ -117,7 +117,7 @@ describe('TimesheetPoliciesService', () => {
 
     it('should enforce tenant isolation', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.findOne('different-tenant')).rejects.toThrow(NotFoundException);
@@ -125,7 +125,7 @@ describe('TimesheetPoliciesService', () => {
 
     it('should transform snake_case to camelCase', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockPolicy]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockPolicy]);
 
       // Act
       const result = await service.findOne(TEST_TENANT_ID);
@@ -155,7 +155,7 @@ describe('TimesheetPoliciesService', () => {
         allow_overtime: true,
         lock_after_approval: false,
       };
-      mockDbService.getDb().insert().values.mockResolvedValue([newPolicy]);
+      mockDbService.db.insert().values.mockResolvedValue([newPolicy]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, createDto);
@@ -172,7 +172,7 @@ describe('TimesheetPoliciesService', () => {
       // Arrange
       const duplicateError: any = new Error('Duplicate key');
       duplicateError.code = '23505';
-      mockDbService.getDb().insert().values.mockRejectedValue(duplicateError);
+      mockDbService.db.insert().values.mockRejectedValue(duplicateError);
 
       // Act & Assert
       await expect(service.create(TEST_TENANT_ID, createDto)).rejects.toThrow(ConflictException);
@@ -184,7 +184,7 @@ describe('TimesheetPoliciesService', () => {
     it('should rethrow other database errors', async () => {
       // Arrange
       const genericError = new Error('Database connection failed');
-      mockDbService.getDb().insert().values.mockRejectedValue(genericError);
+      mockDbService.db.insert().values.mockRejectedValue(genericError);
 
       // Act & Assert
       await expect(service.create(TEST_TENANT_ID, createDto)).rejects.toThrow(
@@ -196,7 +196,7 @@ describe('TimesheetPoliciesService', () => {
       // Arrange
       const mondayDto = { ...createDto, weekStart: 1 };
       const mondayPolicy = { ...mockPolicy, week_start: 1 };
-      mockDbService.getDb().insert().values.mockResolvedValue([mondayPolicy]);
+      mockDbService.db.insert().values.mockResolvedValue([mondayPolicy]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, mondayDto);
@@ -209,7 +209,7 @@ describe('TimesheetPoliciesService', () => {
       // Arrange
       const noLimitDto = { ...createDto, maxHoursPerDay: undefined };
       const noLimitPolicy = { ...mockPolicy, max_hours_per_day: null };
-      mockDbService.getDb().insert().values.mockResolvedValue([noLimitPolicy]);
+      mockDbService.db.insert().values.mockResolvedValue([noLimitPolicy]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, noLimitDto);
@@ -222,7 +222,7 @@ describe('TimesheetPoliciesService', () => {
       // Arrange
       const overtimeDto = { ...createDto, allowOvertime: true };
       const overtimePolicy = { ...mockPolicy, allow_overtime: true };
-      mockDbService.getDb().insert().values.mockResolvedValue([overtimePolicy]);
+      mockDbService.db.insert().values.mockResolvedValue([overtimePolicy]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, overtimeDto);
@@ -235,7 +235,7 @@ describe('TimesheetPoliciesService', () => {
       // Arrange
       const noLockDto = { ...createDto, lockAfterApproval: false };
       const noLockPolicy = { ...mockPolicy, lock_after_approval: false };
-      mockDbService.getDb().insert().values.mockResolvedValue([noLockPolicy]);
+      mockDbService.db.insert().values.mockResolvedValue([noLockPolicy]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, noLockDto);
@@ -246,20 +246,20 @@ describe('TimesheetPoliciesService', () => {
 
     it('should convert maxHoursPerDay number to string', async () => {
       // Arrange
-      mockDbService.getDb().insert().values.mockResolvedValue([mockPolicy]);
+      mockDbService.db.insert().values.mockResolvedValue([mockPolicy]);
 
       // Act
       await service.create(TEST_TENANT_ID, createDto);
 
       // Assert
-      expect(mockDbService.getDb().insert().values).toHaveBeenCalled();
-      const callArg = mockDbService.getDb().insert().values.mock.calls[0][0];
+      expect(mockDbService.db.insert().values).toHaveBeenCalled();
+      const callArg = mockDbService.db.insert().values.mock.calls[0][0];
       expect(typeof callArg.maxHoursPerDay).toBe('string');
     });
 
     it('should transform snake_case to camelCase in result', async () => {
       // Arrange
-      mockDbService.getDb().insert().values.mockResolvedValue([mockPolicy]);
+      mockDbService.db.insert().values.mockResolvedValue([mockPolicy]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, createDto);
@@ -282,9 +282,9 @@ describe('TimesheetPoliciesService', () => {
 
     it('should update policy', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockPolicy]); // findOne
+      mockDbService.db.select().from().where.mockResolvedValue([mockPolicy]); // findOne
       const updated = { ...mockPolicy, week_start: 0 };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, updateDto);
@@ -295,7 +295,7 @@ describe('TimesheetPoliciesService', () => {
 
     it('should throw NotFoundException when policy does not exist', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.update('nonexistent', updateDto)).rejects.toThrow(NotFoundException);
@@ -303,9 +303,9 @@ describe('TimesheetPoliciesService', () => {
 
     it('should update only provided fields', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockPolicy]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockPolicy]);
       const updated = { ...mockPolicy, week_start: 0 };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, { weekStart: 0 });
@@ -316,9 +316,9 @@ describe('TimesheetPoliciesService', () => {
 
     it('should update weekStart only', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockPolicy]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockPolicy]);
       const updated = { ...mockPolicy, week_start: 6 };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, { weekStart: 6 });
@@ -329,9 +329,9 @@ describe('TimesheetPoliciesService', () => {
 
     it('should update maxHoursPerDay only', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockPolicy]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockPolicy]);
       const updated = { ...mockPolicy, max_hours_per_day: '12' };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, { maxHoursPerDay: 12 });
@@ -342,9 +342,9 @@ describe('TimesheetPoliciesService', () => {
 
     it('should update allowOvertime only', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockPolicy]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockPolicy]);
       const updated = { ...mockPolicy, allow_overtime: true };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, { allowOvertime: true });
@@ -355,9 +355,9 @@ describe('TimesheetPoliciesService', () => {
 
     it('should update lockAfterApproval only', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockPolicy]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockPolicy]);
       const updated = { ...mockPolicy, lock_after_approval: false };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, { lockAfterApproval: false });
@@ -368,9 +368,9 @@ describe('TimesheetPoliciesService', () => {
 
     it('should set maxHoursPerDay to null', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockPolicy]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockPolicy]);
       const updated = { ...mockPolicy, max_hours_per_day: null };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, { maxHoursPerDay: null });
@@ -381,7 +381,7 @@ describe('TimesheetPoliciesService', () => {
 
     it('should enforce tenant isolation', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.update('different-tenant', updateDto)).rejects.toThrow(
@@ -391,8 +391,8 @@ describe('TimesheetPoliciesService', () => {
 
     it('should transform snake_case to camelCase in result', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockPolicy]);
-      mockDbService.getDb().update().set.mockResolvedValue([mockPolicy]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockPolicy]);
+      mockDbService.db.update().set.mockResolvedValue([mockPolicy]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, updateDto);
@@ -407,19 +407,19 @@ describe('TimesheetPoliciesService', () => {
   describe('remove', () => {
     it('should delete policy', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockPolicy]); // findOne
-      mockDbService.getDb().delete().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockPolicy]); // findOne
+      mockDbService.db.delete().where.mockResolvedValue([]);
 
       // Act
       await service.remove(TEST_TENANT_ID);
 
       // Assert
-      expect(mockDbService.getDb().delete().where).toHaveBeenCalled();
+      expect(mockDbService.db.delete().where).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when policy does not exist', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.remove('nonexistent')).rejects.toThrow(NotFoundException);
@@ -427,7 +427,7 @@ describe('TimesheetPoliciesService', () => {
 
     it('should enforce tenant isolation', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.remove('different-tenant')).rejects.toThrow(NotFoundException);
@@ -435,9 +435,9 @@ describe('TimesheetPoliciesService', () => {
 
     it('should call findOne before delete', async () => {
       // Arrange
-      const selectMock = mockDbService.getDb().select().from().where;
+      const selectMock = mockDbService.db.select().from().where;
       selectMock.mockResolvedValue([mockPolicy]);
-      mockDbService.getDb().delete().where.mockResolvedValue([]);
+      mockDbService.db.delete().where.mockResolvedValue([]);
 
       // Act
       await service.remove(TEST_TENANT_ID);

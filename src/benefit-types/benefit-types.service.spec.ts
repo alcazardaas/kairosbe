@@ -55,7 +55,7 @@ describe('BenefitTypesService', () => {
     it('should return paginated list of benefit types', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }]) // count query
@@ -77,7 +77,7 @@ describe('BenefitTypesService', () => {
     it('should filter by unit', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -87,13 +87,13 @@ describe('BenefitTypesService', () => {
       await service.findAll(TEST_TENANT_ID, { unit: 'days', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by requiresApproval true', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -103,14 +103,14 @@ describe('BenefitTypesService', () => {
       await service.findAll(TEST_TENANT_ID, { requiresApproval: true, page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by requiresApproval false', async () => {
       // Arrange
       const noapproval = { ...mockBenefitType, requires_approval: false };
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -130,7 +130,7 @@ describe('BenefitTypesService', () => {
     it('should filter by search term', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -140,13 +140,13 @@ describe('BenefitTypesService', () => {
       await service.findAll(TEST_TENANT_ID, { search: 'Paid', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should sort by name ascending', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -156,13 +156,13 @@ describe('BenefitTypesService', () => {
       await service.findAll(TEST_TENANT_ID, { sort: 'name:asc', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where().orderBy).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where().orderBy).toHaveBeenCalled();
     });
 
     it('should sort by name descending', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -172,13 +172,13 @@ describe('BenefitTypesService', () => {
       await service.findAll(TEST_TENANT_ID, { sort: 'name:desc', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where().orderBy).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where().orderBy).toHaveBeenCalled();
     });
 
     it('should sort by key', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -188,13 +188,13 @@ describe('BenefitTypesService', () => {
       await service.findAll(TEST_TENANT_ID, { sort: 'key:asc', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where().orderBy).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where().orderBy).toHaveBeenCalled();
     });
 
     it('should handle pagination with page 2', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 50 }])
@@ -207,14 +207,14 @@ describe('BenefitTypesService', () => {
       expect(result.page).toBe(2);
       expect(result.limit).toBe(20);
       expect(
-        mockDbService.getDb().select().from().where().orderBy().limit().offset,
+        mockDbService.db.select().from().where().orderBy().limit().offset,
       ).toHaveBeenCalledWith(20);
     });
 
     it('should return empty array when no results', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 0 }])
@@ -231,7 +231,7 @@ describe('BenefitTypesService', () => {
     it('should combine multiple filters', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -247,13 +247,13 @@ describe('BenefitTypesService', () => {
       });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should enforce tenant isolation', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -263,13 +263,13 @@ describe('BenefitTypesService', () => {
       await service.findAll('different-tenant', { page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should transform snake_case to camelCase', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -289,7 +289,7 @@ describe('BenefitTypesService', () => {
   describe('findOne', () => {
     it('should return benefit type by id', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockBenefitType]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockBenefitType]);
 
       // Act
       const result = await service.findOne(TEST_TENANT_ID, 'benefit-1');
@@ -300,7 +300,7 @@ describe('BenefitTypesService', () => {
 
     it('should throw NotFoundException when not found', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.findOne(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(
@@ -313,7 +313,7 @@ describe('BenefitTypesService', () => {
 
     it('should enforce tenant isolation', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.findOne('different-tenant', 'benefit-1')).rejects.toThrow(
@@ -323,7 +323,7 @@ describe('BenefitTypesService', () => {
 
     it('should transform snake_case to camelCase', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockBenefitType]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockBenefitType]);
 
       // Act
       const result = await service.findOne(TEST_TENANT_ID, 'benefit-1');
@@ -353,7 +353,7 @@ describe('BenefitTypesService', () => {
         unit: 'days',
         requires_approval: true,
       };
-      mockDbService.getDb().insert().values.mockResolvedValue([newBenefitType]);
+      mockDbService.db.insert().values.mockResolvedValue([newBenefitType]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, createDto);
@@ -368,7 +368,7 @@ describe('BenefitTypesService', () => {
       // Arrange
       const duplicateError: any = new Error('Duplicate key');
       duplicateError.code = '23505';
-      mockDbService.getDb().insert().values.mockRejectedValue(duplicateError);
+      mockDbService.db.insert().values.mockRejectedValue(duplicateError);
 
       // Act & Assert
       await expect(service.create(TEST_TENANT_ID, createDto)).rejects.toThrow(ConflictException);
@@ -380,7 +380,7 @@ describe('BenefitTypesService', () => {
     it('should rethrow other database errors', async () => {
       // Arrange
       const genericError = new Error('Database connection failed');
-      mockDbService.getDb().insert().values.mockRejectedValue(genericError);
+      mockDbService.db.insert().values.mockRejectedValue(genericError);
 
       // Act & Assert
       await expect(service.create(TEST_TENANT_ID, createDto)).rejects.toThrow(
@@ -392,7 +392,7 @@ describe('BenefitTypesService', () => {
       // Arrange
       const hoursDto = { ...createDto, unit: 'hours' as const };
       const hoursResult = { ...mockBenefitType, unit: 'hours' };
-      mockDbService.getDb().insert().values.mockResolvedValue([hoursResult]);
+      mockDbService.db.insert().values.mockResolvedValue([hoursResult]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, hoursDto);
@@ -405,7 +405,7 @@ describe('BenefitTypesService', () => {
       // Arrange
       const noApprovalDto = { ...createDto, requiresApproval: false };
       const noApprovalResult = { ...mockBenefitType, requires_approval: false };
-      mockDbService.getDb().insert().values.mockResolvedValue([noApprovalResult]);
+      mockDbService.db.insert().values.mockResolvedValue([noApprovalResult]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, noApprovalDto);
@@ -416,7 +416,7 @@ describe('BenefitTypesService', () => {
 
     it('should transform snake_case to camelCase in result', async () => {
       // Arrange
-      mockDbService.getDb().insert().values.mockResolvedValue([mockBenefitType]);
+      mockDbService.db.insert().values.mockResolvedValue([mockBenefitType]);
 
       // Act
       const result = await service.create(TEST_TENANT_ID, createDto);
@@ -437,9 +437,9 @@ describe('BenefitTypesService', () => {
 
     it('should update benefit type', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockBenefitType]); // findOne check
+      mockDbService.db.select().from().where.mockResolvedValue([mockBenefitType]); // findOne check
       const updated = { ...mockBenefitType, name: 'Updated PTO' };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, 'benefit-1', updateDto);
@@ -450,7 +450,7 @@ describe('BenefitTypesService', () => {
 
     it('should throw NotFoundException when benefit type does not exist', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]); // findOne fails
+      mockDbService.db.select().from().where.mockResolvedValue([]); // findOne fails
 
       // Act & Assert
       await expect(service.update(TEST_TENANT_ID, 'nonexistent', updateDto)).rejects.toThrow(
@@ -460,10 +460,10 @@ describe('BenefitTypesService', () => {
 
     it('should update only provided fields', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockBenefitType]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockBenefitType]);
       const partialUpdate = { name: 'New Name' };
       const updated = { ...mockBenefitType, name: 'New Name' };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, 'benefit-1', partialUpdate);
@@ -474,9 +474,9 @@ describe('BenefitTypesService', () => {
 
     it('should update unit only', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockBenefitType]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockBenefitType]);
       const updated = { ...mockBenefitType, unit: 'hours' };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, 'benefit-1', { unit: 'hours' });
@@ -487,9 +487,9 @@ describe('BenefitTypesService', () => {
 
     it('should update requiresApproval only', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockBenefitType]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockBenefitType]);
       const updated = { ...mockBenefitType, requires_approval: false };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, 'benefit-1', { requiresApproval: false });
@@ -500,7 +500,7 @@ describe('BenefitTypesService', () => {
 
     it('should enforce tenant isolation', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.update('different-tenant', 'benefit-1', updateDto)).rejects.toThrow(
@@ -510,8 +510,8 @@ describe('BenefitTypesService', () => {
 
     it('should transform snake_case to camelCase in result', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockBenefitType]);
-      mockDbService.getDb().update().set.mockResolvedValue([mockBenefitType]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockBenefitType]);
+      mockDbService.db.update().set.mockResolvedValue([mockBenefitType]);
 
       // Act
       const result = await service.update(TEST_TENANT_ID, 'benefit-1', updateDto);
@@ -525,19 +525,19 @@ describe('BenefitTypesService', () => {
   describe('remove', () => {
     it('should delete benefit type', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockBenefitType]); // findOne check
-      mockDbService.getDb().delete().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockBenefitType]); // findOne check
+      mockDbService.db.delete().where.mockResolvedValue([]);
 
       // Act
       await service.remove(TEST_TENANT_ID, 'benefit-1');
 
       // Assert
-      expect(mockDbService.getDb().delete().where).toHaveBeenCalled();
+      expect(mockDbService.db.delete().where).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when benefit type does not exist', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.remove(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(
@@ -547,7 +547,7 @@ describe('BenefitTypesService', () => {
 
     it('should enforce tenant isolation', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.remove('different-tenant', 'benefit-1')).rejects.toThrow(
@@ -557,9 +557,9 @@ describe('BenefitTypesService', () => {
 
     it('should call findOne before delete', async () => {
       // Arrange
-      const selectMock = mockDbService.getDb().select().from().where;
+      const selectMock = mockDbService.db.select().from().where;
       selectMock.mockResolvedValue([mockBenefitType]);
-      mockDbService.getDb().delete().where.mockResolvedValue([]);
+      mockDbService.db.delete().where.mockResolvedValue([]);
 
       // Act
       await service.remove(TEST_TENANT_ID, 'benefit-1');

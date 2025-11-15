@@ -63,7 +63,7 @@ describe('TasksService', () => {
     it('should return paginated tasks', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -82,7 +82,7 @@ describe('TasksService', () => {
     it('should filter by tenantId', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -92,13 +92,13 @@ describe('TasksService', () => {
       await service.findAll(mockQuery);
 
       // Assert
-      expect(mockDbService.getDb().select).toHaveBeenCalled();
+      expect(mockDbService.db.select).toHaveBeenCalled();
     });
 
     it('should filter by projectId', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -108,13 +108,13 @@ describe('TasksService', () => {
       await service.findAll({ ...mockQuery, projectId: 'project-1' });
 
       // Assert
-      expect(mockDbService.getDb().select).toHaveBeenCalled();
+      expect(mockDbService.db.select).toHaveBeenCalled();
     });
 
     it('should filter by parentTaskId', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -124,13 +124,13 @@ describe('TasksService', () => {
       await service.findAll({ ...mockQuery, parentTaskId: 'task-1' });
 
       // Assert
-      expect(mockDbService.getDb().select).toHaveBeenCalled();
+      expect(mockDbService.db.select).toHaveBeenCalled();
     });
 
     it('should filter root tasks when parentTaskId is null', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -140,13 +140,13 @@ describe('TasksService', () => {
       await service.findAll({ ...mockQuery, parentTaskId: null });
 
       // Assert
-      expect(mockDbService.getDb().select).toHaveBeenCalled();
+      expect(mockDbService.db.select).toHaveBeenCalled();
     });
 
     it('should search by task name', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -156,13 +156,13 @@ describe('TasksService', () => {
       await service.findAll({ ...mockQuery, search: 'Alpha' });
 
       // Assert
-      expect(mockDbService.getDb().select).toHaveBeenCalled();
+      expect(mockDbService.db.select).toHaveBeenCalled();
     });
 
     it('should sort by field', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -172,13 +172,13 @@ describe('TasksService', () => {
       await service.findAll({ ...mockQuery, sort: 'name:asc' });
 
       // Assert
-      expect(mockDbService.getDb().select).toHaveBeenCalled();
+      expect(mockDbService.db.select).toHaveBeenCalled();
     });
 
     it('should apply pagination', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 50 }])
@@ -196,7 +196,7 @@ describe('TasksService', () => {
   describe('findOne', () => {
     it('should return task by id', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockTask]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockTask]);
 
       // Act
       const result = await service.findOne('task-1');
@@ -208,7 +208,7 @@ describe('TasksService', () => {
 
     it('should throw NotFoundException when task not found', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
@@ -229,7 +229,7 @@ describe('TasksService', () => {
     it('should create new task', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .insert()
         .values.mockResolvedValue([{ ...mockTask, ...createDto }]);
 
@@ -244,10 +244,10 @@ describe('TasksService', () => {
     it('should create task with parent', async () => {
       // Arrange
       const dtoWithParent = { ...createDto, parentTaskId: 'task-1' };
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockTask]); // parent exists
+      mockDbService.db.select().from().where.mockResolvedValue([mockTask]); // parent exists
 
       mockDbService
-        .getDb()
+        .db
         .insert()
         .values.mockResolvedValue([{ ...mockTask, ...dtoWithParent }]);
 
@@ -261,7 +261,7 @@ describe('TasksService', () => {
     it('should throw NotFoundException when parent task not found', async () => {
       // Arrange
       const dtoWithInvalidParent = { ...createDto, parentTaskId: 'invalid-parent' };
-      mockDbService.getDb().select().from().where.mockResolvedValue([]); // parent not found
+      mockDbService.db.select().from().where.mockResolvedValue([]); // parent not found
 
       // Act & Assert
       await expect(service.create(dtoWithInvalidParent)).rejects.toThrow(NotFoundException);
@@ -271,7 +271,7 @@ describe('TasksService', () => {
       // Arrange
       const duplicateError: any = new Error('Duplicate');
       duplicateError.code = '23505';
-      mockDbService.getDb().insert().values.mockRejectedValue(duplicateError);
+      mockDbService.db.insert().values.mockRejectedValue(duplicateError);
 
       // Act & Assert
       await expect(service.create(createDto)).rejects.toThrow(ConflictException);
@@ -285,7 +285,7 @@ describe('TasksService', () => {
       const fkError: any = new Error('FK violation');
       fkError.code = '23503';
       fkError.constraint = 'tasks_project_id_fkey';
-      mockDbService.getDb().insert().values.mockRejectedValue(fkError);
+      mockDbService.db.insert().values.mockRejectedValue(fkError);
 
       // Act & Assert
       await expect(service.create(createDto)).rejects.toThrow(BadRequestException);
@@ -299,7 +299,7 @@ describe('TasksService', () => {
       const fkError: any = new Error('FK violation');
       fkError.code = '23503';
       fkError.constraint = 'tasks_tenant_id_fkey';
-      mockDbService.getDb().insert().values.mockRejectedValue(fkError);
+      mockDbService.db.insert().values.mockRejectedValue(fkError);
 
       // Act & Assert
       await expect(service.create(createDto)).rejects.toThrow(BadRequestException);
@@ -310,7 +310,7 @@ describe('TasksService', () => {
 
     it('should create root task (parentTaskId null)', async () => {
       // Arrange
-      mockDbService.getDb().insert().values.mockResolvedValue([mockTask]);
+      mockDbService.db.insert().values.mockResolvedValue([mockTask]);
 
       // Act
       const result = await service.create(createDto);
@@ -328,7 +328,7 @@ describe('TasksService', () => {
     it('should update task', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockTask]) // findOne check
@@ -343,7 +343,7 @@ describe('TasksService', () => {
 
     it('should throw NotFoundException when task not found', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.update('nonexistent', updateDto)).rejects.toThrow(NotFoundException);
@@ -353,7 +353,7 @@ describe('TasksService', () => {
       // Arrange
       const updateWithParent = { parentTaskId: 'task-parent' };
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockTask]) // findOne (task exists)
@@ -370,7 +370,7 @@ describe('TasksService', () => {
 
     it('should throw BadRequestException if task is its own parent', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockTask]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockTask]);
 
       // Act & Assert
       await expect(service.update('task-1', { parentTaskId: 'task-1' })).rejects.toThrow(
@@ -384,7 +384,7 @@ describe('TasksService', () => {
     it('should throw BadRequestException on circular reference', async () => {
       // Arrange: task-1 -> task-2 -> task-3, trying to set task-1's parent to task-3
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockTask]) // findOne (task exists)
@@ -404,7 +404,7 @@ describe('TasksService', () => {
     it('should throw NotFoundException when new parent not found', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockTask]) // task exists
@@ -418,11 +418,11 @@ describe('TasksService', () => {
 
     it('should throw ConflictException on duplicate name', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockTask]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockTask]);
 
       const duplicateError: any = new Error('Duplicate');
       duplicateError.code = '23505';
-      mockDbService.getDb().update().set().where.mockRejectedValue(duplicateError);
+      mockDbService.db.update().set().where.mockRejectedValue(duplicateError);
 
       // Act & Assert
       await expect(service.update('task-1', { name: 'Duplicate Name' })).rejects.toThrow(
@@ -433,7 +433,7 @@ describe('TasksService', () => {
     it('should allow removing parent (set to null)', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockChildTask])
@@ -451,13 +451,13 @@ describe('TasksService', () => {
     it('should delete task with no children', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockTask]) // findOne
         .mockResolvedValueOnce([{ count: 0 }]); // no children
 
-      mockDbService.getDb().delete = vi.fn().mockReturnValue({
+      mockDbService.db.delete = vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue(undefined),
       });
 
@@ -465,12 +465,12 @@ describe('TasksService', () => {
       await service.remove('task-1');
 
       // Assert
-      expect(mockDbService.getDb().delete).toHaveBeenCalled();
+      expect(mockDbService.db.delete).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when task not found', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.remove('nonexistent')).rejects.toThrow(NotFoundException);
@@ -479,7 +479,7 @@ describe('TasksService', () => {
     it('should throw BadRequestException when task has children', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockTask]) // task exists
@@ -495,13 +495,13 @@ describe('TasksService', () => {
     it('should check for children before deleting', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockTask])
         .mockResolvedValueOnce([{ count: 0 }]);
 
-      mockDbService.getDb().delete = vi.fn().mockReturnValue({
+      mockDbService.db.delete = vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue(undefined),
       });
 
@@ -509,7 +509,7 @@ describe('TasksService', () => {
       await service.remove('task-1');
 
       // Assert: Should have checked for children
-      expect(mockDbService.getDb().select).toHaveBeenCalledTimes(2);
+      expect(mockDbService.db.select).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -517,7 +517,7 @@ describe('TasksService', () => {
     it('should not throw when no circular reference exists', async () => {
       // Arrange: Linear chain task-1 -> task-2 -> task-3
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockTask]) // task exists
@@ -536,7 +536,7 @@ describe('TasksService', () => {
       // Arrange: task-A -> task-B -> task-C, trying to set task-C's parent to task-A
       // This creates: task-A -> task-B -> task-C -> task-A (circular)
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ id: 'task-C', parentTaskId: 'task-B' }]) // task exists
@@ -555,7 +555,7 @@ describe('TasksService', () => {
       // For a true cycle: task-A (parent: task-C) -> task-B (parent: task-A) -> task-C
       // Trying to update task-A's parent to task-B would create cycle
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ id: 'task-A', parentTaskId: null }]) // task exists

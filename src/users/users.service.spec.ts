@@ -94,7 +94,7 @@ describe('UsersService', () => {
     it('should return paginated list of users', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }]) // count query
@@ -112,7 +112,7 @@ describe('UsersService', () => {
     it('should filter by search query (name)', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -122,13 +122,13 @@ describe('UsersService', () => {
       await service.findAll(TEST_TENANT_ID, { page: 1, limit: 20, q: 'Test' });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by search query (email)', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -138,13 +138,13 @@ describe('UsersService', () => {
       await service.findAll(TEST_TENANT_ID, { page: 1, limit: 20, q: 'user@example.com' });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by role', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -154,13 +154,13 @@ describe('UsersService', () => {
       await service.findAll(TEST_TENANT_ID, { page: 1, limit: 20, role: 'employee' });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by status', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -170,13 +170,13 @@ describe('UsersService', () => {
       await service.findAll(TEST_TENANT_ID, { page: 1, limit: 20, status: 'active' });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by manager (direct reports)', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -186,13 +186,13 @@ describe('UsersService', () => {
       await service.findAll(TEST_TENANT_ID, { page: 1, limit: 20, managerId: 'manager-1' });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should sort by name', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -202,13 +202,13 @@ describe('UsersService', () => {
       await service.findAll(TEST_TENANT_ID, { page: 1, limit: 20, sort: 'name:asc' });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should handle pagination', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 50 }])
@@ -224,7 +224,7 @@ describe('UsersService', () => {
     it('should enforce tenant isolation', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 0 }])
@@ -241,7 +241,7 @@ describe('UsersService', () => {
   describe('findOne', () => {
     it('should return user by id', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockUserWithJoins]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockUserWithJoins]);
 
       // Act
       const result = await service.findOne(TEST_TENANT_ID, TEST_USER_ID);
@@ -253,7 +253,7 @@ describe('UsersService', () => {
 
     it('should throw NotFoundException when user not found', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.findOne(TEST_TENANT_ID, 'nonexistent')).rejects.toThrow(
@@ -266,7 +266,7 @@ describe('UsersService', () => {
 
     it('should enforce tenant isolation', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.findOne('different-tenant', TEST_USER_ID)).rejects.toThrow(
@@ -276,7 +276,7 @@ describe('UsersService', () => {
 
     it('should include profile data', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockUserWithJoins]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockUserWithJoins]);
 
       // Act
       const result = await service.findOne(TEST_TENANT_ID, TEST_USER_ID);
@@ -297,13 +297,13 @@ describe('UsersService', () => {
 
     it('should create new user', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // no existing user
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]); // no existing user
       mockDbService
-        .getDb()
+        .db
         .insert()
         .values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
+      mockDbService.db.insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
 
       // Act
       const result = await service.create(TEST_TENANT_ID, createDto, TEST_USER_ID);
@@ -315,13 +315,13 @@ describe('UsersService', () => {
     it('should invite existing user to tenant', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockUser]) // existing user
         .mockResolvedValueOnce([]); // no existing membership
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
+      mockDbService.db.insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
 
       // Act
       const result = await service.create(TEST_TENANT_ID, createDto, TEST_USER_ID);
@@ -333,7 +333,7 @@ describe('UsersService', () => {
     it('should throw ConflictException if user already member', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockUser]) // existing user
@@ -357,16 +357,16 @@ describe('UsersService', () => {
           managerUserId: 'manager-1',
         },
       };
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // no existing user
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]); // no existing user
       mockDbService
-        .getDb()
+        .db
         .insert()
         .values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockMembership]); // validateManager: manager exists
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // validateManager: no circular ref
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([mockProfile]); // insert profile
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
+      mockDbService.db.insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockMembership]); // validateManager: manager exists
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]); // validateManager: no circular ref
+      mockDbService.db.insert().values.mockResolvedValueOnce([mockProfile]); // insert profile
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
 
       // Act
       const result = await service.create(TEST_TENANT_ID, dtoWithProfile, TEST_USER_ID);
@@ -381,13 +381,13 @@ describe('UsersService', () => {
         ...createDto,
         profile: { managerUserId: 'nonexistent' },
       };
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // no existing user
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]); // no existing user
       mockDbService
-        .getDb()
+        .db
         .insert()
         .values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // validateManager: manager not found
+      mockDbService.db.insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]); // validateManager: manager not found
 
       // Act & Assert
       await expect(service.create(TEST_TENANT_ID, dtoWithProfile, TEST_USER_ID)).rejects.toThrow(
@@ -398,17 +398,17 @@ describe('UsersService', () => {
     it('should create invitation when sendInvite is true', async () => {
       // Arrange
       const dtoWithInvite = { ...createDto, sendInvite: true };
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // no existing user
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]); // no existing user
       mockDbService
-        .getDb()
+        .db
         .insert()
         .values.mockResolvedValueOnce([{ id: 'user-2', ...mockUser }]); // insert user
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
+      mockDbService.db.insert().values.mockResolvedValueOnce([mockMembership]); // insert membership
       mockDbService
-        .getDb()
+        .db
         .insert()
         .values.mockResolvedValueOnce([{ token: 'abc123' }]); // insert invitation
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
 
       const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -429,10 +429,10 @@ describe('UsersService', () => {
 
     it('should update user', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockMembership]); // verify exists
-      mockDbService.getDb().update().set.mockResolvedValueOnce([]); // update user
-      mockDbService.getDb().update().set.mockResolvedValueOnce([]); // update membership
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockMembership]); // verify exists
+      mockDbService.db.update().set.mockResolvedValueOnce([]); // update user
+      mockDbService.db.update().set.mockResolvedValueOnce([]); // update membership
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
 
       // Act
       const result = await service.update(TEST_TENANT_ID, TEST_USER_ID, updateDto, 'admin-1');
@@ -443,7 +443,7 @@ describe('UsersService', () => {
 
     it('should throw NotFoundException when user not found', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(
@@ -453,7 +453,7 @@ describe('UsersService', () => {
 
     it('should throw ForbiddenException on self role change', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockMembership]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockMembership]);
 
       // Act & Assert
       await expect(
@@ -467,10 +467,10 @@ describe('UsersService', () => {
     it('should update user profile', async () => {
       // Arrange
       const updateWithProfile = { profile: { jobTitle: 'Senior Developer' } };
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockMembership]); // verify exists
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockProfile]); // profile exists
-      mockDbService.getDb().update().set.mockResolvedValueOnce([]); // update profile
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockMembership]); // verify exists
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockProfile]); // profile exists
+      mockDbService.db.update().set.mockResolvedValueOnce([]); // update profile
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
 
       // Act
       const result = await service.update(
@@ -487,10 +487,10 @@ describe('UsersService', () => {
     it('should create profile if not exists', async () => {
       // Arrange
       const updateWithProfile = { profile: { jobTitle: 'Developer' } };
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockMembership]); // verify exists
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // profile not exists
-      mockDbService.getDb().insert().values.mockResolvedValueOnce([mockProfile]); // create profile
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockMembership]); // verify exists
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]); // profile not exists
+      mockDbService.db.insert().values.mockResolvedValueOnce([mockProfile]); // create profile
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockUserWithJoins]); // findOne
 
       // Act
       const result = await service.update(
@@ -509,18 +509,18 @@ describe('UsersService', () => {
     it('should deactivate user', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockMembership]) // verify exists
         .mockResolvedValueOnce([{ role: 'admin' }]); // current user role
-      mockDbService.getDb().update().set.mockResolvedValue([]);
+      mockDbService.db.update().set.mockResolvedValue([]);
 
       // Act
       await service.delete(TEST_TENANT_ID, 'user-2', TEST_USER_ID);
 
       // Assert
-      expect(mockDbService.getDb().update().set).toHaveBeenCalled();
+      expect(mockDbService.db.update().set).toHaveBeenCalled();
     });
 
     it('should throw ForbiddenException on self-deactivation', async () => {
@@ -535,7 +535,7 @@ describe('UsersService', () => {
 
     it('should throw NotFoundException when user not found', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.delete(TEST_TENANT_ID, 'nonexistent', 'admin-1')).rejects.toThrow(
@@ -546,25 +546,25 @@ describe('UsersService', () => {
     it('should allow manager to deactivate direct report', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockMembership]) // verify exists
         .mockResolvedValueOnce([{ role: 'manager' }]) // current user is manager
         .mockResolvedValueOnce([mockProfile]); // target is direct report
-      mockDbService.getDb().update().set.mockResolvedValue([]);
+      mockDbService.db.update().set.mockResolvedValue([]);
 
       // Act
       await service.delete(TEST_TENANT_ID, TEST_USER_ID, 'manager-1');
 
       // Assert
-      expect(mockDbService.getDb().update().set).toHaveBeenCalled();
+      expect(mockDbService.db.update().set).toHaveBeenCalled();
     });
 
     it('should throw ForbiddenException if manager tries to deactivate non-direct report', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([mockMembership]) // verify exists
@@ -586,23 +586,23 @@ describe('UsersService', () => {
       // Arrange
       const disabledMembership = { ...mockMembership, status: 'disabled' };
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([disabledMembership]) // verify exists and disabled
         .mockResolvedValueOnce([{ role: 'admin' }]); // current user role
-      mockDbService.getDb().update().set.mockResolvedValue([]);
+      mockDbService.db.update().set.mockResolvedValue([]);
 
       // Act
       await service.reactivate(TEST_TENANT_ID, TEST_USER_ID, 'admin-1');
 
       // Assert
-      expect(mockDbService.getDb().update().set).toHaveBeenCalled();
+      expect(mockDbService.db.update().set).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when user not found', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.reactivate(TEST_TENANT_ID, 'nonexistent', 'admin-1')).rejects.toThrow(
@@ -612,7 +612,7 @@ describe('UsersService', () => {
 
     it('should throw BadRequestException if user already active', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockMembership]); // status: active
+      mockDbService.db.select().from().where.mockResolvedValue([mockMembership]); // status: active
 
       // Act & Assert
       await expect(service.reactivate(TEST_TENANT_ID, TEST_USER_ID, 'admin-1')).rejects.toThrow(
@@ -627,26 +627,26 @@ describe('UsersService', () => {
       // Arrange
       const disabledMembership = { ...mockMembership, status: 'disabled' };
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([disabledMembership]) // verify exists and disabled
         .mockResolvedValueOnce([{ role: 'manager' }]) // current user is manager
         .mockResolvedValueOnce([mockProfile]); // target is direct report
-      mockDbService.getDb().update().set.mockResolvedValue([]);
+      mockDbService.db.update().set.mockResolvedValue([]);
 
       // Act
       await service.reactivate(TEST_TENANT_ID, TEST_USER_ID, 'manager-1');
 
       // Assert
-      expect(mockDbService.getDb().update().set).toHaveBeenCalled();
+      expect(mockDbService.db.update().set).toHaveBeenCalled();
     });
 
     it('should throw ForbiddenException if manager tries to reactivate non-direct report', async () => {
       // Arrange
       const disabledMembership = { ...mockMembership, status: 'disabled' };
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([disabledMembership]) // verify exists
@@ -663,19 +663,19 @@ describe('UsersService', () => {
   describe('validateManager', () => {
     it('should validate manager exists', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockMembership]); // manager exists
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([]); // no circular ref
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockMembership]); // manager exists
+      mockDbService.db.select().from().where.mockResolvedValueOnce([]); // no circular ref
 
       // Act
       await (service as any).validateManager(TEST_TENANT_ID, 'manager-1', TEST_USER_ID);
 
       // Assert - no exception thrown
-      expect(mockDbService.getDb().select).toHaveBeenCalled();
+      expect(mockDbService.db.select).toHaveBeenCalled();
     });
 
     it('should throw BadRequestException if manager not found', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(
@@ -688,7 +688,7 @@ describe('UsersService', () => {
 
     it('should detect circular manager reference (direct)', async () => {
       // Arrange: user trying to set manager to themselves
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockMembership]); // manager exists
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockMembership]); // manager exists
 
       // Act & Assert
       await expect(
@@ -701,14 +701,14 @@ describe('UsersService', () => {
 
     it('should detect circular manager reference (indirect)', async () => {
       // Arrange: A -> B -> C, trying to set C's manager to A (creates cycle)
-      mockDbService.getDb().select().from().where.mockResolvedValueOnce([mockMembership]); // A exists
+      mockDbService.db.select().from().where.mockResolvedValueOnce([mockMembership]); // A exists
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ managerUserId: 'B' }]); // A's manager is B
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ managerUserId: 'C' }]); // B's manager is C

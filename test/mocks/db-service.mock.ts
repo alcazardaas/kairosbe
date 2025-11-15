@@ -25,7 +25,7 @@ export function createMockDbService() {
 
   return {
     db: mockDrizzle,
-    getDb: vi.fn().mockReturnValue(mockDrizzle),
+    getDb: vi.fn(() => mockDrizzle),
   };
 }
 
@@ -43,6 +43,6 @@ export function createMockDbServiceWithTransaction() {
 
   return {
     db: mockDrizzle,
-    getDb: vi.fn().mockReturnValue(mockDrizzle),
+    getDb: vi.fn(() => mockDrizzle),
   };
 }

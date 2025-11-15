@@ -59,7 +59,7 @@ describe('HolidaysService', () => {
     it('should return paginated list of holidays', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -81,7 +81,7 @@ describe('HolidaysService', () => {
     it('should filter by tenantId', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -91,14 +91,14 @@ describe('HolidaysService', () => {
       await service.findAll({ tenantId: TEST_TENANT_ID, page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by null tenantId for global holidays', async () => {
       // Arrange
       const globalHoliday = { ...mockHoliday, tenant_id: null };
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -108,13 +108,13 @@ describe('HolidaysService', () => {
       await service.findAll({ tenantId: null, page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by countryCode', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -124,13 +124,13 @@ describe('HolidaysService', () => {
       await service.findAll({ countryCode: 'US', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by type', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -140,13 +140,13 @@ describe('HolidaysService', () => {
       await service.findAll({ type: 'national', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by year', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -156,13 +156,13 @@ describe('HolidaysService', () => {
       await service.findAll({ year: 2025, page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by startDate', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -172,13 +172,13 @@ describe('HolidaysService', () => {
       await service.findAll({ startDate: '2025-01-01', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by endDate', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -188,13 +188,13 @@ describe('HolidaysService', () => {
       await service.findAll({ endDate: '2025-12-31', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by date range', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -209,13 +209,13 @@ describe('HolidaysService', () => {
       });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter upcoming holidays', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -225,13 +225,13 @@ describe('HolidaysService', () => {
       await service.findAll({ upcoming: true, page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should filter by search term', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -241,13 +241,13 @@ describe('HolidaysService', () => {
       await service.findAll({ search: 'Independence', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should apply default 12-month filter when no date filters', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -257,13 +257,13 @@ describe('HolidaysService', () => {
       await service.findAll({ page: 1, limit: 20 });
 
       // Assert: Should add date range for next 12 months
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should not apply default filter when year is specified', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -273,13 +273,13 @@ describe('HolidaysService', () => {
       await service.findAll({ year: 2025, page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should sort by date ascending', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -289,13 +289,13 @@ describe('HolidaysService', () => {
       await service.findAll({ sort: 'date:asc', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where().orderBy).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where().orderBy).toHaveBeenCalled();
     });
 
     it('should sort by date descending', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -305,13 +305,13 @@ describe('HolidaysService', () => {
       await service.findAll({ sort: 'date:desc', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where().orderBy).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where().orderBy).toHaveBeenCalled();
     });
 
     it('should sort by name', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -321,13 +321,13 @@ describe('HolidaysService', () => {
       await service.findAll({ sort: 'name:asc', page: 1, limit: 20 });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where().orderBy).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where().orderBy).toHaveBeenCalled();
     });
 
     it('should handle pagination', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 50 }])
@@ -339,14 +339,14 @@ describe('HolidaysService', () => {
       // Assert
       expect(result.page).toBe(2);
       expect(
-        mockDbService.getDb().select().from().where().orderBy().limit().offset,
+        mockDbService.db.select().from().where().orderBy().limit().offset,
       ).toHaveBeenCalledWith(20);
     });
 
     it('should return empty array when no results', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 0 }])
@@ -363,7 +363,7 @@ describe('HolidaysService', () => {
     it('should combine multiple filters', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -381,13 +381,13 @@ describe('HolidaysService', () => {
       });
 
       // Assert
-      expect(mockDbService.getDb().select().from().where).toHaveBeenCalled();
+      expect(mockDbService.db.select().from().where).toHaveBeenCalled();
     });
 
     it('should transform snake_case to camelCase', async () => {
       // Arrange
       mockDbService
-        .getDb()
+        .db
         .select()
         .from()
         .where.mockResolvedValueOnce([{ count: 1 }])
@@ -407,7 +407,7 @@ describe('HolidaysService', () => {
   describe('findOne', () => {
     it('should return holiday by id', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockHoliday]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockHoliday]);
 
       // Act
       const result = await service.findOne('holiday-1');
@@ -418,7 +418,7 @@ describe('HolidaysService', () => {
 
     it('should throw NotFoundException when not found', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
@@ -429,7 +429,7 @@ describe('HolidaysService', () => {
 
     it('should transform snake_case to camelCase', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockHoliday]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockHoliday]);
 
       // Act
       const result = await service.findOne('holiday-1');
@@ -464,7 +464,7 @@ describe('HolidaysService', () => {
         is_recurring: true,
         description: 'Christmas Day',
       };
-      mockDbService.getDb().insert().values.mockResolvedValue([newHoliday]);
+      mockDbService.db.insert().values.mockResolvedValue([newHoliday]);
 
       // Act
       const result = await service.create(createDto);
@@ -478,7 +478,7 @@ describe('HolidaysService', () => {
       // Arrange
       const globalDto = { ...createDto, tenantId: undefined };
       const globalHoliday = { ...mockHoliday, tenant_id: null };
-      mockDbService.getDb().insert().values.mockResolvedValue([globalHoliday]);
+      mockDbService.db.insert().values.mockResolvedValue([globalHoliday]);
 
       // Act
       const result = await service.create(globalDto);
@@ -491,7 +491,7 @@ describe('HolidaysService', () => {
       // Arrange
       const nonRecurringDto = { ...createDto, isRecurring: false };
       const nonRecurringHoliday = { ...mockHoliday, is_recurring: false };
-      mockDbService.getDb().insert().values.mockResolvedValue([nonRecurringHoliday]);
+      mockDbService.db.insert().values.mockResolvedValue([nonRecurringHoliday]);
 
       // Act
       const result = await service.create(nonRecurringDto);
@@ -504,7 +504,7 @@ describe('HolidaysService', () => {
       // Arrange
       const regionalDto = { ...createDto, type: 'regional' as const };
       const regionalHoliday = { ...mockHoliday, type: 'regional' };
-      mockDbService.getDb().insert().values.mockResolvedValue([regionalHoliday]);
+      mockDbService.db.insert().values.mockResolvedValue([regionalHoliday]);
 
       // Act
       const result = await service.create(regionalDto);
@@ -517,7 +517,7 @@ describe('HolidaysService', () => {
       // Arrange
       const companyDto = { ...createDto, type: 'company' as const };
       const companyHoliday = { ...mockHoliday, type: 'company' };
-      mockDbService.getDb().insert().values.mockResolvedValue([companyHoliday]);
+      mockDbService.db.insert().values.mockResolvedValue([companyHoliday]);
 
       // Act
       const result = await service.create(companyDto);
@@ -528,18 +528,18 @@ describe('HolidaysService', () => {
 
     it('should convert date string to Date object', async () => {
       // Arrange
-      mockDbService.getDb().insert().values.mockResolvedValue([mockHoliday]);
+      mockDbService.db.insert().values.mockResolvedValue([mockHoliday]);
 
       // Act
       await service.create(createDto);
 
       // Assert
-      expect(mockDbService.getDb().insert().values).toHaveBeenCalled();
+      expect(mockDbService.db.insert().values).toHaveBeenCalled();
     });
 
     it('should transform snake_case to camelCase in result', async () => {
       // Arrange
-      mockDbService.getDb().insert().values.mockResolvedValue([mockHoliday]);
+      mockDbService.db.insert().values.mockResolvedValue([mockHoliday]);
 
       // Act
       const result = await service.create(createDto);
@@ -561,9 +561,9 @@ describe('HolidaysService', () => {
 
     it('should update holiday', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockHoliday]); // findOne
+      mockDbService.db.select().from().where.mockResolvedValue([mockHoliday]); // findOne
       const updated = { ...mockHoliday, name: 'Updated Holiday' };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update('holiday-1', updateDto);
@@ -574,7 +574,7 @@ describe('HolidaysService', () => {
 
     it('should throw NotFoundException when holiday does not exist', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.update('nonexistent', updateDto)).rejects.toThrow(NotFoundException);
@@ -582,9 +582,9 @@ describe('HolidaysService', () => {
 
     it('should update only provided fields', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockHoliday]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockHoliday]);
       const updated = { ...mockHoliday, name: 'New Name' };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update('holiday-1', { name: 'New Name' });
@@ -595,22 +595,22 @@ describe('HolidaysService', () => {
 
     it('should update date only', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockHoliday]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockHoliday]);
       const updated = { ...mockHoliday, date: new Date('2025-12-26') };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       await service.update('holiday-1', { date: '2025-12-26' });
 
       // Assert
-      expect(mockDbService.getDb().update().set).toHaveBeenCalled();
+      expect(mockDbService.db.update().set).toHaveBeenCalled();
     });
 
     it('should update type only', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockHoliday]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockHoliday]);
       const updated = { ...mockHoliday, type: 'company' };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update('holiday-1', { type: 'company' });
@@ -621,9 +621,9 @@ describe('HolidaysService', () => {
 
     it('should update isRecurring only', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockHoliday]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockHoliday]);
       const updated = { ...mockHoliday, is_recurring: false };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update('holiday-1', { isRecurring: false });
@@ -634,9 +634,9 @@ describe('HolidaysService', () => {
 
     it('should update countryCode', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockHoliday]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockHoliday]);
       const updated = { ...mockHoliday, country_code: 'CA' };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update('holiday-1', { countryCode: 'CA' });
@@ -647,9 +647,9 @@ describe('HolidaysService', () => {
 
     it('should update description', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockHoliday]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockHoliday]);
       const updated = { ...mockHoliday, description: 'New description' };
-      mockDbService.getDb().update().set.mockResolvedValue([updated]);
+      mockDbService.db.update().set.mockResolvedValue([updated]);
 
       // Act
       const result = await service.update('holiday-1', { description: 'New description' });
@@ -660,8 +660,8 @@ describe('HolidaysService', () => {
 
     it('should transform snake_case to camelCase in result', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockHoliday]);
-      mockDbService.getDb().update().set.mockResolvedValue([mockHoliday]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockHoliday]);
+      mockDbService.db.update().set.mockResolvedValue([mockHoliday]);
 
       // Act
       const result = await service.update('holiday-1', updateDto);
@@ -676,19 +676,19 @@ describe('HolidaysService', () => {
   describe('remove', () => {
     it('should delete holiday', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([mockHoliday]); // findOne
-      mockDbService.getDb().delete().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([mockHoliday]); // findOne
+      mockDbService.db.delete().where.mockResolvedValue([]);
 
       // Act
       await service.remove('holiday-1');
 
       // Assert
-      expect(mockDbService.getDb().delete().where).toHaveBeenCalled();
+      expect(mockDbService.db.delete().where).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException when holiday does not exist', async () => {
       // Arrange
-      mockDbService.getDb().select().from().where.mockResolvedValue([]);
+      mockDbService.db.select().from().where.mockResolvedValue([]);
 
       // Act & Assert
       await expect(service.remove('nonexistent')).rejects.toThrow(NotFoundException);
@@ -696,9 +696,9 @@ describe('HolidaysService', () => {
 
     it('should call findOne before delete', async () => {
       // Arrange
-      const selectMock = mockDbService.getDb().select().from().where;
+      const selectMock = mockDbService.db.select().from().where;
       selectMock.mockResolvedValue([mockHoliday]);
-      mockDbService.getDb().delete().where.mockResolvedValue([]);
+      mockDbService.db.delete().where.mockResolvedValue([]);
 
       // Act
       await service.remove('holiday-1');
